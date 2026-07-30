@@ -151,6 +151,45 @@ def main() -> int:
           + (f" — THIẾU LINK: {khong_link}" if khong_link else "")
           + ("" if sp else " — CHƯA CÓ TIN THẬT NÀO, chạy data/crawler.py"))
 
+    # LUẬT: khớp từ khoá theo RANH GIỚI TỪ. Bản cũ dùng substring nên "AI" trúng
+    # "tại/trải/bài" — tin tuyển nhân sự leo lên đầu khi tìm "thực tập AI".
+    from core.tools import (MAC_DINH_TIN, TRAN_TIN, _khop_tu, _kd, dispatch,
+                            xep_hang)
+    bay = [(t, v) for t, v in [("ai", "nhat ban tai viet nam"), ("ai", "trai nghiem"),
+                               ("ai", "cac bai dang"), ("data", "du lieu cap nhat")]
+           if _khop_tu(t, _kd(v))]
+    that = [(t, v) for t, v in [("ai", "ky su AI"), ("ai", "AI Engineer"),
+                                ("python", "thanh thao Python")]
+            if not _khop_tu(t, _kd(v))]
+    ok = not bay and not that
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} từ khoá khớp theo ranh giới từ"
+          + (f" — TRÚNG NHẦM: {bay}" if bay else "")
+          + (f" — TRƯỢT: {that}" if that else ""))
+
+    # LUẬT: hồ sơ CHỈ xếp hạng, KHÔNG loại tin. Và tin khớp kỹ năng phải đứng trên
+    # tin không khớp — nếu không thì upload CV xong vẫn ra tin chẳng liên quan.
+    HS = {"nam_hoc": 3, "nganh": "Công nghệ thông tin", "gpa": 3.42,
+          "ky_nang": ["Python", "SQL", "pandas", "LLM API (OpenAI, Gemini)"]}
+    co_hs = xep_hang(nam_hoc=3, profile=HS)
+    khong_hs = xep_hang(nam_hoc=3)
+    hang = [i for i, x in enumerate(co_hs) if x["khop_ky_nang"] or x["khop_nganh"]]
+    hang_khong = [i for i, x in enumerate(co_hs) if not (x["khop_ky_nang"] or x["khop_nganh"])]
+    ok = (len(co_hs) == len(khong_hs)                      # không được loại bớt tin nào
+          and (not hang or not hang_khong or max(hang) < min(hang_khong)))
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} hồ sơ chỉ xếp hạng, không loại tin "
+          f"({len(co_hs)} tin cả hai chiều; {len(hang)} tin khớp kỹ năng/ngành đứng trước)")
+
+    # LUẬT: cắt bớt thì phải nói ra. Im lặng hiện 8/14 là giấu 6 cơ hội.
+    _, ev = dispatch("tim_tin", {"gioi_han": 3}, HS, "mock")
+    tong = len(xep_hang(profile=HS))
+    ok = (ev["con_chua_hien"] == max(0, tong - 3) and ev["tong"] == tong
+          and len(tim_tin(gioi_han=9999, profile=HS)) <= TRAN_TIN)
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} báo số tin bị cắt (hiện 3/{tong}, "
+          f"còn {ev['con_chua_hien']}; trần cứng {TRAN_TIN})")
+
     # Ba test dưới bắn vào logic lọc/xếp hạng → chạy trên fixture cho tất định,
     # vì tin thật đổi theo mỗi lần crawl thì test sẽ lúc đạt lúc trượt.
     hn = tim_tin(thanh_pho="Hà Nội", gioi_han=8, gom_fixture=True)
@@ -198,11 +237,22 @@ def main() -> int:
     ok = "Python" in hs["ky_nang"] and "SQL" in hs["ky_nang"]
     loi += not ok
     print(f"  {'✓' if ok else '✗'} ky_nang = {hs['ky_nang']}")
-    # luật 3: chỉ 6 field + 2 field kỹ thuật, không kèm gì khác từ CV
+    # luật 3: chỉ 7 field + 2 field kỹ thuật, không kèm gì khác từ CV
     la = set(hs) - {"nam_hoc", "nganh", "gpa", "thanh_pho", "ky_nang", "project",
-                    "_redact", "_so_ky_tu"}
+                    "co_github", "_redact", "_so_ky_tu"}
     loi += bool(la)
-    print(f"  {'✓' if not la else '✗ có field lạ: ' + str(la)} chỉ trả 6 field hồ sơ")
+    print(f"  {'✓' if not la else '✗ có field lạ: ' + str(la)} chỉ trả 7 field hồ sơ")
+
+    # CV có GitHub thì hồ sơ phải ghi nhận — nhiều tin ghi "ưu tiên có GitHub/project",
+    # trước đây field này không tồn tại nên người có GitHub vẫn bị báo là thiếu.
+    # Nhưng ghi nhận bằng cờ true/false, TUYỆT ĐỐI không được kéo theo đường link.
+    co_link = [k for k, v in hs.items()
+               if not k.startswith("_") and re.search(r"https?://|github\.com|\.vn/|\.io/",
+                                                      str(v), re.I)]
+    ok = hs.get("co_github") is True and not co_link
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} co_github = {hs.get('co_github')!r} và không field nào "
+          f"chứa link" + (f" — RÒ LINK Ở: {co_link}" if co_link else ""))
 
     # ── upload .pdf ───────────────────────────────────────────────────────────
     print("\nupload .pdf:")

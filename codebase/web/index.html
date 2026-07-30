@@ -254,9 +254,13 @@ const capNhatTag = () => {
   t.textContent = real ? 'AI THẬT' : 'MOCK — chưa gọi AI';
   t.className = 'tag' + (real?'':' warnt');
 };
+/* Field lấy từ CV mà form không có ô nhập (project, co_github). Trước đây hoSo()
+   chỉ đọc các ô trong form nên mấy field này rơi mất ngay khi bắt đầu chat —
+   học viên có GitHub/project trong CV vẫn bị đối chiếu là "không nêu". */
+let CV_THEM = {};
 function hoSo(){
   const b = DATA.profiles.find(x=>x.id===$('#profSel').value) || {};
-  return {...b,
+  return {...b, ...CV_THEM,
     nam_hoc: $('#fNam').value===''?null:+$('#fNam').value,
     gpa: $('#fGpa').value===''?null:+$('#fGpa').value,
     nganh: $('#fNganh').value||null, thanh_pho: $('#fCity').value||null,
@@ -287,7 +291,7 @@ async function gui(text){
     LICH_SU = d.lich_su;
     let extra = '';
     for(const ev of d.events||[]){
-      if(ev.loai==='tim_tin') extra += veDanhSach(ev.data);
+      if(ev.loai==='tim_tin') extra += veDanhSach(ev.data, ev.con_chua_hien, ev.tong);
       if(ev.loai==='doi_chieu'){ ghimTin(ev.data.tin); extra += veVerdict(ev.data.ket_qua, ev.data.tin); }
       if(ev.loai==='loi') extra += `<div class="err">${esc(ev.data)}</div>`;
     }
@@ -318,8 +322,13 @@ function veLink(o){
      title="${esc(gt)}"
      style="font-size:12px;text-decoration:none${chua?';opacity:.8':''}">${n.ic} ${esc(n.txt)}${dau}</a>`;
 }
-function veDanhSach(ds){
+function veDanhSach(ds, conLai, tong){
   if(!ds?.length) return `<div class="note" style="margin-top:8px">Không có tin nào khớp trong thư viện.</div>`;
+  /* Cắt bớt thì phải nói ra. Im lặng hiện 8/14 tin là âm thầm giấu 6 cơ hội mà
+     học viên không có cách nào biết. */
+  const con = conLai>0
+    ? `<div class="note" style="margin-top:6px">Đang hiện ${ds.length}/${tong} tin khớp —
+       còn <b>${conLai}</b> tin nữa. Nhắn "xem thêm" để mình hiện tiếp.</div>` : '';
   return `<div class="ops">` + ds.map(o=>`<div class="op">
       <span class="k">${o.loai==='hoc_bong'?'học bổng':'thực tập'}</span>
       <div class="t"><b>${esc(o.title)}</b>
@@ -327,7 +336,7 @@ function veDanhSach(ds){
       <div style="display:flex;gap:6px;flex:none;align-items:center">
         ${veLink(o)}
         <button class="btn" data-doi="${o.opp_id}">Đối chiếu</button>
-      </div></div>`).join('') + `</div>`;
+      </div></div>`).join('') + `</div>` + con;
 }
 function veVerdict(d, tin){
   const v = NHAN[d.verdict] || NHAN.thieu_thong_tin;
@@ -387,9 +396,12 @@ async function napCV(file){
   if(d.nganh) $('#fNganh').value = d.nganh;
   if(d.thanh_pho) $('#fCity').value = d.thanh_pho;
   if(d.ky_nang?.length) $('#fSkill').value = d.ky_nang.join(', ');
+  CV_THEM = {project: d.project ?? null, co_github: !!d.co_github};
   const an = Object.entries(d._redact||{}).map(([k,v])=>`${v} ${k}`).join(', ');
   const thieu = ['nam_hoc','gpa','nganh','thanh_pho'].filter(k=>d[k]==null||d[k]==='');
+  const them = [d.co_github?'có GitHub':null, d.project?'có project':null].filter(Boolean);
   $('#cvMsg').innerHTML = `<div class="ok">Đã lấy ${4-thieu.length}/4 field chính từ CV.
+    ${them.length?`Ghi nhận thêm: <b>${them.join(', ')}</b> (chỉ lưu có/không, không lưu link).`:''}
     ${an?`Đã ẩn trước khi gửi: ${esc(an)}.`:''}
     ${thieu.length?`<br>CV không ghi rõ: <b>${thieu.join(', ')}</b> — điền tay bên dưới, mình không đoán.`:''}</div>`;
 }
