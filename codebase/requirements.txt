@@ -1,2 +1,5 @@
 flask>=3.0
 requests>=2.31
+pypdf>=4.0      # đọc CV .pdf. Thiếu nó thì .txt/.md/.docx vẫn chạy, .pdf báo lỗi rõ ràng.
+beautifulsoup4>=4.12  # crawl HTML từ trang tuyển dụng
+lxml>=5.0             # parser XML nhanh hơn cho BeautifulSoup (RSS feed)

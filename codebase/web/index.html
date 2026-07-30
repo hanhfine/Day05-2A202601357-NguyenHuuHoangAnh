@@ -297,13 +297,37 @@ async function gui(text){
 }
 
 /* ── render ── */
+/* Nhãn nút phải nói đúng link dẫn tới ĐÂU. Link chỉ "sống" thì chưa đủ —
+   gắn nhãn "Xem tin" lên một trang chủ công ty là hứa sai với học viên.
+   Mức do crawler.py chấm sau khi bấm thử thật; url rỗng = link chết, ẩn nút. */
+const NHAN_LINK = {
+  tin:        {ic:'🔗', txt:'Xem tin',            gt:'Link tới đúng tin tuyển dụng'},
+  tuyen_dung: {ic:'🔗', txt:'Trang tuyển dụng',   gt:'Trang tuyển dụng của tổ chức — cần tự tìm tin trong đó'},
+  to_chuc:    {ic:'🏢', txt:'Trang tổ chức',      gt:'Chỉ có trang chủ tổ chức, không phải trang tin'},
+};
+function veLink(o){
+  if(!o.url) return `<span class="note" style="font-size:11px;opacity:.65" title="Máy đã bấm thử, trang không tồn tại">chưa có link</span>`;
+  const n = NHAN_LINK[o.url_loai] || NHAN_LINK.to_chuc;
+  /* Trang chặn bot (LinkedIn, TopCV...) nên máy không tự vào kiểm được. Link vẫn đưa,
+     nhưng phải nói rõ là chưa xác minh — im lặng cho qua là hứa điều mình không biết. */
+  const chua = o.link_xac_minh === false;
+  const dau  = chua ? ' <span style="opacity:.7">·chưa xác minh</span>' : '';
+  const gt   = chua ? `${n.gt}. Máy không tự mở kiểm được (trang chặn bot) — link chưa xác minh: ${o.url}`
+                    : `${n.gt}: ${o.url}`;
+  return `<a href="${esc(o.url)}" target="_blank" rel="noopener" class="btn"
+     title="${esc(gt)}"
+     style="font-size:12px;text-decoration:none${chua?';opacity:.8':''}">${n.ic} ${esc(n.txt)}${dau}</a>`;
+}
 function veDanhSach(ds){
   if(!ds?.length) return `<div class="note" style="margin-top:8px">Không có tin nào khớp trong thư viện.</div>`;
   return `<div class="ops">` + ds.map(o=>`<div class="op">
       <span class="k">${o.loai==='hoc_bong'?'học bổng':'thực tập'}</span>
       <div class="t"><b>${esc(o.title)}</b>
         <span>${esc(o.opp_id)} · ${esc(o.thanh_pho||'—')} · hạn ${esc(o.han_nop||'không nêu')} · ${esc(o.ghi_chu)}</span></div>
-      <button class="btn" data-doi="${o.opp_id}">Đối chiếu</button></div>`).join('') + `</div>`;
+      <div style="display:flex;gap:6px;flex:none;align-items:center">
+        ${veLink(o)}
+        <button class="btn" data-doi="${o.opp_id}">Đối chiếu</button>
+      </div></div>`).join('') + `</div>`;
 }
 function veVerdict(d, tin){
   const v = NHAN[d.verdict] || NHAN.thieu_thong_tin;

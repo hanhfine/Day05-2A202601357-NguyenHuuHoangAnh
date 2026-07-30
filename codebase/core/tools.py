@@ -51,13 +51,30 @@ def meta(raw: str) -> dict:
             "han_nop": _han_nop(dongs)}
 
 
+def la_fixture(t: dict) -> bool:
+    """Tin OPP-* là fixture kiểm thử do gen_corpus.py sinh — tổ chức bịa, không có link."""
+    return str(t.get("id", "")).startswith("OPP-")
+
+
 def tim_tin(tu_khoa: str | None = None, thanh_pho: str | None = None,
             loai: str | None = None, nam_hoc: int | None = None,
-            gioi_han: int = 5) -> list[dict]:
-    """Tìm trong corpus 40 tin giả local. Không gọi mạng, không crawl."""
+            gioi_han: int = 5, gom_fixture: bool = False) -> list[dict]:
+    """Tìm tin trong corpus local. Không gọi mạng, không crawl.
+
+    MẶC ĐỊNH BỎ TIN FIXTURE. Corpus trộn hai lớp: OPP-* là tin bịa để smoke_test/eval
+    bắn vào các chỗ khó, REAL-* là tin thật crawl về. Trước đây tìm gộp cả hai nên
+    40 tin fixture lấn hết 10 tin thật — học viên thấy toàn tin của "Sao Mai Tech",
+    "Đại Tín" (tên bịa), bấm vào không có link, và không có gì báo đó là tin giả.
+    Gửi họ đi ứng tuyển một tin không tồn tại là lỗi nặng hơn cả bịa yêu cầu.
+
+    `gom_fixture` chỉ dành cho smoke_test/eval — KHÔNG khai trong schema tool nên
+    model không bao giờ bật được nó.
+    """
     kq = []
     tk = [t for t in _kd(tu_khoa or "").split() if len(t) > 1]
     for t in tai_corpus():
+        if la_fixture(t) and not gom_fixture:
+            continue
         m = meta(t["raw_text"])
         if loai and t["kind"] != loai:
             continue
@@ -78,10 +95,16 @@ def tim_tin(tu_khoa: str | None = None, thanh_pho: str | None = None,
             ghi, diem = "năm học khớp", diem + 1
         else:
             ghi = f"tin ghi năm {'-'.join(map(str, m['nam']))} — vẫn nên xem"
+        # url/url_loai đã được crawler bấm thử; link chết ở đó đã bị xoá thành "".
+        # link_xac_minh=False nghĩa là trang chặn bot nên máy không tự vào kiểm được —
+        # link vẫn giữ, nhưng phải nói rõ chứ không được im lặng cho qua.
         kq.append({"opp_id": t["id"], "title": t["title"], "loai": t["kind"],
                    "thanh_pho": m["thanh_pho"], "gpa_yeu_cau": m["gpa_min"],
                    "han_nop": (m["han_nop"]["parsed"] or m["han_nop"]["raw"]),
-                   "ghi_chu": ghi, "_diem": diem})
+                   "ghi_chu": ghi, "url": t.get("url") or "",
+                   "url_loai": t.get("url_loai") or "",
+                   "link_xac_minh": str(t.get("_url_status", "")).startswith("ok"),
+                   "_diem": diem})
     kq.sort(key=lambda x: -x["_diem"])
     for x in kq:
         x.pop("_diem")
