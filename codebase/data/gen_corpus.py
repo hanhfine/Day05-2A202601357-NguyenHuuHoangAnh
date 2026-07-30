@@ -53,7 +53,7 @@ def tin_thuc_tap(i: int) -> dict:
                 else f"- Cam kết {random.randint(2, 4)} buổi/tuần tại văn phòng {noi}")
     dong.append(f"Hồ sơ: {random.choice(GIAY_TO)}.")
     dong.append(f"Hạn nhận hồ sơ: {d:02d}/0{random.choice([8, 9])}/2026.")
-    return {"id": f"OPP-{i:03d}", "kind": "thuc_tap",
+    return {"id": f"OPP-{i:03d}", "kind": "thuc_tap", "cap_do": ["intern"],
             "title": f"Thực tập sinh {vai} — {tc}",
             "_muc_tieu": "case thường (sinh tự động, seed=42)",
             "raw_text": "\n".join(dong)}
@@ -72,7 +72,9 @@ def tin_hoc_bong(i: int) -> dict:
             f"Hạn nộp: {d:02d}/0{random.choice([8, 9])}/2026."]
     if random.random() < 0.3:
         dong.insert(-1, f"Lưu ý: chỉ nhận hồ sơ bản cứng tại văn phòng {random.choice(NOI)}.")
-    return {"id": f"OPP-{i:03d}", "kind": "hoc_bong",
+    # `cap_do` rỗng: học bổng không có level intern/fresher/junior. Rỗng nghĩa là
+    # "tin không nêu" nên xep_hang() không bao giờ loại nó vì level — đúng ý.
+    return {"id": f"OPP-{i:03d}", "kind": "hoc_bong", "cap_do": [],
             "title": dong[0].strip("[]"),
             "_muc_tieu": "case thường (sinh tự động, seed=42)",
             "raw_text": "\n".join(dong)}

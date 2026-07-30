@@ -304,6 +304,9 @@ async function gui(text){
 /* Nhãn nút phải nói đúng link dẫn tới ĐÂU. Link chỉ "sống" thì chưa đủ —
    gắn nhãn "Xem tin" lên một trang chủ công ty là hứa sai với học viên.
    Mức do crawler.py chấm sau khi bấm thử thật; url rỗng = link chết, ẩn nút. */
+/* Badge loại cơ hội. Trước đây hardcode `loai==='hoc_bong' ? 'học bổng' : 'thực tập'`
+   nên tin viec_lam (fresher/junior) bị dán nhãn "thực tập" — sai với học viên. */
+const NHAN_LOAI = {thuc_tap:'thực tập', hoc_bong:'học bổng', viec_lam:'việc làm'};
 const NHAN_LINK = {
   tin:        {ic:'🔗', txt:'Xem tin',            gt:'Link tới đúng tin tuyển dụng'},
   tuyen_dung: {ic:'🔗', txt:'Trang tuyển dụng',   gt:'Trang tuyển dụng của tổ chức — cần tự tìm tin trong đó'},
@@ -336,10 +339,10 @@ function veDanhSach(ds, conLai, tong){
     ? `<div class="note" style="margin-top:8px">Không có tin nào khớp hẳn điều kiện bạn nêu.
        Dưới đây là ${ds.length} tin <b>gần đúng nhất</b> — mỗi tin ghi rõ chỗ lệch.</div>` : '';
   return dau + `<div class="ops">` + ds.map(o=>`<div class="op">
-      <span class="k">${o.loai==='hoc_bong'?'học bổng':'thực tập'}</span>
+      <span class="k">${NHAN_LOAI[o.loai] || 'thực tập'}</span>
       <div class="t"><b>${esc(o.title)}</b>
         ${o.thieu?.length?`<span class="why" style="display:block">⚠ gần đúng — ${esc(o.thieu.join('; '))}</span>`:''}
-        <span>${esc(o.opp_id)} · ${esc(o.thanh_pho||'—')} · hạn ${esc(o.han_nop||'không nêu')} · ${esc(o.ghi_chu)}</span></div>
+        <span>${esc(o.opp_id)} · ${esc(o.thanh_pho||'—')}${o.cap_do?.length?` · ${esc(o.cap_do.join('/'))}`:''} · hạn ${esc(o.han_nop||'không nêu')} · ${esc(o.ghi_chu)}</span></div>
       <div style="display:flex;gap:6px;flex:none;align-items:center">
         ${veLink(o)}
         <button class="btn" data-doi="${o.opp_id}">Đối chiếu</button>

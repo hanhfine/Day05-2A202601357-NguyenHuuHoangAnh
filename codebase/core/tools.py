@@ -130,6 +130,7 @@ MAC_DINH_TIN = 8
 
 def xep_hang(tu_khoa: str | None = None, thanh_pho: str | None = None,
              loai: str | None = None, nam_hoc: int | None = None,
+             cap_do: str | None = None,
              gom_fixture: bool = False, profile: dict | None = None) -> list[dict]:
     """Toàn bộ tin, đã xếp hạng, CHƯA cắt bớt. Mỗi tin kèm `thieu` = các điều kiện
     người dùng nêu mà tin KHÔNG đạt.
@@ -156,8 +157,28 @@ def xep_hang(tu_khoa: str | None = None, thanh_pho: str | None = None,
         van = _kd(t["title"] + " " + t["raw_text"])
         thieu = []
 
-        if loai and t["kind"] != loai:
-            thieu.append("học bổng" if loai == "hoc_bong" else "thực tập")
+        # RANH GIỚI THẬT CHỈ CÓ MỘT: học bổng vs việc (thực tập/fresher/junior).
+        # `thuc_tap` vs `viec_lam` thực chất là khác LEVEL, nên để `cap_do` lo. Ghi
+        # thiếu ở cả hai chỗ là phạt tin đa level HAI LẦN cho cùng một chuyện:
+        # REAL-014 "AI Engineer (Intern/Fresher level)" sẽ bị đẩy xuống cuối bảng
+        # ở CẢ câu "tìm thực tập" lẫn câu "tìm fresher" — đúng hai câu nó khớp nhất.
+        cap_do_tin = t.get("cap_do") or []
+        if loai == "hoc_bong" and t["kind"] != "hoc_bong":
+            thieu.append("học bổng")
+        elif t["kind"] == "hoc_bong" and (loai in ("thuc_tap", "viec_lam") or cap_do):
+            # `or cap_do`: hỏi level nghĩa là muốn VIỆC LÀM — intern/fresher/junior là
+            # thang bậc của việc, học bổng không có thang đó. Thiếu điều kiện này thì
+            # học bổng lọt vào hàng ĐẠT ở câu "tìm job fresher" (cap_do rỗng nên luật
+            # level dưới đây không bắt được nó).
+            thieu.append("việc/thực tập")
+
+        # Level: CHỈ ghi thiếu khi tin NÊU RÕ level khác cái được hỏi. Tin không nêu
+        # (`cap_do` rỗng) thì vẫn hiện bình thường — cùng lý do với luật không lọc
+        # theo năm học/GPA, im lặng cắt một tin là học viên mất hẳn cơ hội đó.
+        lv_muon = cap_do or ("intern" if loai == "thuc_tap" else None)
+        if lv_muon and cap_do_tin and lv_muon not in cap_do_tin:
+            thieu.append(f"tin cho {'/'.join(cap_do_tin)}, không phải {lv_muon}")
+
         if tp_muon:
             tp_tin = chuan_tp(m["thanh_pho"])
             if tp_tin != tp_muon and not (tp_muon == "online" and tp_tin == "online"):
@@ -203,6 +224,7 @@ def xep_hang(tu_khoa: str | None = None, thanh_pho: str | None = None,
         # link_xac_minh=False nghĩa là trang chặn bot nên máy không tự vào kiểm được —
         # link vẫn giữ, nhưng phải nói rõ chứ không được im lặng cho qua.
         kq.append({"opp_id": t["id"], "title": t["title"], "loai": t["kind"],
+                   "cap_do": cap_do_tin,
                    "thanh_pho": m["thanh_pho"], "gpa_yeu_cau": m["gpa_min"],
                    "han_nop": (m["han_nop"]["parsed"] or m["han_nop"]["raw"]),
                    "ghi_chu": ghi, "url": t.get("url") or "",
@@ -220,6 +242,7 @@ def xep_hang(tu_khoa: str | None = None, thanh_pho: str | None = None,
 
 def tim_tin(tu_khoa: str | None = None, thanh_pho: str | None = None,
             loai: str | None = None, nam_hoc: int | None = None,
+            cap_do: str | None = None,
             gioi_han: int = MAC_DINH_TIN, gom_fixture: bool = False,
             profile: dict | None = None) -> list[dict]:
     """Tìm tin trong corpus local. Không gọi mạng, không crawl.
@@ -234,8 +257,9 @@ def tim_tin(tu_khoa: str | None = None, thanh_pho: str | None = None,
     model không bao giờ bật được nó. `profile` do dispatch bơm vào, model không tự
     truyền được: hồ sơ chỉ dùng để XẾP HẠNG, không bao giờ dùng để loại tin.
     """
-    return xep_hang(tu_khoa, thanh_pho, loai, nam_hoc, gom_fixture,
-                    profile)[:max(1, min(gioi_han, TRAN_TIN))]
+    return xep_hang(tu_khoa=tu_khoa, thanh_pho=thanh_pho, loai=loai, nam_hoc=nam_hoc,
+                    cap_do=cap_do, gom_fixture=gom_fixture,
+                    profile=profile)[:max(1, min(gioi_han, TRAN_TIN))]
 
 
 def doi_chieu(opp_id: str, profile: dict, mode: str = "real") -> dict:
@@ -252,7 +276,8 @@ def doi_chieu(opp_id: str, profile: dict, mode: str = "real") -> dict:
 TOOLS = [
     {"type": "function", "function": {
         "name": "tim_tin",
-        "description": "Tìm tin thực tập/học bổng trong thư viện tin của hệ thống. "
+        "description": "Tìm tin thực tập / việc làm fresher-junior / học bổng trong "
+                       "thư viện tin của hệ thống. "
                        "Hệ thống TỰ xếp hạng theo hồ sơ học viên (kỹ năng, ngành, năm học) — "
                        "bạn không cần và không thể truyền hồ sơ vào. "
                        "Trả về `con_chua_hien` = số tin khớp còn lại chưa hiện: nếu > 0 phải "
@@ -265,7 +290,12 @@ TOOLS = [
                                        "Bỏ trống nếu họ chỉ nói 'tìm tin hợp với em' — "
                                        "khi đó hệ thống xếp hạng thuần theo hồ sơ."},
             "thanh_pho": {"type": "string", "description": "Hà Nội / TP.HCM / Đà Nẵng / online"},
-            "loai": {"type": "string", "enum": ["thuc_tap", "hoc_bong"]},
+            "loai": {"type": "string", "enum": ["thuc_tap", "hoc_bong", "viec_lam"],
+                     "description": "thuc_tap = thực tập · hoc_bong = học bổng · "
+                                    "viec_lam = việc làm fresher/junior"},
+            "cap_do": {"type": "string", "enum": ["intern", "fresher", "junior"],
+                       "description": "level học viên muốn. Bỏ trống nếu họ không nói rõ. "
+                                      "Một tin có thể nhận nhiều level cùng lúc."},
             "nam_hoc": {"type": "integer", "description": "năm học của học viên, nếu đã biết"},
             "gioi_han": {"type": "integer",
                          "description": f"số tin trả về, mặc định {MAC_DINH_TIN}, "
@@ -287,7 +317,7 @@ def dispatch(ten: str, args: dict, profile: dict, mode: str) -> tuple[dict, dict
     """Trả (kết quả cho model, event cho UI)."""
     if ten == "tim_tin":
         a = {k: v for k, v in args.items()
-             if k in ("tu_khoa", "thanh_pho", "loai", "nam_hoc")}
+             if k in ("tu_khoa", "thanh_pho", "loai", "nam_hoc", "cap_do")}
         # Model hay quên truyền nam_hoc dù hồ sơ đã khai. Thiếu nó thì mọi tin bị ghi
         # "chưa biết năm học của bạn" — nói sai với học viên vừa khai xong năm học.
         # Lấy thẳng từ hồ sơ; vẫn chỉ dùng để ghi chú + xếp hạng, không loại tin.

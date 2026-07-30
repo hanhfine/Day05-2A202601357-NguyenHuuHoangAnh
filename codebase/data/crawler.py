@@ -74,20 +74,73 @@ def _kd(s: str) -> str:
 
 
 def _lien_quan_ai(title: str, desc: str) -> bool:
+    """Tin có thuộc lĩnh vực hệ thống phục vụ (IT/data/AI) không.
+
+    BỎ HẲN "intern"/"thuc tap"/"hoc bong" KHỎI DANH SÁCH NÀY. Mấy từ đó nói về
+    LEVEL và LOẠI cơ hội, không nói gì về lĩnh vực — nên chúng khớp mọi tin thực
+    tập bất kể ngành. Đó là đường mà REAL-005 "RECRUITMENT INTERN" (công ty
+    headhunt tuyển intern Nhân sự) đi vào corpus rồi leo lên đầu bảng khi học
+    viên tìm "thực tập AI". Từ lúc thêm query fresher/junior thì lỗ này rộng hơn
+    nhiều: "Sales Fresher", "HR Junior", "Marketing Intern" đều sẽ lọt.
+    Muốn vào corpus thì tin phải nhắc một từ THUỘC LĨNH VỰC.
+    """
     txt = _kd(title + " " + desc)
     return any(k in txt for k in [
         "ai ", "machine learning", "data", "python", "nlp", "llm",
         "deep learning", "computer vision", "mlops", "analytics",
-        "backend", "software", "cntt", "cong nghe", "ky thuat",
-        "hoc bong", "scholarship", "intern", "thuc tap",
+        "backend", "software", "cntt", "cong nghe thong tin",
+        "khoa hoc may tinh", "ky thuat may tinh", "lap trinh", "developer",
     ])
 
 
 def _kind(title: str, desc: str) -> str:
+    """Loại cơ hội: học bổng / thực tập / việc làm (fresher-junior).
+
+    Thứ tự ưu tiên có chủ đích: tin nào nhắc "intern" thì vào `thuc_tap` NGAY,
+    kể cả khi nó cũng nhắc "fresher" (vd REAL-014 "AI Engineer (Intern/Fresher
+    level)"). Lý do: `thuc_tap` là câu hỏi hay gặp nhất, xếp tin đa level vào đó
+    giữ nó hiện ra ở lượt tìm phổ biến nhất — còn nhánh fresher vẫn thấy nó nhờ
+    field `cap_do`, không mất đường nào.
+    """
     txt = _kd(title + " " + desc)
-    if any(k in txt for k in ["hoc bong", "scholarship"]):
+    if any(k in txt for k in ["hoc bong", "scholarship", "hoc phi"]):
         return "hoc_bong"
-    return "thuc_tap"
+    if any(k in txt for k in ["intern", "thuc tap"]):
+        return "thuc_tap"
+    return "viec_lam"
+
+
+# Level KHÔNG loại trừ nhau: một tin ghi "Intern/Fresher level" thuộc cả hai.
+# Nên `cap_do` là LIST, không phải một giá trị — xếp REAL-014 vào đúng một ô là
+# tự tay bỏ mất nửa số học viên đáng thấy nó.
+_CAP_DO = {
+    "intern": ["intern", "thuc tap", "internship", "sinh vien thuc tap"],
+    "fresher": ["fresher", "moi tot nghiep", "entry level", "entry-level",
+                "sap tot nghiep", "new graduate", "no experience"],
+    "junior": ["junior", "1-2 nam kinh nghiem", "1 nam kinh nghiem",
+               "duoi 2 nam kinh nghiem"],
+}
+
+
+def _cap_do(title: str, desc: str, kind: str) -> list[str]:
+    """Các level tin này nhận. RỖNG nghĩa là tin không nêu — KHÔNG phải "không nhận".
+
+    Rỗng và "không khớp" phải phân biệt được: `xep_hang` chỉ ghi thiếu khi tin
+    NÊU RÕ level khác cái học viên hỏi. Tin im lặng thì vẫn hiện — cùng lý do
+    với luật không lọc theo năm học/GPA: đoán sai một tin là học viên mất hẳn
+    cơ hội mà không có cách nào biết.
+    """
+    # Học bổng KHÔNG có level — intern/fresher/junior là thang bậc của việc làm.
+    # Phải chặn ở đây vì mô tả học bổng rất hay nhắc "cơ hội thực tập tại X" như một
+    # phúc lợi: tin "Học bổng VinIF" bị dán cap_do=["intern"] chỉ vì câu đó, rồi hiện
+    # ra khi học viên tìm thực tập.
+    if kind == "hoc_bong":
+        return []
+    txt = _kd(title + " " + desc)
+    ra = [lv for lv, tu in _CAP_DO.items() if any(k in txt for k in tu)]
+    if not ra and kind == "thuc_tap":
+        ra = ["intern"]     # kind đã suy ra từ chính mấy từ đó, giữ nhất quán
+    return ra
 
 
 def _chuan_ngay(s: str) -> str:
@@ -294,13 +347,24 @@ def _to_raw_text(title: str, company: str, highlights: list, extensions: list,
 
 # ── SerpAPI Google Jobs ───────────────────────────────────────────────────────
 
+# Mỗi query = 1 search SerpAPI. Free tier 100 search/tháng → 12 query là ~8 lần
+# chạy/tháng. Thêm query nữa thì tính lại ngân sách trước, đừng thêm bừa.
 QUERIES = [
+    # intern (nhánh gốc)
     "thực tập sinh AI intern Hà Nội",
     "thực tập sinh data analyst intern Hà Nội",
     "thực tập sinh machine learning intern TP HCM",
     "thực tập sinh NLP AI intern",
     "intern AI fresher data science Vietnam",
     "học bổng CNTT sinh viên 2026",
+    # fresher / junior — học viên năm cuối và mới ra trường không tìm được gì ở
+    # nhánh intern, mà đó đúng là lúc họ cần tin nhất.
+    "fresher AI engineer Hà Nội",
+    "fresher data analyst Việt Nam",
+    "junior machine learning engineer Hà Nội",
+    "junior data engineer TP HCM",
+    "fresher python developer Việt Nam",
+    "junior AI engineer TP HCM",
 ]
 
 
@@ -638,6 +702,7 @@ def main():
     for i, t in enumerate(tin_moi, start=1):
         t["id"] = f"REAL-{i:03d}"
         t["kind"] = _kind(t["title"], t["raw_text"])
+        t["cap_do"] = _cap_do(t["title"], t["raw_text"], t["kind"])
         t["_nguon"] = t.pop("nguon", "unknown")
         t["_crawled_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
         t["url"] = t.get("url") or ""   # link gốc để user click
@@ -655,7 +720,8 @@ def main():
 
     print(f"\n=== Kết quả: {len(tin_moi)} tin ===")
     for t in tin_moi:
-        print(f"  [{t['id']}] [{t['kind']:9}] [{t['_nguon']:12}] {t['title'][:55]}")
+        print(f"  [{t['id']}] [{t['kind']:9}] [{'/'.join(t['cap_do']) or '-':18}] "
+              f"{t['title'][:45]}")
 
     if args.preview:
         print("\n--preview: không ghi file.")

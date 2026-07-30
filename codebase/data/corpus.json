@@ -1,5 +1,5 @@
 {
-  "_ghi_chu": "Hai lớp data. OPP-* (40 tin): fixture GIẢ tự sinh bằng gen_corpus.py (seed=42), tên tổ chức bịa, dùng cho smoke_test/eval — crawler không đụng vào. REAL-* (14 tin, crawl lúc 2026-07-30 15:18): 14 tin crawl thật từ Google Jobs (SerpAPI) Link của REAL-*: 4 bấm thử sống, 10 trang chặn bot nên chưa xác minh được (vẫn giữ link, UI ghi rõ), 0 chết thật đã xoá trắng. 14/14 link trỏ đúng tin. Không đoán link thay. Xem _url_status của từng tin.",
+  "_ghi_chu": "DATA GIẢ TỰ SINH. OPP-001..010 gõ tay, mỗi tin bắn vào 1 lớp chỗ khó (xem postings.json). OPP-011..040 sinh bằng gen_corpus.py với seed=42 — chạy lại script ra đúng cùng 30 tin. Mọi tên tổ chức là tên bịa. Ngoài ra giữ nguyên 14 tin REAL-* do data/crawler.py quản (tin ngoài đời, link đã bấm thử) — script này không đụng vào.",
   "postings": [
     {
       "id": "OPP-001",
@@ -74,6 +74,9 @@
     {
       "id": "OPP-011",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh Data Analyst — Sao Mai Tech",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh Data Analyst — Sao Mai Tech]\nTuyển 1 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 2 trở lên ngành Khoa học dữ liệu, Toán tin\n- SQL, Excel\n- GPA từ 2.8/4.0 trở lên\n- Ưu tiên ứng viên đã từng làm project liên quan Data Analyst\nHình thức: online toàn thời gian.\nHồ sơ: bảng điểm, thư giới thiệu.\nHạn nhận hồ sơ: 24/08/2026."
@@ -81,6 +84,7 @@
     {
       "id": "OPP-012",
       "kind": "hoc_bong",
+      "cap_do": [],
       "title": "Học bổng Hỗ trợ học tập 2026 — Quỹ Khuyến học Trí Việt",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Học bổng Hỗ trợ học tập 2026 — Quỹ Khuyến học Trí Việt]\nDành cho sinh viên năm 3 hoặc năm 4 ngành Khoa học dữ liệu, Toán tin.\nĐiều kiện: GPA từ 3.0/4.0.\nGiá trị: 10.000.000 VNĐ/suất, 27 suất.\nYêu cầu hồ sơ: CV + link 1 project.\nLưu ý: chỉ nhận hồ sơ bản cứng tại văn phòng Đà Nẵng.\nHạn nộp: 08/09/2026."
@@ -88,6 +92,9 @@
     {
       "id": "OPP-013",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh AI Product Analyst — Sao Mai Tech",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh AI Product Analyst — Sao Mai Tech]\nTuyển 3 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 3 trở lên ngành CNTT\n- SQL, viết tài liệu\n- GPA từ 3.0/4.0 trở lên\n- Ưu tiên ứng viên đã từng làm project liên quan AI Product Analyst\n- Cam kết 2 buổi/tuần tại văn phòng Hà Nội\nHồ sơ: CV + bảng điểm.\nHạn nhận hồ sơ: 07/09/2026."
@@ -95,6 +102,9 @@
     {
       "id": "OPP-014",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh AI Product Analyst — Sao Mai Tech",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh AI Product Analyst — Sao Mai Tech]\nTuyển 1 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 3 trở lên ngành Khoa học dữ liệu, Toán tin\n- SQL, viết tài liệu\n- GPA từ 3.5/4.0 trở lên\n- Ưu tiên ứng viên đã từng làm project liên quan AI Product Analyst\nHình thức: online toàn thời gian.\nHồ sơ: CV + link 1 project.\nHạn nhận hồ sơ: 13/09/2026."
@@ -102,6 +112,7 @@
     {
       "id": "OPP-015",
       "kind": "hoc_bong",
+      "cap_do": [],
       "title": "Học bổng Khuyến học 2026 — Học viện Nam Phong",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Học bổng Khuyến học 2026 — Học viện Nam Phong]\nDành cho sinh viên năm 3-4 ngành CNTT, Khoa học dữ liệu.\nĐiều kiện: GPA từ 3.5/4.0.\nGiá trị: 5.000.000 VNĐ/suất, 12 suất.\nYêu cầu hồ sơ: CV.\nLưu ý: chỉ nhận hồ sơ bản cứng tại văn phòng Đà Nẵng.\nHạn nộp: 03/09/2026."
@@ -109,6 +120,9 @@
     {
       "id": "OPP-016",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh Computer Vision — Đại Tín",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh Computer Vision — Đại Tín]\nTuyển 1 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 2 trở lên ngành Khoa học dữ liệu, Toán tin\n- Python, OpenCV\n- GPA từ 2.8/4.0 trở lên\n- Cam kết 4 buổi/tuần tại văn phòng TP.HCM\nHồ sơ: CV + portfolio.\nHạn nhận hồ sơ: 23/08/2026."
@@ -116,6 +130,9 @@
     {
       "id": "OPP-017",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh MLOps — Vạn Xuân AI",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh MLOps — Vạn Xuân AI]\nTuyển 1 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 2, 3, 4 ngành CNTT, Toán tin\n- Python, Docker\n- GPA từ 2.8/4.0 trở lên\n- Cam kết 3 buổi/tuần tại văn phòng TP.HCM\nHồ sơ: bảng điểm, thư giới thiệu.\nHạn nhận hồ sơ: 27/09/2026."
@@ -123,6 +140,7 @@
     {
       "id": "OPP-018",
       "kind": "hoc_bong",
+      "cap_do": [],
       "title": "Học bổng Tài năng 2026 — Quỹ Khuyến học Trí Việt",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Học bổng Tài năng 2026 — Quỹ Khuyến học Trí Việt]\nDành cho sinh viên năm 3-4 ngành CNTT, Điện tử.\nĐiều kiện: GPA từ 3.5/4.0.\nGiá trị: 20.000.000 VNĐ/suất, 25 suất.\nYêu cầu hồ sơ: bảng điểm, thư giới thiệu.\nLưu ý: chỉ nhận hồ sơ bản cứng tại văn phòng Hà Nội.\nHạn nộp: 23/08/2026."
@@ -130,6 +148,9 @@
     {
       "id": "OPP-019",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh AI Product Analyst — Tân Việt Cloud",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh AI Product Analyst — Tân Việt Cloud]\nTuyển 2 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 3 trở lên ngành Khoa học dữ liệu, Toán tin\n- SQL, viết tài liệu\n- GPA từ 3.5/4.0 trở lên\n- Cam kết 2 buổi/tuần tại văn phòng Đà Nẵng\nHồ sơ: CV.\nHạn nhận hồ sơ: 08/08/2026."
@@ -137,6 +158,9 @@
     {
       "id": "OPP-020",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh Machine Learning — Hồng Hà Fintech",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh Machine Learning — Hồng Hà Fintech]\nTuyển 4 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 2, 3, 4 ngành Khoa học dữ liệu, Toán tin\n- Python, pandas\n- Ưu tiên ứng viên đã từng làm project liên quan Machine Learning\n- Cam kết 4 buổi/tuần tại văn phòng TP.HCM\nHồ sơ: CV.\nHạn nhận hồ sơ: 20/08/2026."
@@ -144,6 +168,7 @@
     {
       "id": "OPP-021",
       "kind": "hoc_bong",
+      "cap_do": [],
       "title": "Học bổng Hỗ trợ học tập 2027 — Quỹ Tài năng Lam Sơn",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Học bổng Hỗ trợ học tập 2027 — Quỹ Tài năng Lam Sơn]\nDành cho sinh viên năm 2, 3, 4 ngành CNTT.\nĐiều kiện: GPA từ 3.2/4.0.\nGiá trị: 15.000.000 VNĐ/suất, 18 suất.\nYêu cầu hồ sơ: CV + portfolio.\nLưu ý: chỉ nhận hồ sơ bản cứng tại văn phòng Đà Nẵng.\nHạn nộp: 25/09/2026."
@@ -151,6 +176,9 @@
     {
       "id": "OPP-022",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh AI Product Analyst — Nam Phong Analytics",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh AI Product Analyst — Nam Phong Analytics]\nTuyển 2 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 2, 3, 4 ngành CNTT, Toán tin\n- SQL, viết tài liệu\n- Ưu tiên ứng viên đã từng làm project liên quan AI Product Analyst\n- Cam kết 2 buổi/tuần tại văn phòng Hà Nội\nHồ sơ: CV + link 1 project.\nHạn nhận hồ sơ: 10/08/2026."
@@ -158,6 +186,9 @@
     {
       "id": "OPP-023",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh Computer Vision — Trúc Bạch Soft",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh Computer Vision — Trúc Bạch Soft]\nTuyển 3 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 3 hoặc năm 4 ngành CNTT, Toán tin\n- Python, OpenCV\n- GPA từ 3.0/4.0 trở lên\n- Ưu tiên ứng viên đã từng làm project liên quan Computer Vision\n- Cam kết 4 buổi/tuần tại văn phòng Hà Nội\nHồ sơ: CV.\nHạn nhận hồ sơ: 27/08/2026."
@@ -165,6 +196,7 @@
     {
       "id": "OPP-024",
       "kind": "hoc_bong",
+      "cap_do": [],
       "title": "Học bổng Hỗ trợ học tập 2026 — Quỹ Tài năng Lam Sơn",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Học bổng Hỗ trợ học tập 2026 — Quỹ Tài năng Lam Sơn]\nDành cho sinh viên năm 3 trở lên ngành CNTT, Toán tin.\nĐiều kiện: GPA từ 3.0/4.0.\nGiá trị: 20.000.000 VNĐ/suất, 22 suất.\nYêu cầu hồ sơ: CV + portfolio.\nHạn nộp: 25/09/2026."
@@ -172,6 +204,9 @@
     {
       "id": "OPP-025",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh NLP — Hoa Sen Digital",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh NLP — Hoa Sen Digital]\nTuyển 3 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 3-4 ngành CNTT, Điện tử\n- Python, hiểu embedding\n- GPA từ 3.0/4.0 trở lên\n- Cam kết 3 buổi/tuần tại văn phòng Đà Nẵng\nHồ sơ: CV.\nHạn nhận hồ sơ: 22/08/2026."
@@ -179,6 +214,9 @@
     {
       "id": "OPP-026",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh Data Engineer — Minh Long Group",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh Data Engineer — Minh Long Group]\nTuyển 2 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 3 hoặc năm 4 ngành CNTT\n- SQL, Python\n- GPA từ 3.5/4.0 trở lên\n- Ưu tiên ứng viên đã từng làm project liên quan Data Engineer\n- Cam kết 4 buổi/tuần tại văn phòng TP.HCM\nHồ sơ: CV.\nHạn nhận hồ sơ: 19/08/2026."
@@ -186,6 +224,7 @@
     {
       "id": "OPP-027",
       "kind": "hoc_bong",
+      "cap_do": [],
       "title": "Học bổng Hỗ trợ học tập 2026 — Quỹ Khuyến học Trí Việt",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Học bổng Hỗ trợ học tập 2026 — Quỹ Khuyến học Trí Việt]\nDành cho sinh viên năm 3 hoặc năm 4 ngành CNTT, Khoa học dữ liệu.\nĐiều kiện: GPA từ 3.2/4.0.\nGiá trị: 20.000.000 VNĐ/suất, 11 suất.\nYêu cầu hồ sơ: CV + link 1 project.\nHạn nộp: 03/08/2026."
@@ -193,6 +232,9 @@
     {
       "id": "OPP-028",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh MLOps — Hoa Sen Digital",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh MLOps — Hoa Sen Digital]\nTuyển 4 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 3 trở lên ngành CNTT, Khoa học dữ liệu\n- Python, Docker\n- GPA từ 2.8/4.0 trở lên\nHình thức: online toàn thời gian.\nHồ sơ: bảng điểm, thư giới thiệu.\nHạn nhận hồ sơ: 22/08/2026."
@@ -200,6 +242,9 @@
     {
       "id": "OPP-029",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh Data Analyst — Sao Mai Tech",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh Data Analyst — Sao Mai Tech]\nTuyển 4 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 2 trở lên ngành CNTT, Toán tin\n- SQL, Excel\nHình thức: online toàn thời gian.\nHồ sơ: CV + bảng điểm.\nHạn nhận hồ sơ: 07/09/2026."
@@ -207,6 +252,7 @@
     {
       "id": "OPP-030",
       "kind": "hoc_bong",
+      "cap_do": [],
       "title": "Học bổng Hỗ trợ học tập 2026 — Viện Nghiên cứu Bách Khoa",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Học bổng Hỗ trợ học tập 2026 — Viện Nghiên cứu Bách Khoa]\nDành cho sinh viên năm 3 hoặc năm 4 ngành CNTT.\nĐiều kiện: GPA từ 3.2/4.0.\nGiá trị: 5.000.000 VNĐ/suất, 7 suất.\nYêu cầu hồ sơ: CV + portfolio.\nHạn nộp: 26/08/2026."
@@ -214,6 +260,9 @@
     {
       "id": "OPP-031",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh MLOps — Hoa Sen Digital",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh MLOps — Hoa Sen Digital]\nTuyển 3 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 3 hoặc năm 4 ngành CNTT, Điện tử\n- Python, Docker\n- GPA từ 2.8/4.0 trở lên\n- Ưu tiên ứng viên đã từng làm project liên quan MLOps\n- Cam kết 4 buổi/tuần tại văn phòng TP.HCM\nHồ sơ: CV + link 1 project.\nHạn nhận hồ sơ: 13/09/2026."
@@ -221,6 +270,9 @@
     {
       "id": "OPP-032",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh Machine Learning — Hoa Sen Digital",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh Machine Learning — Hoa Sen Digital]\nTuyển 1 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 3-4 ngành CNTT, Khoa học dữ liệu\n- Python, pandas\n- Ưu tiên ứng viên đã từng làm project liên quan Machine Learning\n- Cam kết 4 buổi/tuần tại văn phòng TP.HCM\nHồ sơ: bảng điểm, thư giới thiệu.\nHạn nhận hồ sơ: 18/08/2026."
@@ -228,6 +280,7 @@
     {
       "id": "OPP-033",
       "kind": "hoc_bong",
+      "cap_do": [],
       "title": "Học bổng Khuyến học 2026 — Quỹ Khuyến học Trí Việt",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Học bổng Khuyến học 2026 — Quỹ Khuyến học Trí Việt]\nDành cho sinh viên năm 2, 3, 4 ngành Khoa học dữ liệu, Toán tin.\nĐiều kiện: GPA từ 3.0/4.0.\nGiá trị: 5.000.000 VNĐ/suất, 26 suất.\nYêu cầu hồ sơ: CV + portfolio.\nLưu ý: chỉ nhận hồ sơ bản cứng tại văn phòng Đà Nẵng.\nHạn nộp: 28/09/2026."
@@ -235,6 +288,9 @@
     {
       "id": "OPP-034",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh Data Engineer — Lam Sơn Robotics",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh Data Engineer — Lam Sơn Robotics]\nTuyển 3 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 3 hoặc năm 4 ngành CNTT, Khoa học dữ liệu\n- SQL, Python\n- GPA từ 3.5/4.0 trở lên\n- Ưu tiên ứng viên đã từng làm project liên quan Data Engineer\nHình thức: online toàn thời gian.\nHồ sơ: CV + bảng điểm.\nHạn nhận hồ sơ: 22/08/2026."
@@ -242,6 +298,9 @@
     {
       "id": "OPP-035",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh AI Product Analyst — Vạn Xuân AI",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh AI Product Analyst — Vạn Xuân AI]\nTuyển 1 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 2 trở lên ngành CNTT\n- SQL, viết tài liệu\n- GPA từ 3.2/4.0 trở lên\n- Cam kết 4 buổi/tuần tại văn phòng Hà Nội\nHồ sơ: CV.\nHạn nhận hồ sơ: 25/08/2026."
@@ -249,6 +308,7 @@
     {
       "id": "OPP-036",
       "kind": "hoc_bong",
+      "cap_do": [],
       "title": "Học bổng Khuyến học 2027 — Học viện Nam Phong",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Học bổng Khuyến học 2027 — Học viện Nam Phong]\nDành cho sinh viên năm 3-4 ngành CNTT.\nĐiều kiện: GPA từ 3.5/4.0.\nGiá trị: 10.000.000 VNĐ/suất, 16 suất.\nYêu cầu hồ sơ: CV + bảng điểm.\nHạn nộp: 09/08/2026."
@@ -256,6 +316,9 @@
     {
       "id": "OPP-037",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh AI Product Analyst — Lam Sơn Robotics",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh AI Product Analyst — Lam Sơn Robotics]\nTuyển 3 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 2, 3, 4 ngành CNTT\n- SQL, viết tài liệu\n- Cam kết 2 buổi/tuần tại văn phòng Đà Nẵng\nHồ sơ: CV + bảng điểm.\nHạn nhận hồ sơ: 18/08/2026."
@@ -263,6 +326,9 @@
     {
       "id": "OPP-038",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh Data Analyst — Tân Việt Cloud",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh Data Analyst — Tân Việt Cloud]\nTuyển 3 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 3-4 ngành CNTT, Toán tin\n- SQL, Excel\n- GPA từ 3.0/4.0 trở lên\n- Cam kết 3 buổi/tuần tại văn phòng Đà Nẵng\nHồ sơ: CV + link 1 project.\nHạn nhận hồ sơ: 07/09/2026."
@@ -270,6 +336,7 @@
     {
       "id": "OPP-039",
       "kind": "hoc_bong",
+      "cap_do": [],
       "title": "Học bổng Tài năng 2027 — Quỹ Sông Hồng",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Học bổng Tài năng 2027 — Quỹ Sông Hồng]\nDành cho sinh viên năm 3 hoặc năm 4 ngành CNTT.\nĐiều kiện: GPA từ 3.0/4.0.\nGiá trị: 5.000.000 VNĐ/suất, 15 suất.\nYêu cầu hồ sơ: CV + portfolio.\nLưu ý: chỉ nhận hồ sơ bản cứng tại văn phòng TP.HCM.\nHạn nộp: 21/09/2026."
@@ -277,6 +344,9 @@
     {
       "id": "OPP-040",
       "kind": "thuc_tap",
+      "cap_do": [
+        "intern"
+      ],
       "title": "Thực tập sinh NLP — Nam Phong Analytics",
       "_muc_tieu": "case thường (sinh tự động, seed=42)",
       "raw_text": "[Thực tập sinh NLP — Nam Phong Analytics]\nTuyển 2 thực tập sinh cho quý 4/2026.\nYêu cầu:\n- Sinh viên năm 3 hoặc năm 4 ngành Khoa học dữ liệu, Toán tin\n- Python, hiểu embedding\n- Ưu tiên ứng viên đã từng làm project liên quan NLP\n- Cam kết 3 buổi/tuần tại văn phòng Hà Nội\nHồ sơ: CV + link 1 project.\nHạn nhận hồ sơ: 23/08/2026."
