@@ -318,6 +318,17 @@ def main() -> int:
     loi += bool(la)
     print(f"  {'✓' if not la else '✗ có field lạ: ' + str(la)} chỉ trả 8 field hồ sơ")
 
+    # `nam_hoc` là NĂM THỨ MẤY (1-8). CV ghi "Graduation 2022" cho ra 2022, và số đó
+    # không nằm trong khoảng năm của tin nào cả nên tin nào cũng bị dán "lệch năm" —
+    # hỏng bảng xếp hạng mà không ai thấy. Ngoài khoảng thì phải là None, không đoán.
+    from core.cv import _nam_hoc
+    sai = {v: _nam_hoc(v) for v in (2022, 1998, 0, -1, 12, "3", None) if _nam_hoc(v) is not None}
+    dung = {v: _nam_hoc(v) for v in (1, 3, 4, 8)}
+    ok = not sai and all(k == v for k, v in dung.items())
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} nam_hoc chỉ nhận 1-8, năm dương lịch → None"
+          + (f" — LỌT: {sai}" if sai else ""))
+
     # `ten` là ngoại lệ CÓ CHỦ Ý của luật tối thiểu hoá PII (xem docstring cv.py).
     # Mở đúng field tên — email/SĐT/link/CCCD vẫn phải chặn, kiểm ngay dưới đây.
     ok = (hs.get("ten") or "").upper().startswith("NGUYEN VAN A")

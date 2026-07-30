@@ -115,6 +115,23 @@ def doc_file(ten: str, du_lieu: bytes) -> str:
     return du_lieu.decode("utf-8", "ignore")
 
 
+def _nam_hoc(v) -> int | None:
+    """`nam_hoc` là NĂM THỨ MẤY (1-8), không phải năm dương lịch.
+
+    Bản cũ nhận mọi int nên CV ghi "Graduation 2022" / "Khóa 2022" cho ra
+    nam_hoc=2022, và nó âm thầm làm hỏng xếp hạng: 2022 không nằm trong khoảng
+    năm nào của tin cả, nên tin nào cũng bị dán "tin ghi năm 3-4 — vẫn nên xem"
+    (đo trên corpus thật: 0 tin khớp năm, 5 tin bị dán nhầm; giá trị đúng cho
+    2 tin khớp). Học viên không có cách nào biết con số đó đang phá bảng xếp hạng.
+
+    Giá trị ngoài khoảng → None chứ KHÔNG tự đổi sang năm thứ mấy: muốn đổi thì
+    phải biết 2022 là năm nhập học hay năm tốt nghiệp, mà CV thường không nói rõ.
+    None thì mọi tin ghi "chưa biết năm học của bạn" — đúng sự thật, và model
+    được phép hỏi lại một câu. Đoán sai thì không ai biết mà sửa.
+    """
+    return v if isinstance(v, int) and 1 <= v <= 8 else None
+
+
 def _mock(text: str) -> dict:
     n, g, c = RE_NAM.search(text), RE_GPA.search(text), RE_CITY.search(text)
     gpa = float(g.group(1).replace(",", ".")) if g else None
@@ -122,7 +139,7 @@ def _mock(text: str) -> dict:
         gpa = round(gpa / 2.5, 2)
     thap = text.lower()
     return {"ten": _ten(text),
-            "nam_hoc": int(n.group(1)) if n else None,
+            "nam_hoc": _nam_hoc(int(n.group(1)) if n else None),
             "nganh": None, "gpa": gpa, "thanh_pho": c.group(1) if c else None,
             "ky_nang": [k for k in KY_NANG if k.lower() in thap][:10], "project": None,
             "co_github": bool(RE_GITHUB.search(text))}
@@ -146,7 +163,7 @@ def trich_ho_so(text: str, mode: str = "real") -> dict:
     co_git = bool(o.get("co_github")) or bool(RE_GITHUB.search(sach))
     ten = str(o.get("ten")).strip() if o.get("ten") else None
     return {"ten": ten if ten and len(ten) <= 60 else None,
-            "nam_hoc": o.get("nam_hoc") if isinstance(o.get("nam_hoc"), int) else None,
+            "nam_hoc": _nam_hoc(o.get("nam_hoc")),
             "nganh": o.get("nganh") or None,
             "gpa": float(gpa) if isinstance(gpa, (int, float)) else None,
             "thanh_pho": o.get("thanh_pho") or None,
