@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpportunityMatch — trợ lý đối chiếu cơ hội</title>
+<style>
+:root{
+  --bg:#f4f5fa; --card:#fff; --line:#e5e7ef; --ink:#16181d; --mute:#6b7280; --soft:#f8f9fc;
+  --brand:#5b4bd6; --brand2:#8b5cf6; --brand-soft:#efeaff;
+  --ok:#0d7a4f; --okbg:#e7f7ee; --okline:#a9e3c3;
+  --warn:#8a5300; --warnbg:#fef4e4; --warnline:#efd09a;
+  --ask:#1f4fd8; --askbg:#eaf0ff; --askline:#bfd0ff;
+  --stop:#9c1d1d; --stopbg:#fdeded; --stopline:#f0c2c2;
+  --sh:0 1px 2px rgba(16,18,29,.05),0 4px 16px rgba(16,18,29,.06);
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#0e1016; --card:#171a22; --line:#262a36; --ink:#e8eaf0; --mute:#98a0b0; --soft:#1c2029;
+  --brand:#8b7cf8; --brand2:#a78bfa; --brand-soft:#241f45;
+  --ok:#5ddb9c; --okbg:#0f2a1e; --okline:#1f5940;
+  --warn:#f0c274; --warnbg:#2c2113; --warnline:#5c4520;
+  --ask:#93b4ff; --askbg:#161f38; --askline:#2c4272;
+  --stop:#f6a3a3; --stopbg:#2c1616; --stopline:#5e2a2a;
+  --sh:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.28);
+}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:15px/1.6 system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);
+  display:flex;flex-direction:column;overflow:hidden}
+button,input,textarea,select{font:inherit;color:inherit}
+
+/* ── header ── */
+header{padding:11px 20px;background:linear-gradient(100deg,var(--brand),var(--brand2));color:#fff;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:var(--sh);z-index:5}
+.logo{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.2);
+  display:grid;place-items:center;font-size:16px;backdrop-filter:blur(4px)}
+header h1{margin:0;font-size:16px;font-weight:650;letter-spacing:-.01em}
+header .sc{margin:1px 0 0;font-size:12.5px;opacity:.9;max-width:78ch}
+.pill{margin-left:auto;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.tag{padding:3px 9px;border-radius:99px;font-size:11.5px;font-weight:650;letter-spacing:.02em;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28)}
+.tag.warnt{background:#fff3d6;color:#7a4a00;border-color:#f0d49a}
+
+/* ── layout ── */
+main{flex:1;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(340px,.85fr);
+  gap:14px;padding:14px 20px;min-height:0}
+@media(max-width:980px){main{grid-template-columns:1fr;overflow:auto}}
+.col{display:flex;flex-direction:column;min-height:0;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh)}
+.card>h2{margin:0;padding:11px 15px;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--mute);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+
+/* ── chat ── */
+#chat{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:13px;scroll-behavior:smooth}
+.msg{max-width:88%;animation:in .28s ease}
+@keyframes in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.msg.u{align-self:flex-end}
+.bub{padding:10px 14px;border-radius:15px;white-space:pre-wrap}
+.msg.u .bub{background:linear-gradient(120deg,var(--brand),var(--brand2));color:#fff;border-bottom-right-radius:5px}
+.msg.a .bub{background:var(--soft);border:1px solid var(--line);border-bottom-left-radius:5px}
+.who{font-size:11px;color:var(--mute);margin:0 0 3px 4px;font-weight:600;letter-spacing:.03em}
+.dots span{display:inline-block;width:6px;height:6px;margin:0 1.5px;border-radius:50%;background:var(--mute);
+  animation:bo 1.1s infinite}
+.dots span:nth-child(2){animation-delay:.16s}.dots span:nth-child(3){animation-delay:.32s}
+@keyframes bo{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+
+/* ── thẻ verdict ── */
+.vc{margin-top:9px;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:var(--card)}
+.vc .hd{padding:11px 14px;font-weight:700;display:flex;gap:9px;align-items:center;font-size:15px}
+.vc .bd{padding:12px 14px}
+.v-nen .hd{background:var(--okbg);color:var(--ok);border-bottom:1px solid var(--okline)}
+.v-rui .hd{background:var(--warnbg);color:var(--warn);border-bottom:1px solid var(--warnline)}
+.v-thieu .hd{background:var(--askbg);color:var(--ask);border-bottom:1px solid var(--askline)}
+.sec{margin:11px 0 0}
+.sec:first-child{margin-top:0}
+.sec h4{margin:0 0 5px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+ul{margin:0;padding:0;list-style:none}
+li{padding:5px 0;border-bottom:1px dashed var(--line);font-size:14px}
+li:last-child{border:0}
+.why{color:var(--mute);font-size:13px}
+.chip{display:inline-block;padding:1px 7px;margin-right:7px;border:1px solid var(--line);border-radius:6px;
+  background:var(--soft);font:12px ui-monospace,Consolas,monospace;color:var(--brand);cursor:pointer;
+  font-weight:600;transition:.15s}
+.chip:hover{background:var(--brand-soft);border-color:var(--brand)}
+.ns{background:var(--soft);border:1px dashed var(--line);border-radius:10px;padding:9px 12px}
+.ns li{border:0;padding:2px 0;color:var(--mute);font-size:13px}
+.alert{background:var(--stopbg);border:1px solid var(--stopline);color:var(--stop);
+  border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:13.5px}
+.ref{background:var(--soft);border-left:3px solid var(--brand);border-radius:0 8px 8px 0;
+  padding:8px 12px;margin-bottom:10px;font-size:13.5px}
+.ask{font-size:15px;font-weight:600}
+.gr{margin-top:11px;padding-top:9px;border-top:1px solid var(--line);font-size:12px;color:var(--mute);
+  display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+
+/* ── thẻ tin tìm được ── */
+.ops{display:grid;gap:9px;margin-top:9px}
+.op{border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:var(--card);
+  display:flex;gap:10px;align-items:center;transition:.15s}
+.op:hover{border-color:var(--brand);transform:translateY(-1px)}
+.op .t{flex:1;min-width:0}
+.op .t b{display:block;font-size:13.5px;font-weight:620;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.op .t span{font-size:12px;color:var(--mute)}
+.k{padding:1px 7px;border-radius:5px;font-size:11px;font-weight:650;background:var(--brand-soft);color:var(--brand)}
+
+/* ── composer ── */
+.cmp{padding:11px;border-top:1px solid var(--line);display:flex;gap:9px;align-items:flex-end;background:var(--card);
+  border-radius:0 0 14px 14px}
+#inp{flex:1;resize:none;max-height:130px;padding:10px 13px;border:1px solid var(--line);border-radius:12px;
+  background:var(--soft)}
+#inp:focus{outline:2px solid var(--brand);outline-offset:-1px}
+.send{width:40px;height:40px;border:0;border-radius:11px;background:linear-gradient(120deg,var(--brand),var(--brand2));
+  color:#fff;font-size:16px;cursor:pointer;flex:none;transition:.15s}
+.send:hover{filter:brightness(1.08)}.send:disabled{opacity:.45;cursor:default}
+.sug{display:flex;gap:7px;flex-wrap:wrap;padding:0 16px 12px}
+.sug button{padding:5px 11px;border:1px solid var(--line);background:var(--card);border-radius:99px;
+  font-size:12.5px;cursor:pointer;color:var(--mute);transition:.15s}
+.sug button:hover{border-color:var(--brand);color:var(--brand)}
+
+/* ── panel phải ── */
+.tabs{display:flex;gap:3px;padding:8px 8px 0}
+.tabs button{flex:1;padding:8px;border:0;background:transparent;border-radius:9px 9px 0 0;cursor:pointer;
+  font-size:12.5px;font-weight:600;color:var(--mute);border-bottom:2px solid transparent}
+.tabs button.on{color:var(--brand);border-bottom-color:var(--brand);background:var(--soft)}
+.tp{padding:14px;overflow-y:auto;flex:1;min-height:0}
+.tp[hidden]{display:none}
+label.f{display:block;font-size:11.5px;color:var(--mute);margin:0 0 3px;font-weight:600}
+input[type=text],input[type=number],textarea.x,select{width:100%;padding:8px 10px;border:1px solid var(--line);
+  border-radius:9px;background:var(--soft)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;cursor:pointer;
+  transition:.18s;background:var(--soft);margin-bottom:11px}
+.drop:hover,.drop.hot{border-color:var(--brand);background:var(--brand-soft)}
+.drop b{color:var(--brand)}.drop small{color:var(--mute);display:block;margin-top:4px;font-size:11.5px}
+.note{font-size:11.5px;color:var(--mute);margin-top:7px;line-height:1.5}
+.btn{padding:8px 13px;border:1px solid var(--line);background:var(--card);border-radius:9px;cursor:pointer;font-size:13px}
+.btn.p{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+#tinView{font:12.5px/1.65 ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:10px;
+  overflow:hidden;background:var(--soft)}
+.ln{display:flex;gap:10px;padding:1px 9px}
+.ln .no{color:var(--mute);min-width:22px;text-align:right;user-select:none;opacity:.65}
+.ln.hit{background:var(--brand-soft);outline:2px solid var(--brand);border-radius:4px}
+.err{background:var(--stopbg);border:1px solid var(--stopline);color:var(--stop);padding:10px 12px;
+  border-radius:10px;font-size:13.5px}
+.ok{background:var(--okbg);border:1px solid var(--okline);color:var(--ok);padding:9px 12px;
+  border-radius:10px;font-size:13px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">◎</div>
+  <div>
+    <h1>OpportunityMatch</h1>
+    <!-- G1: câu đầu tiên user thấy nói đúng phạm vi hệ thống -->
+    <p class="sc">Mình tìm tin trong thư viện của hệ thống và đối chiếu <b>một tin</b> với hồ sơ bạn khai,
+      chỉ rõ từng dòng làm căn cứ. Mình <b>không</b> viết CV hộ, <b>không</b> đoán bạn có đỗ.</p>
+  </div>
+  <div class="pill"><span class="tag" id="tagProv">…</span><span class="tag" id="tagMode">…</span></div>
+</header>
+
+<main>
+  <!-- ── chat ── -->
+  <div class="col">
+    <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <div id="chat"></div>
+      <div class="sug" id="sug"></div>
+      <div class="cmp">
+        <textarea id="inp" rows="1" placeholder="vd: tìm thực tập AI ở Hà Nội cho mình"></textarea>
+        <button class="send" id="btnSend" title="Gửi (Enter)">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── panel phải ── -->
+  <div class="col">
+    <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <div class="tabs">
+        <button data-t="hs" class="on">Hồ sơ &amp; CV</button>
+        <button data-t="tin">Tin đang xét</button>
+      </div>
+
+      <div class="tp" id="tp-hs">
+        <div class="drop" id="drop">
+          <b>Tải CV lên</b> hoặc kéo file vào đây
+          <small>.pdf · .docx · .txt · .md — xử lý trong RAM, <b>không lưu file</b></small>
+        </div>
+        <input type="file" id="file" hidden accept=".pdf,.docx,.txt,.md">
+        <div id="cvMsg"></div>
+
+        <div class="g2">
+          <div><label class="f">Năm học</label><input type="number" id="fNam" min="1" max="6" placeholder="chưa khai"></div>
+          <div><label class="f">GPA (thang 4)</label><input type="number" id="fGpa" step="0.01" min="0" max="4" placeholder="chưa khai"></div>
+          <div><label class="f">Ngành</label><input type="text" id="fNganh" placeholder="chưa khai"></div>
+          <div><label class="f">Thành phố</label><input type="text" id="fCity" placeholder="chưa khai"></div>
+        </div>
+        <label class="f">Kỹ năng (cách nhau bởi dấu phẩy)</label>
+        <input type="text" id="fSkill" placeholder="Python, SQL…">
+        <div style="margin-top:9px"><label class="f">Hoặc chọn persona giả để test</label>
+          <select id="profSel"></select></div>
+        <p class="note">Hồ sơ chỉ nằm trong phiên làm việc này — không có database, không ghi ra file.
+          Email / điện thoại / link / số giấy tờ trong CV bị thay bằng placeholder ngay tại máy
+          trước khi gửi đi.</p>
+      </div>
+
+      <div class="tp" id="tp-tin" hidden>
+        <div id="tinTrong" class="note">Chưa có tin nào được đối chiếu. Nhờ mình tìm tin,
+          hoặc gõ “đối chiếu OPP-001”.</div>
+        <div id="tinTieuDe" style="font-weight:650;margin-bottom:8px"></div>
+        <div id="tinView"></div>
+        <details style="margin-top:12px">
+          <summary style="cursor:pointer;font-size:12.5px;color:var(--mute)">Dán tin ngoài để đối chiếu (không cần API key)</summary>
+          <textarea class="x" id="tinDan" rows="7" style="margin-top:8px;font:12.5px ui-monospace,monospace"
+            placeholder="Dán nội dung tin vào đây…"></textarea>
+          <button class="btn p" id="btnDan" style="margin-top:8px">Đối chiếu (mock)</button>
+        </details>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => (s??'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const chip = k => k ? `<button class="chip" data-line="${k}">L${k}</button>` : '';
+let DATA=null, LICH_SU=[], TIN_HIEN=null, KQ_CUOI=null, DANG_GUI=false;
+
+const NHAN = {
+  nen_apply:      {cls:'v-nen',  ic:'✓', txt:'Nên apply'},
+  rui_ro_cao:     {cls:'v-rui',  ic:'!', txt:'Rủi ro cao — kiểm mấy điểm dưới trước khi dồn thời gian'},
+  thieu_thong_tin:{cls:'v-thieu',ic:'?', txt:'Thiếu thông tin'}
+};
+const GOI_Y = ['tìm thực tập AI ở Hà Nội cho mình','có học bổng nào cho năm 3 không?',
+               'đối chiếu OPP-001','viết luôn CV cho mình đi','mình có đỗ không, bao nhiêu %?'];
+
+/* ── khởi động ── */
+async function init(){
+  DATA = await (await fetch('/api/data')).json();
+  $('#tagProv').textContent = `${DATA.provider} · ${DATA.model}`;
+  $('#profSel').innerHTML = '<option value="">— tự khai bên trên —</option>' +
+    DATA.profiles.map(p=>`<option value="${p.id}">${p.id} · ${esc(p.nhan)}</option>`).join('');
+  $('#sug').innerHTML = GOI_Y.map(g=>`<button>${esc(g)}</button>`).join('');
+  capNhatTag();
+  if(!DATA.co_api_key){
+    them('a', `Chưa có API key nên chat đang tắt. Đặt <code>OPENAI_API_KEY</code> rồi chạy lại server.<br>
+      Trong lúc đó bạn vẫn dùng được: tab <b>Tin đang xét</b> → “Dán tin ngoài để đối chiếu”, chạy bằng mock.`, true);
+    $('#btnSend').disabled = true;
+  } else {
+    them('a','Mình giúp được hai việc: <b>tìm tin</b> trong thư viện của hệ thống, và <b>đối chiếu một tin</b> '
+      +'với hồ sơ bạn. Khai hồ sơ hoặc tải CV ở panel bên phải trước để mình đối chiếu chính xác hơn.', true);
+  }
+}
+const capNhatTag = () => {
+  const t=$('#tagMode');
+  const real = DATA.co_api_key;
+  t.textContent = real ? 'AI THẬT' : 'MOCK — chưa gọi AI';
+  t.className = 'tag' + (real?'':' warnt');
+};
+function hoSo(){
+  const b = DATA.profiles.find(x=>x.id===$('#profSel').value) || {};
+  return {...b,
+    nam_hoc: $('#fNam').value===''?null:+$('#fNam').value,
+    gpa: $('#fGpa').value===''?null:+$('#fGpa').value,
+    nganh: $('#fNganh').value||null, thanh_pho: $('#fCity').value||null,
+    ky_nang: $('#fSkill').value.split(',').map(s=>s.trim()).filter(Boolean)};
+}
+
+/* ── chat ── */
+function them(ai, html, raw){
+  const d = document.createElement('div');
+  d.className = 'msg ' + ai;
+  d.innerHTML = `<div class="who">${ai==='u'?'Bạn':'OpportunityMatch'}</div>`
+    + `<div class="bub">${raw?html:esc(html)}</div>`;
+  $('#chat').append(d); $('#chat').scrollTop = 1e9;
+  return d;
+}
+async function gui(text){
+  if(DANG_GUI || !text.trim()) return;
+  DANG_GUI = true; $('#btnSend').disabled = true; $('#sug').hidden = true;
+  them('u', text);
+  LICH_SU.push({role:'user', content:text});
+  const cho = them('a','<span class="dots"><span></span><span></span><span></span></span>', true);
+  try{
+    const r = await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({lich_su:LICH_SU, profile:hoSo(), mode:'real'})});
+    const d = await r.json();
+    cho.remove();
+    if(!r.ok){ them('a', `<div class="err">${esc(d.loi)}</div>`, true); return; }
+    LICH_SU = d.lich_su;
+    let extra = '';
+    for(const ev of d.events||[]){
+      if(ev.loai==='tim_tin') extra += veDanhSach(ev.data);
+      if(ev.loai==='doi_chieu'){ ghimTin(ev.data.tin); extra += veVerdict(ev.data.ket_qua, ev.data.tin); }
+      if(ev.loai==='loi') extra += `<div class="err">${esc(ev.data)}</div>`;
+    }
+    them('a', (d.tra_loi?esc(d.tra_loi):'') + extra, true);
+  }catch(e){ cho.remove(); them('a', `<div class="err">Lỗi mạng: ${esc(e.message)}</div>`, true); }
+  finally{ DANG_GUI=false; $('#btnSend').disabled=false; }
+}
+
+/* ── render ── */
+function veDanhSach(ds){
+  if(!ds?.length) return `<div class="note" style="margin-top:8px">Không có tin nào khớp trong thư viện.</div>`;
+  return `<div class="ops">` + ds.map(o=>`<div class="op">
+      <span class="k">${o.loai==='hoc_bong'?'học bổng':'thực tập'}</span>
+      <div class="t"><b>${esc(o.title)}</b>
+        <span>${esc(o.opp_id)} · ${esc(o.thanh_pho||'—')} · hạn ${esc(o.han_nop||'không nêu')} · ${esc(o.ghi_chu)}</span></div>
+      <button class="btn" data-doi="${o.opp_id}">Đối chiếu</button></div>`).join('') + `</div>`;
+}
+function veVerdict(d, tin){
+  const v = NHAN[d.verdict] || NHAN.thieu_thong_tin;
+  KQ_CUOI = {kq:d, tin};
+  let h = `<div class="vc ${v.cls}"><div class="hd"><span>${v.ic}</span><span>${v.txt}</span></div><div class="bd">`;
+  if(d.canh_bao?.length)
+    h += `<div class="alert"><b>Dấu hiệu bất thường</b><ul>${d.canh_bao.map(c=>`<li>${esc(c)}</li>`).join('')}</ul></div>`;
+  if(d.refusal) h += `<div class="ref">${esc(d.refusal)}</div>`;
+
+  if(d.verdict==='thieu_thong_tin'){
+    // G10 — hỏi thì chỉ hỏi, không kèm phán quyết nửa vời
+    h += `<div class="ask">${esc(d.one_question||'')}</div>`;
+    if(d.thieu_o_dau==='ho_so') h += `<div class="why" style="margin-top:5px">Điền ở panel Hồ sơ rồi nhắc mình đối chiếu lại.</div>`;
+  } else {
+    if(d.hard_fail?.length) h += sec('Tin ghi thẳng là bắt buộc mà hồ sơ chưa đạt',
+      d.hard_fail.map(x=>`<li>${chip(x.evidence_line)}${esc(x.rule)}</li>`));
+    if(d.matched?.length) h += sec('Đã khớp',
+      d.matched.map(x=>`<li>${chip(x.evidence_line)}${esc(x.requirement)} <span class="why">— ${esc(x.from_profile)}</span></li>`));
+    if(d.gaps?.length) h += sec('Chưa khớp / cần tự kiểm',
+      d.gaps.map(x=>`<li>${chip(x.evidence_line)}${esc(x.requirement)} <span class="why">— ${esc(x.why)}</span></li>`));
+  }
+  if(d.not_stated?.length) h += `<div class="sec"><h4>Tin không nêu — mình không suy diễn</h4>
+    <div class="ns"><ul>${d.not_stated.map(s=>`<li>· ${esc(s)}</li>`).join('')}</ul></div></div>`;
+  const dl = d.deadline||{};
+  if(dl.raw) h += sec('Hạn nộp', [`<li>${chip(dl.evidence_line)}${esc(dl.raw)} <span class="why">— ${
+    dl.parsed?esc(dl.parsed):'tin không ghi rõ năm → mình không tự điền'}</span></li>`]);
+  if(d.next_3?.length) h += sec('Việc cần làm', d.next_3.map(s=>`<li>${esc(s)}</li>`));
+
+  const g = d._grounding||{};
+  h += `<div class="gr">Trích dẫn máy soát: <b>${g.so_dat}/${g.so_khang_dinh}</b> trỏ đúng dòng${
+    g.grounding_pass?'':' — <b>CÓ TRÍCH SAI</b>'} · ${d._ms}ms · ${d._mode==='real'?esc(d._model):'mock'}
+    <span style="flex:1"></span>
+    <button class="btn" data-fb="up">👍</button><button class="btn" data-fb="down">👎</button>
+    <button class="btn" data-fb="trich_sai">trích sai dòng</button>
+    <button class="btn" data-fb="thieu_dk">thiếu điều kiện</button></div>`;
+  return h + `</div></div>`;
+}
+const sec = (t,items) => `<div class="sec"><h4>${t}</h4><ul>${items.join('')}</ul></div>`;
+
+function ghimTin(tin){
+  TIN_HIEN = tin;
+  $('#tinTrong').hidden = true;
+  $('#tinTieuDe').textContent = `${tin.opp_id} · ${tin.title}`;
+  $('#tinView').innerHTML = tin.raw_text.split('\n').map((l,i)=>
+    `<div class="ln" data-i="${i+1}"><span class="no">${i+1}</span><span>${esc(l)||'&nbsp;'}</span></div>`).join('');
+}
+
+/* ── CV ── */
+async function napCV(file){
+  $('#cvMsg').innerHTML = `<div class="note">Đang đọc CV…</div>`;
+  const fd = new FormData(); fd.append('file', file);
+  const r = await fetch('/api/cv?mode=' + (DATA.co_api_key?'real':'mock'), {method:'POST', body:fd});
+  const d = await r.json();
+  if(!r.ok){ $('#cvMsg').innerHTML = `<div class="err">${esc(d.loi)}</div>`; return; }
+  if(d.nam_hoc!=null) $('#fNam').value = d.nam_hoc;
+  if(d.gpa!=null) $('#fGpa').value = d.gpa;
+  if(d.nganh) $('#fNganh').value = d.nganh;
+  if(d.thanh_pho) $('#fCity').value = d.thanh_pho;
+  if(d.ky_nang?.length) $('#fSkill').value = d.ky_nang.join(', ');
+  const an = Object.entries(d._redact||{}).map(([k,v])=>`${v} ${k}`).join(', ');
+  const thieu = ['nam_hoc','gpa','nganh','thanh_pho'].filter(k=>d[k]==null||d[k]==='');
+  $('#cvMsg').innerHTML = `<div class="ok">Đã lấy ${4-thieu.length}/4 field chính từ CV.
+    ${an?`Đã ẩn trước khi gửi: ${esc(an)}.`:''}
+    ${thieu.length?`<br>CV không ghi rõ: <b>${thieu.join(', ')}</b> — điền tay bên dưới, mình không đoán.`:''}</div>`;
+}
+
+/* ── sự kiện ── */
+document.addEventListener('click', async e=>{
+  const t = e.target;
+  if(t.closest('.tabs button')){
+    const b = t.closest('button'), k = b.dataset.t;
+    document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on', x===b));
+    $('#tp-hs').hidden = k!=='hs'; $('#tp-tin').hidden = k!=='tin'; return;
+  }
+  const c = t.closest('.chip');
+  if(c){   // G11 — bấm Lk thì sáng đúng dòng trong tin gốc
+    document.querySelectorAll('.tabs button')[1].click();
+    document.querySelectorAll('.ln.hit').forEach(n=>n.classList.remove('hit'));
+    const ln = document.querySelector(`.ln[data-i="${c.dataset.line}"]`);
+    if(ln){ ln.classList.add('hit'); ln.scrollIntoView({block:'center',behavior:'smooth'}); }
+    return;
+  }
+  if(t.dataset.doi){ gui(`đối chiếu ${t.dataset.doi}`); return; }
+  if(t.closest('#sug button')){ gui(t.textContent); return; }
+  if(t.dataset.fb && KQ_CUOI){   // G15
+    fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({opp_id:KQ_CUOI.tin?.opp_id||'dán tay', verdict:KQ_CUOI.kq.verdict,
+        danh_gia: t.dataset.fb==='up'?'👍':t.dataset.fb==='down'?'👎':'-',
+        ly_do:['up','down'].includes(t.dataset.fb)?[]:[t.dataset.fb]})});
+    t.textContent += ' ✓'; t.disabled = true; return;
+  }
+  if(t.id==='btnDan'){           // đường không cần API key
+    const tin = $('#tinDan').value.trim();
+    if(!tin) return;
+    const r = await fetch('/api/verdict',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({posting_text:tin, profile:hoSo(), mode:'mock'})});
+    const d = await r.json();
+    if(!r.ok){ them('a',`<div class="err">${esc(d.loi)}</div>`,true); return; }
+    const gia = {opp_id:'(dán tay)', title:'Tin bạn dán', raw_text:tin};
+    ghimTin(gia); them('a', veVerdict(d, gia), true);
+  }
+});
+$('#btnSend').onclick = ()=>{ const v=$('#inp').value; $('#inp').value=''; $('#inp').style.height='auto'; gui(v); };
+$('#inp').addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); $('#btnSend').click(); }});
+$('#inp').addEventListener('input', e=>{
+  e.target.style.height='auto'; e.target.style.height = Math.min(e.target.scrollHeight,130)+'px'; });
+$('#profSel').onchange = ()=>{
+  const p = DATA.profiles.find(x=>x.id===$('#profSel').value); if(!p) return;
+  $('#fNam').value=p.nam_hoc??''; $('#fGpa').value=p.gpa??'';
+  $('#fNganh').value=p.nganh??''; $('#fCity').value=p.thanh_pho??'';
+  $('#fSkill').value=(p.ky_nang||[]).join(', ');
+};
+$('#drop').onclick = ()=>$('#file').click();
+$('#file').onchange = e=>{ if(e.target.files[0]) napCV(e.target.files[0]); };
+['dragover','dragleave','drop'].forEach(ev=>$('#drop').addEventListener(ev, e=>{
+  e.preventDefault(); $('#drop').classList.toggle('hot', ev==='dragover');
+  if(ev==='drop' && e.dataTransfer.files[0]) napCV(e.dataTransfer.files[0]); }));
+init();
+</script>
+</body>
+</html>

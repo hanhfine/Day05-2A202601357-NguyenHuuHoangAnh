@@ -1,0 +1,61 @@
+{
+  "_ghi_chu": "PERSONA GIẢ — không phải hồ sơ thật của bất kỳ ai. Tuyệt đối không thay bằng GPA/CV thật của bạn cùng lớp (README repo mục Bảo mật dữ liệu). Vòng user test: người thử tự gõ hồ sơ của họ nếu muốn, nhưng KHÔNG log hồ sơ đó vào repo.",
+  "profiles": [
+    {
+      "id": "P-01",
+      "nhan": "Năm 3 CNTT, GPA 3.4, có project LLM",
+      "nam_hoc": 3,
+      "nganh": "Công nghệ thông tin",
+      "gpa": 3.4,
+      "thanh_pho": "Hà Nội",
+      "hinh_thuc": "onsite hoặc online",
+      "ky_nang": ["Python", "LLM API", "SQL cơ bản"],
+      "project": "1 project chatbot dùng LLM API",
+      "publish_paper": false,
+      "da_nhan_hoc_bong_vien": false,
+      "khoa_ai_thuc_chien": "đã học Day 1-5, chọn track AI PM"
+    },
+    {
+      "id": "P-02",
+      "nhan": "Chưa khai năm học — dùng để test đường ② hỏi lại",
+      "nam_hoc": null,
+      "nganh": "Công nghệ thông tin",
+      "gpa": 3.1,
+      "thanh_pho": "TP.HCM",
+      "hinh_thuc": "part-time",
+      "ky_nang": ["SQL cơ bản", "Excel"],
+      "project": null,
+      "publish_paper": false,
+      "da_nhan_hoc_bong_vien": false,
+      "khoa_ai_thuc_chien": "đã học Day 1-3"
+    },
+    {
+      "id": "P-03",
+      "nhan": "Năm 4 Điện tử, GPA 2.8 — dùng để test điều kiện cứng",
+      "nam_hoc": 4,
+      "nganh": "Điện tử",
+      "gpa": 2.8,
+      "thanh_pho": "Hà Nội",
+      "hinh_thuc": "onsite",
+      "ky_nang": ["Python", "C++"],
+      "project": "1 project IoT",
+      "publish_paper": false,
+      "da_nhan_hoc_bong_vien": false,
+      "khoa_ai_thuc_chien": "đã học Day 1-3"
+    },
+    {
+      "id": "P-04",
+      "nhan": "Năm 2 KHDL, GPA 3.6 — dùng để test kịch bản đáng sợ nhất (#10)",
+      "nam_hoc": 2,
+      "nganh": "Khoa học dữ liệu",
+      "gpa": 3.6,
+      "thanh_pho": "Đà Nẵng",
+      "hinh_thuc": "online",
+      "ky_nang": ["Python", "pandas"],
+      "project": "1 project phân tích dữ liệu học tập",
+      "publish_paper": false,
+      "da_nhan_hoc_bong_vien": false,
+      "khoa_ai_thuc_chien": "đã học Day 1-6, chọn track AI Engineer"
+    }
+  ]
+}

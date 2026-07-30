@@ -1,0 +1,33 @@
+CV MẪU — HOÀN TOÀN BỊA, dùng để demo và test chức năng upload CV.
+KHÔNG phải CV của người thật. Đừng thay file này bằng CV thật của ai
+(repo đang public — xem core/cv.py luật 1).
+
+---
+
+NGUYEN VAN A
+Email: nguyenvana.example@example.com
+Điện thoại: 0912 345 678
+GitHub: github.com/nguyenvana-example
+CCCD: 001234567890
+
+MỤC TIÊU
+Tìm vị trí thực tập AI Engineer để áp dụng kiến thức LLM vào sản phẩm thật.
+
+HỌC VẤN
+Đại học Bách Khoa — Sinh viên năm 3, ngành Công nghệ thông tin
+GPA: 3.42/4.0
+Hiện đang ở Hà Nội.
+
+KỸ NĂNG
+Python, SQL, pandas, Git, LLM API (OpenAI, Gemini), Docker cơ bản
+
+DỰ ÁN
+1. Chatbot hỏi đáp tài liệu học tập — dùng LLM API + tìm kiếm theo đoạn,
+   tự đánh giá bằng bộ 30 câu hỏi tự viết.
+2. Dashboard phân tích điểm học tập — SQL + Power BI.
+
+KHOÁ HỌC
+AI Thực Chiến (Batch 03) — đã hoàn thành Day 1 đến Day 5, chọn track AI PM.
+
+NGOẠI NGỮ
+Tiếng Anh: đọc tài liệu kỹ thuật tốt.

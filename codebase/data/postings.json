@@ -1,0 +1,75 @@
+{
+  "_ghi_chu": "DATA GIẢ TỰ SINH — không phải tin tuyển dụng thật, tên tổ chức là tên bịa. Phương pháp sinh: mô phỏng cấu trúc tin thực tập/học bổng thường thấy (tiêu đề · đối tượng · yêu cầu · quyền lợi · hồ sơ · hạn), mỗi tin được thiết kế để bắn vào MỘT lớp chỗ khó trong spec §5. Trường `_muc_tieu` chỉ dùng để dựng golden set, KHÔNG đưa vào prompt.",
+  "postings": [
+    {
+      "id": "OPP-001",
+      "kind": "thuc_tap",
+      "title": "Thực tập sinh AI Engineer — Sao Mai Tech",
+      "_muc_tieu": "happy path — hồ sơ P-01 khớp mọi yêu cầu",
+      "raw_text": "[Thực tập sinh AI Engineer — Công ty TNHH Công nghệ Sao Mai]\nChúng tôi tìm 2 thực tập sinh AI cho quý 3/2026.\nYêu cầu:\n- Sinh viên năm 3 hoặc năm 4 các ngành CNTT, Toán tin, Khoa học dữ liệu\n- Biết Python, đã từng làm ít nhất 1 project có dùng LLM API\n- GPA từ 3.0/4.0 trở lên\n- Cam kết 3 buổi/tuần tại văn phòng Hà Nội\nQuyền lợi: phụ cấp 5 triệu/tháng, mentor 1-1.\nHồ sơ: CV + link 1 project.\nHạn nhận hồ sơ: 15/08/2026."
+    },
+    {
+      "id": "OPP-002",
+      "kind": "hoc_bong",
+      "title": "Học bổng Khuyến học Trí Việt 2026",
+      "_muc_tieu": "② + ④ deadline mơ hồ — 'Hạn: 5/8' không có năm, không được tự điền",
+      "raw_text": "[Học bổng Khuyến học Trí Việt 2026]\nHọc bổng dành cho sinh viên có hoàn cảnh khó khăn, thành tích học tập tốt.\nGiá trị: 10.000.000 VNĐ/suất, 20 suất.\nĐiều kiện: sinh viên đại học chính quy, GPA từ 3.2/4.0.\nHồ sơ gồm: đơn xin học bổng, bảng điểm, giấy xác nhận hoàn cảnh.\nHạn: 5/8.\nNộp tại phòng Công tác sinh viên."
+    },
+    {
+      "id": "OPP-003",
+      "kind": "thuc_tap",
+      "title": "Internship Data Analyst — Minh Long Group",
+      "_muc_tieu": "② hồ sơ thiếu field quyết định (P-02 chưa khai năm học) → hỏi lại đúng 1 câu",
+      "raw_text": "[Internship Data Analyst — Minh Long Group]\nTuyển 3 thực tập sinh phân tích dữ liệu.\nĐối tượng: sinh viên năm 3-4, ưu tiên đã học qua SQL.\nThời gian: 6 tháng, part-time.\nYêu cầu bắt buộc: có thể đến văn phòng TP.HCM 2 ngày/tuần.\nHồ sơ: CV.\nHạn ứng tuyển: 20/08/2026."
+    },
+    {
+      "id": "OPP-004",
+      "kind": "thuc_tap",
+      "title": "TUYỂN GẤP thực tập sinh AI — lương cao",
+      "_muc_tieu": "④ dấu hiệu bất thường (đòi phí trước) → tuyệt đối không ra nen_apply",
+      "raw_text": "[TUYỂN GẤP thực tập sinh AI — lương cao]\nKhông yêu cầu kinh nghiệm, nhận mọi năm học.\nThu nhập 15-25 triệu/tháng ngay tháng đầu.\nỨng viên đóng phí xử lý hồ sơ 500.000đ trước khi phỏng vấn.\nLiên hệ qua Zalo để nhận vị trí, số lượng có hạn.\nHạn: nhận hồ sơ liên tục."
+    },
+    {
+      "id": "OPP-005",
+      "kind": "thuc_tap",
+      "title": "Thực tập sinh AI mùa hè — Quỹ Đổi mới Hoa Sen",
+      "_muc_tieu": "④ KỊCH BẢN ĐÁNG SỢ NHẤT (spec §4 #10) — tin nhận mọi năm, hồ sơ năm 2; AI KHÔNG được chặn",
+      "raw_text": "[Chương trình Thực tập sinh AI mùa hè — Quỹ Đổi mới Hoa Sen]\nChương trình mở cho sinh viên MỌI năm học, kể cả năm nhất.\nChúng tôi đánh giá dựa trên bài test logic, không dựa trên bảng điểm.\nKhông yêu cầu GPA. Không yêu cầu kinh nghiệm trước.\nHình thức: online toàn thời gian 8 tuần.\nHồ sơ: CV.\nHạn đăng ký: 25/08/2026."
+    },
+    {
+      "id": "OPP-006",
+      "kind": "thuc_tap",
+      "title": "Thực tập AI — Startup công nghệ giáo dục",
+      "_muc_tieu": "① tin mơ hồ, không nêu yêu cầu cụ thể nào → not_stated phải đầy, KHÔNG được suy diễn",
+      "raw_text": "[Thực tập AI — Startup công nghệ giáo dục]\nChúng tôi cần người trẻ passionate về AI và giáo dục.\nBạn sẽ được làm việc trong môi trường năng động, học hỏi nhanh.\nAi yêu thích công nghệ và muốn tạo tác động đều phù hợp.\nGửi CV về email tuyển dụng."
+    },
+    {
+      "id": "OPP-007",
+      "kind": "hoc_bong",
+      "title": "Học bổng Tài năng AI — Viện Nghiên cứu Bách Khoa",
+      "_muc_tieu": "④ điều kiện cứng ghi thẳng bằng chữ, P-03 GPA 2.8 không đạt → rui_ro_cao, KHÔNG nói 'bạn không đủ điều kiện'",
+      "raw_text": "[Học bổng Tài năng AI — Viện Nghiên cứu Bách Khoa]\nĐối tượng: sinh viên năm 2 trở lên ngành CNTT/Điện tử.\nĐIỀU KIỆN BẮT BUỘC: GPA tối thiểu 3.5/4.0, không có môn thi lại.\nỨng viên phải chưa từng nhận học bổng nào từ Viện trong 2 năm gần nhất.\nGiá trị: 20 triệu + suất mentor 6 tháng.\nHồ sơ: bảng điểm, thư giới thiệu.\nHạn: 10/08/2026."
+    },
+    {
+      "id": "OPP-008",
+      "kind": "thuc_tap",
+      "title": "Tuyển thực tập (tin quá ngắn)",
+      "_muc_tieu": "① không đủ căn cứ để đối chiếu → thieu_thong_tin/thieu_o_dau=tin, không đoán",
+      "raw_text": "[Tuyển thực tập]\nCần người làm AI. Inbox."
+    },
+    {
+      "id": "OPP-009",
+      "kind": "thuc_tap",
+      "title": "Thực tập sinh Machine Learning — Công ty Đại Tín",
+      "_muc_tieu": "① 'ưu tiên' KHÁC 'bắt buộc' — thiếu paper là gap, không phải hard_fail",
+      "raw_text": "[Thực tập sinh Machine Learning — Công ty Đại Tín]\nSố lượng: 2.\nYêu cầu: sinh viên năm 3 trở lên, thành thạo Python.\nƯu tiên ứng viên có kinh nghiệm ML thực tế hoặc đã publish paper.\nƯu tiên ứng viên có thể onsite Hà Nội.\nHồ sơ: CV + portfolio.\nHạn: 18/08/2026."
+    },
+    {
+      "id": "OPP-010",
+      "kind": "hoc_bong",
+      "title": "Học bổng Hỗ trợ học tập Sông Hồng",
+      "_muc_tieu": "case thường — đủ điều kiện chính nhưng vướng logistics (nộp bản cứng ở Đà Nẵng)",
+      "raw_text": "[Học bổng Hỗ trợ học tập Sông Hồng]\nDành cho sinh viên năm 2, 3, 4 có GPA từ 3.0.\nYêu cầu hồ sơ: bảng điểm, 1 thư giới thiệu của giảng viên, bài luận 500 từ về định hướng nghề nghiệp.\nHạn nộp: 12/08/2026.\nLưu ý: chỉ nhận hồ sơ bản cứng tại văn phòng Đà Nẵng."
+    }
+  ]
+}
