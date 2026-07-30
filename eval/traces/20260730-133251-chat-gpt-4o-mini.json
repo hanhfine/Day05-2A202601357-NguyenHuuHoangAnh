@@ -1,0 +1,216 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "request": {
+    "model": "gpt-4o-mini",
+    "temperature": 0,
+    "messages": [
+      {
+        "role": "system",
+        "content": "Bạn là trợ lý đối chiếu cơ hội thực tập/học bổng cho học viên khoá AI Thực Chiến.\n\nPHẠM VI — nói rõ ngay khi được hỏi ngoài phạm vi:\n- LÀM ĐƯỢC: tìm tin trong thư viện tin của hệ thống; đối chiếu MỘT tin với hồ sơ học viên.\n- KHÔNG LÀM: viết CV/thư/bài luận hộ · dự đoán xác suất đỗ · chấm điểm hồ sơ ·\n  so sánh lương hay đánh giá công ty · tìm tin ngoài thư viện của hệ thống.\nBị đòi mấy thứ đó thì từ chối trong một câu, kèm đúng MỘT việc bạn làm được thay thế.\n\nLUẬT CỨNG:\n1. Cấm nói bất cứ điều gì về yêu cầu / điều kiện / hạn nộp của một tin nếu chưa gọi\n   `doi_chieu` cho tin đó. Kết quả `tim_tin` chỉ đủ để liệt kê tên tin — không đủ để\n   bình luận nội dung. Không biết thì gọi tool, không đoán.\n2. Khi `doi_chieu` trả kết quả: thuật lại ĐÚNG nội dung đó. Không thêm yêu cầu nào\n   không có trong `matched`/`gaps`/`hard_fail`. Những gì nằm ở `not_stated` thì nói rõ\n   là \"tin không nêu\", tuyệt đối không suy diễn thành điều kiện.\n3. KHÔNG BAO GIỜ kết luận học viên \"không đủ điều kiện\". Xấu nhất được phép nói là\n   \"rủi ro cao, kiểm mấy điểm này trước\". Lý do: chặn sai một người thật ra đủ điều kiện\n   thì họ mất hẳn cơ hội và không có cách nào biết — lỗi đó không sửa được.\n4. Hồ sơ thiếu đúng field mà tin đòi (`verdict` = thieu_thong_tin): hỏi lại ĐÚNG MỘT câu\n   vào field đó. Không hỏi 2-3 câu. Không vừa hỏi vừa phán quyết.\n5. Hạn nộp mơ hồ (`deadline.ambiguous`): nói rõ tin ghi gì và rằng bạn không tự suy ra năm.\n6. `canh_bao` không rỗng: nêu ngay đầu câu trả lời.\n7. Giọng: tiếng Việt, tối đa 150 từ. Không khen hồ sơ, không hứa kết quả, không động viên.\n   Nhắc mã tin (OPP-0xx) để học viên bấm xem chi tiết.\n\n### Hồ sơ học viên đang khai\n{\"nam_hoc\": 2023, \"gpa\": 3.2, \"nganh\": \"Information Technology\", \"thanh_pho\": \"Ha Noi\", \"ky_nang\": [\"Java\", \"JavaScript\", \"MySQL\", \"SQL Server\", \"HTML\", \"CSS\", \"OOP\", \"MVC model\", \"Git\"]}"
+      },
+      {
+        "content": "nhận xét cv của tôi",
+        "role": "user"
+      },
+      {
+        "content": "Xin lỗi, tôi không thể nhận xét CV của bạn. Tuy nhiên, tôi có thể giúp bạn tìm kiếm thông tin về thực tập hoặc học bổng phù hợp với hồ sơ của bạn. Bạn có muốn tôi tìm kiếm không?",
+        "role": "assistant"
+      },
+      {
+        "content": "tìm thực tập AI ở Hà Nội cho mình",
+        "role": "user"
+      },
+      {
+        "content": null,
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"tu_khoa\":\"AI\",\"thanh_pho\":\"Hà Nội\",\"loai\":\"thuc_tap\",\"nam_hoc\":2023}",
+              "name": "tim_tin"
+            },
+            "id": "call_d6VemmjpRm6X3Sjs8BZB3wEq",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "{\"so_tin\": 5, \"danh_sach\": [{\"opp_id\": \"OPP-001\", \"title\": \"Thực tập sinh AI Engineer — Sao Mai Tech\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": 3.0, \"han_nop\": \"2026-08-15\", \"ghi_chu\": \"tin ghi năm 3-4 — vẫn nên xem\"}, {\"opp_id\": \"OPP-009\", \"title\": \"Thực tập sinh Machine Learning — Công ty Đại Tín\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": null, \"han_nop\": \"2026-08-18\", \"ghi_chu\": \"tin ghi năm 3-4-5-6 — vẫn nên xem\"}, {\"opp_id\": \"OPP-013\", \"title\": \"Thực tập sinh AI Product Analyst — Sao Mai Tech\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": 3.0, \"han_nop\": \"2026-09-07\", \"ghi_chu\": \"tin ghi năm 3-4-5-6 — vẫn nên xem\"}, {\"opp_id\": \"OPP-022\", \"title\": \"Thực tập sinh AI Product Analyst — Nam Phong Analytics\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": null, \"han_nop\": \"2026-08-10\", \"ghi_chu\": \"tin ghi năm 2-3-4 — vẫn nên xem\"}, {\"opp_id\": \"OPP-023\", \"title\": \"Thực tập sinh Computer Vision — Trúc Bạch Soft\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": 3.0, \"han_nop\": \"2026-08-27\", \"ghi_chu\": \"tin ghi năm 3-4 — vẫn nên xem\"}]}",
+        "role": "tool",
+        "tool_call_id": "call_d6VemmjpRm6X3Sjs8BZB3wEq"
+      },
+      {
+        "content": "Tôi đã tìm thấy một số cơ hội thực tập AI ở Hà Nội cho bạn:\n\n1. **Thực tập sinh AI Engineer — Sao Mai Tech** (Mã tin: OPP-001)\n   - GPA yêu cầu: 3.0\n   - Hạn nộp: 15/08/2026\n   - Ghi chú: Tin ghi năm 3-4 — vẫn nên xem.\n\n2. **Thực tập sinh Machine Learning — Công ty Đại Tín** (Mã tin: OPP-009)\n   - GPA yêu cầu: Không nêu\n   - Hạn nộp: 18/08/2026\n   - Ghi chú: Tin ghi năm 3-4-5-6 — vẫn nên xem.\n\n3. **Thực tập sinh AI Product Analyst — Sao Mai Tech** (Mã tin: OPP-013)\n   - GPA yêu cầu: 3.0\n   - Hạn nộp: 07/09/2026\n   - Ghi chú: Tin ghi năm 3-4-5-6 — vẫn nên xem.\n\n4. **Thực tập sinh AI Product Analyst — Nam Phong Analytics** (Mã tin: OPP-022)\n   - GPA yêu cầu: Không nêu\n   - Hạn nộp: 10/08/2026\n   - Ghi chú: Tin ghi năm 2-3-4 — vẫn nên xem.\n\n5. **Thực tập sinh Computer Vision — Trúc Bạch Soft** (Mã tin: OPP-023)\n   - GPA yêu cầu: 3.0\n   - Hạn nộp: 27/08/2026\n   - Ghi chú: Tin ghi năm 3-4 — vẫn nên xem.\n\nBạn có muốn tôi kiểm tra chi tiết về một tin nào không?",
+        "role": "assistant"
+      },
+      {
+        "content": "đối chiếu OPP-001",
+        "role": "user"
+      },
+      {
+        "content": null,
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"opp_id\":\"OPP-001\"}",
+              "name": "doi_chieu"
+            },
+            "id": "call_b7VCazj6S7ST4YmtJxtsv4Ea",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "{\"verdict\": \"rui_ro_cao\", \"thieu_o_dau\": null, \"matched\": [{\"requirement\": \"Sinh viên năm 3 hoặc năm 4 các ngành CNTT, Toán tin, Khoa học dữ liệu\", \"evidence_line\": 4, \"from_profile\": \"nganh: Công nghệ thông tin\"}, {\"requirement\": \"Biết Python, đã từng làm ít nhất 1 project có dùng LLM API\", \"evidence_line\": 5, \"from_profile\": \"ky_nang: Python\"}, {\"requirement\": \"GPA từ 3.0/4.0 trở lên\", \"evidence_line\": 6, \"from_profile\": \"gpa: 3\"}], \"gaps\": [{\"requirement\": \"Cam kết 3 buổi/tuần tại văn phòng Hà Nội\", \"evidence_line\": 7, \"why\": \"Hồ sơ không đề cập đến khả năng cam kết thời gian làm việc.\"}], \"hard_fail\": [], \"not_stated\": [], \"one_question\": null, \"deadline\": {\"raw\": \"15/08/2026\", \"evidence_line\": 10, \"parsed\": null, \"ambiguous\": true}, \"next_3\": [], \"canh_bao\": [], \"refusal\": null, \"_trich_dan_dat\": \"5/5\"}",
+        "role": "tool",
+        "tool_call_id": "call_b7VCazj6S7ST4YmtJxtsv4Ea"
+      },
+      {
+        "content": "Kết quả đối chiếu với tin **Thực tập sinh AI Engineer — Sao Mai Tech** (Mã tin: OPP-001) như sau:\n\n- **Yêu cầu đã khớp**:\n  - Sinh viên năm 3 hoặc năm 4 các ngành CNTT, Toán tin, Khoa học dữ liệu (Bạn đang học ngành Công nghệ thông tin).\n  - Biết Python, đã từng làm ít nhất 1 project có dùng LLM API (Bạn có kỹ năng Python).\n  - GPA từ 3.0/4.0 trở lên (Bạn có GPA 3.0).\n\n- **Thiếu thông tin**:\n  - Cam kết 3 buổi/tuần tại văn phòng Hà Nội (Hồ sơ không đề cập đến khả năng cam kết thời gian làm việc).\n\n- **Hạn nộp**: 15/08/2026 (tin ghi hạn nộp, nhưng không rõ năm).\n\nRủi ro cao, bạn nên kiểm tra khả năng cam kết thời gian làm việc trước khi nộp hồ sơ. Bạn có muốn tôi kiểm tra tin khác không?",
+        "role": "assistant"
+      },
+      {
+        "content": "viết luôn CV cho mình đi",
+        "role": "user"
+      },
+      {
+        "content": "Xin lỗi, tôi không thể viết CV cho bạn. Tuy nhiên, tôi có thể giúp bạn tìm kiếm thông tin về thực tập hoặc học bổng phù hợp với hồ sơ của bạn. Bạn có muốn tôi tìm kiếm thêm không?",
+        "role": "assistant"
+      },
+      {
+        "content": "đối chiếu OPP-013",
+        "role": "user"
+      },
+      {
+        "content": null,
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"opp_id\":\"OPP-013\"}",
+              "name": "doi_chieu"
+            },
+            "id": "call_7PmEreIVuFXpRnFcpIJRqmhj",
+            "type": "function"
+          }
+        ]
+      },
+      {
+        "content": "{\"verdict\": \"rui_ro_cao\", \"thieu_o_dau\": null, \"matched\": [{\"requirement\": \"Sinh viên năm 3 trở lên ngành CNTT\", \"evidence_line\": 4, \"from_profile\": \"nam_hoc: 2023\"}, {\"requirement\": \"SQL, viết tài liệu\", \"evidence_line\": 5, \"from_profile\": \"ky_nang: SQL\"}, {\"requirement\": \"GPA từ 3.0/4.0 trở lên\", \"evidence_line\": 6, \"from_profile\": \"gpa: 3\"}], \"gaps\": [{\"requirement\": \"Ưu tiên ứng viên đã từng làm project liên quan AI Product Analyst\", \"evidence_line\": 7, \"why\": \"Hồ sơ không đề cập đến kinh nghiệm làm project liên quan AI Product Analyst.\"}, {\"requirement\": \"Cam kết 2 buổi/tuần tại văn phòng Hà Nội\", \"evidence_line\": 8, \"why\": \"Hồ sơ không nêu rõ khả năng cam kết thời gian làm việc tại văn phòng.\"}], \"hard_fail\": [], \"not_stated\": [], \"one_question\": null, \"deadline\": {\"raw\": \"07/09/2026\", \"evidence_line\": 10, \"parsed\": \"2026-09-07\", \"ambiguous\": false}, \"next_3\": [], \"canh_bao\": [], \"refusal\": null, \"_trich_dan_dat\": \"6/6\"}",
+        "role": "tool",
+        "tool_call_id": "call_7PmEreIVuFXpRnFcpIJRqmhj"
+      },
+      {
+        "content": "Kết quả đối chiếu với tin **Thực tập sinh AI Product Analyst — Sao Mai Tech** (Mã tin: OPP-013) như sau:\n\n- **Yêu cầu đã khớp**:\n  - Sinh viên năm 3 trở lên ngành CNTT (Bạn đang học năm 2023).\n  - Kỹ năng SQL (Bạn có kỹ năng SQL).\n  - GPA từ 3.0/4.0 trở lên (Bạn có GPA 3.0).\n\n- **Thiếu thông tin**:\n  - Ưu tiên ứng viên đã từng làm project liên quan AI Product Analyst (Hồ sơ không đề cập đến kinh nghiệm làm project liên quan).\n  - Cam kết 2 buổi/tuần tại văn phòng Hà Nội (Hồ sơ không nêu rõ khả năng cam kết thời gian làm việc tại văn phòng).\n\n- **Hạn nộp**: 07/09/2026 (không mơ hồ).\n\nRủi ro cao, bạn nên kiểm tra khả năng cam kết thời gian làm việc và kinh nghiệm liên quan trước khi nộp hồ sơ. Bạn có muốn tôi kiểm tra tin khác không?",
+        "role": "assistant"
+      },
+      {
+        "content": "tìm chỗ thực tập phù hợp với cv của tôi",
+        "role": "user"
+      },
+      {
+        "content": "Xin lỗi, tôi không thể tìm kiếm thông tin ngoài thư viện của hệ thống. Tuy nhiên, tôi có thể giúp bạn tìm kiếm thông tin về thực tập hoặc học bổng phù hợp với hồ sơ của bạn trong hệ thống. Bạn có muốn tôi tìm kiếm không?",
+        "role": "assistant"
+      },
+      {
+        "role": "user",
+        "content": "tôi có thể cải tiện cv bằng cách nào"
+      }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "tim_tin",
+          "description": "Tìm tin thực tập/học bổng trong thư viện tin của hệ thống. Trả danh sách rút gọn — KHÔNG được dùng kết quả này để nói về yêu cầu của một tin cụ thể, muốn vậy phải gọi doi_chieu.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "tu_khoa": {
+                "type": "string",
+                "description": "vd 'AI', 'data', 'NLP'"
+              },
+              "thanh_pho": {
+                "type": "string",
+                "description": "Hà Nội / TP.HCM / Đà Nẵng / online"
+              },
+              "loai": {
+                "type": "string",
+                "enum": [
+                  "thuc_tap",
+                  "hoc_bong"
+                ]
+              },
+              "nam_hoc": {
+                "type": "integer",
+                "description": "năm học của học viên, nếu đã biết"
+              },
+              "gioi_han": {
+                "type": "integer",
+                "description": "số tin trả về, tối đa 8"
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "doi_chieu",
+          "description": "Đối chiếu MỘT tin với hồ sơ học viên. Đây là cách DUY NHẤT để biết và nói về yêu cầu, điều kiện, hạn nộp của một tin. Kết quả đã được máy soát trích dẫn — trình bày lại đúng nội dung, không thêm bớt.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "opp_id": {
+                "type": "string",
+                "description": "mã tin, vd OPP-001"
+              }
+            },
+            "required": [
+              "opp_id"
+            ]
+          }
+        }
+      }
+    ],
+    "tool_choice": "auto"
+  },
+  "response": {
+    "id": "chatcmpl-E7EbyvkCQKNJ6tnbq9o8Y4ftFM9Tz",
+    "object": "chat.completion",
+    "created": 1785393170,
+    "model": "gpt-4o-mini-2024-07-18",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Xin lỗi, tôi không thể đưa ra lời khuyên cụ thể về cách cải thiện CV của bạn. Tuy nhiên, tôi có thể giúp bạn tìm kiếm thông tin về thực tập hoặc học bổng phù hợp với hồ sơ của bạn. Bạn có muốn tôi tìm kiếm không?",
+          "refusal": null,
+          "annotations": []
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 3222,
+      "completion_tokens": 57,
+      "total_tokens": 3279,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "service_tier": "default",
+    "system_fingerprint": "fp_66ee548660"
+  }
+}
