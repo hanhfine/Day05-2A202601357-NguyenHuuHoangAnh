@@ -23,6 +23,11 @@ RE_ID = re.compile(r"\b\d{9,12}\b")
 RE_NAM = re.compile(r"(?:sinh viên|sv|năm thứ|năm)\s*([1-6])(?![0-9])", re.I)
 RE_GPA = re.compile(r"(?:gpa|điểm trung bình|đtb)[^\d]{0,15}(\d[.,]\d{1,2})", re.I)
 RE_CITY = re.compile(r"(hà nội|tp\.?\s?hcm|hồ chí minh|đà nẵng|huế|cần thơ)", re.I)
+# Dò NHÃN "GitHub", không dò đường link — redact() đã thay link bằng [LINK] rồi mà
+# nhãn thì còn nguyên ("GitHub: [LINK]"). Nhiều tin ghi "ưu tiên có GitHub/project",
+# trước đây hồ sơ không có chỗ nào ghi nhận việc này nên học viên có GitHub vẫn bị
+# báo là thiếu. Chỉ lưu true/false, không bao giờ lưu đường link.
+RE_GITHUB = re.compile(r"github|gitlab|bitbucket", re.I)
 KY_NANG = ["Python", "SQL", "Excel", "pandas", "PyTorch", "TensorFlow", "Docker",
            "Java", "C++", "JavaScript", "LLM API", "OpenCV", "Git", "Power BI"]
 
@@ -30,15 +35,18 @@ SYSTEM = """Bạn rút thông tin từ một CV đã được ẩn thông tin li
 
 Trả về DUY NHẤT JSON:
 {"nam_hoc": int|null, "nganh": str|null, "gpa": number|null, "thanh_pho": str|null,
- "ky_nang": [str], "project": str|null}
+ "ky_nang": [str], "project": str|null, "co_github": true|false}
 
 LUẬT:
 - CV không ghi rõ field nào thì để null / mảng rỗng. TUYỆT ĐỐI không suy đoán.
   Không có GPA thì là null — đừng ước lượng từ học lực.
 - KHÔNG trả về tên người, email, số điện thoại, link, địa chỉ, số CCCD, tên trường
-  dù chúng có xuất hiện. Chỉ 6 field trên.
+  dù chúng có xuất hiện. Chỉ 7 field trên.
 - `gpa` quy về thang 4. CV ghi thang 10 thì chia 2.5 và làm tròn 2 số.
-- `ky_nang` là tên công nghệ/kỹ năng cụ thể, tối đa 10 mục."""
+- `ky_nang` là tên công nghệ/kỹ năng cụ thể, tối đa 10 mục.
+- `co_github` = true nếu CV có nhắc tới GitHub/GitLab/portfolio code, KỂ CẢ khi
+  đường link đã bị thay bằng [LINK]. Đây chỉ là cờ true/false — TUYỆT ĐỐI không
+  chép lại đường link vào bất kỳ field nào."""
 
 
 def redact(text: str) -> tuple[str, dict]:
@@ -84,7 +92,8 @@ def _mock(text: str) -> dict:
     thap = text.lower()
     return {"nam_hoc": int(n.group(1)) if n else None,
             "nganh": None, "gpa": gpa, "thanh_pho": c.group(1) if c else None,
-            "ky_nang": [k for k in KY_NANG if k.lower() in thap][:10], "project": None}
+            "ky_nang": [k for k in KY_NANG if k.lower() in thap][:10], "project": None,
+            "co_github": bool(RE_GITHUB.search(text))}
 
 
 def trich_ho_so(text: str, mode: str = "real") -> dict:
@@ -100,9 +109,13 @@ def trich_ho_so(text: str, mode: str = "real") -> dict:
 
     ky_nang = [str(x) for x in (o.get("ky_nang") or [])][:10]
     gpa = o.get("gpa")
+    # Chốt lại co_github bằng regex trên bản đã redact: model có thể quên field này,
+    # mà nhãn "GitHub" thì luôn còn trong text. Chỉ nâng lên true, không hạ xuống false.
+    co_git = bool(o.get("co_github")) or bool(RE_GITHUB.search(sach))
     return {"nam_hoc": o.get("nam_hoc") if isinstance(o.get("nam_hoc"), int) else None,
             "nganh": o.get("nganh") or None,
             "gpa": float(gpa) if isinstance(gpa, (int, float)) else None,
             "thanh_pho": o.get("thanh_pho") or None,
             "ky_nang": ky_nang, "project": o.get("project") or None,
+            "co_github": co_git,
             "_redact": dem, "_so_ky_tu": len(text)}

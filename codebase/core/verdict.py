@@ -23,7 +23,14 @@ CODEBASE = Path(__file__).resolve().parent.parent
 RE_DONG_YEUCAU = re.compile(
     r"yêu cầu|điều kiện|đối tượng|ưu tiên|bắt buộc|hồ sơ|cam kết|dành cho|gpa|"
     r"sinh viên|ứng viên|thành thạo|biết |lưu ý|đóng phí", re.I)
-RE_HAN = re.compile(r"hạn|deadline|hết hạn", re.I)
+# Hạn nộp phải là NHÃN "Hạn...:" chứ không phải chữ "hạn" nằm đâu đó trong tin.
+# Bản cũ bắt trần `hạn|deadline` nên trên tin thật nó vớ phải "...BHXH, BHYT, BHTN...
+# số lượng có hạn" và câu tiếng Anh "within established deadlines" — rồi báo nguyên
+# dòng đó ra làm hạn nộp. Tức là bịa ra một cái hạn tin không hề có.
+RE_HAN = re.compile(
+    r"\bhạn\s*(?:nộp|chót|cuối|nhận|đăng\s*ký|ứng\s*tuyển)?\s*(?:hồ\s*sơ)?\s*:"
+    r"|\bhết\s*hạn\b\s*:?"
+    r"|\bdeadline\s*:", re.I)
 RE_NGAY = re.compile(r"\b(\d{1,2})\s*[/-]\s*(\d{1,2})(?:\s*[/-]\s*(\d{2,4}))?\b")
 RE_GPA = re.compile(r"gpa[^\d]{0,25}(\d[.,]\d{1,2})", re.I)
 RE_MOI_NAM = re.compile(r"mọi năm|tất cả các năm|kể cả năm nhất|không yêu cầu năm", re.I)

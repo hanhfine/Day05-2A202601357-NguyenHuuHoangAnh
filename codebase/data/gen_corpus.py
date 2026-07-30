@@ -81,16 +81,32 @@ def tin_hoc_bong(i: int) -> dict:
 def main() -> None:
     goc = json.loads((D / "postings.json").read_text(encoding="utf-8"))["postings"]
     them = [(tin_thuc_tap if n % 3 else tin_hoc_bong)(n) for n in range(11, 41)]
+
+    # Đối xứng với crawler.py: script này chỉ sở hữu tin OPP-*, tin REAL-* giữ nguyên.
+    # Trước đây hai script ghi đè sạch cùng một file nên chạy cái này là mất tin crawl,
+    # chạy cái kia là mất fixture — và không cái nào báo gì.
+    corpus_path = D / "corpus.json"
+    giu_real = []
+    if corpus_path.exists():
+        try:
+            cu = json.loads(corpus_path.read_text(encoding="utf-8"))["postings"]
+            giu_real = [t for t in cu if str(t.get("id", "")).startswith("REAL-")]
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"⚠ corpus.json cũ đọc không được ({e}) — ghi mới hoàn toàn.")
+
     out = {
         "_ghi_chu": "DATA GIẢ TỰ SINH. OPP-001..010 gõ tay, mỗi tin bắn vào 1 lớp chỗ khó "
                     "(xem postings.json). OPP-011..040 sinh bằng gen_corpus.py với seed=42 "
-                    "— chạy lại script ra đúng cùng 30 tin. Mọi tên tổ chức là tên bịa.",
-        "postings": goc + them,
+                    "— chạy lại script ra đúng cùng 30 tin. Mọi tên tổ chức là tên bịa. "
+                    f"Ngoài ra giữ nguyên {len(giu_real)} tin REAL-* do data/crawler.py "
+                    "quản (tin ngoài đời, link đã bấm thử) — script này không đụng vào.",
+        "postings": goc + them + giu_real,
     }
-    (D / "corpus.json").write_text(json.dumps(out, ensure_ascii=False, indent=2),
-                                   encoding="utf-8")
+    corpus_path.write_text(json.dumps(out, ensure_ascii=False, indent=2),
+                           encoding="utf-8")
     print(f"corpus.json: {len(out['postings'])} tin "
-          f"({len(goc)} gõ tay + {len(them)} sinh tự động)")
+          f"({len(goc)} gõ tay + {len(them)} sinh tự động"
+          f"{f' + {len(giu_real)} REAL-* giữ nguyên' if giu_real else ''})")
     print("  thực tập:", sum(1 for t in out["postings"] if t["kind"] == "thuc_tap"),
           "· học bổng:", sum(1 for t in out["postings"] if t["kind"] == "hoc_bong"))
 

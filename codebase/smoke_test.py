@@ -6,6 +6,7 @@ mọi trích dẫn trỏ đúng dòng, và 2 endpoint của server trả 200.
 
 Chạy:  python smoke_test.py
 """
+import re
 import sys
 
 from core.verdict import tai_data, verdict
@@ -91,23 +92,119 @@ def main() -> int:
 
     print("\ntool tim_tin:")
     corpus = tai_corpus()
-    ok = len(corpus) == 40
+    # Corpus có HAI lớp: OPP-* là fixture (gen_corpus.py), REAL-* là tin crawl
+    # (crawler.py). Chỉ chốt số lớp fixture — số tin crawl thay đổi theo mỗi lần crawl.
+    opp = [t for t in corpus if t["id"].startswith("OPP-")]
+    real = [t for t in corpus if t["id"].startswith("REAL-")]
+    ok = len(opp) == 40
     loi += not ok
-    print(f"  {'✓' if ok else '✗'} corpus {len(corpus)} tin (chờ 40 — chạy data/gen_corpus.py nếu thiếu)")
+    print(f"  {'✓' if ok else '✗'} corpus {len(opp)} tin OPP-* fixture + {len(real)} tin REAL-* "
+          f"(chờ 40 OPP-* — chạy data/gen_corpus.py nếu thiếu)")
 
-    hn = tim_tin(thanh_pho="Hà Nội", gioi_han=8)
+    # LUẬT: mọi link phải đi qua máy bấm thử trước khi vào corpus. Link nằm ngoài
+    # raw_text nên checker trích dẫn không soi tới — đây là chỗ duy nhất chặn được.
+    # Ba kết cục đều hợp lệ (ok / khong_kiem_duoc / chet); chỉ KHÔNG được phép là
+    # tin có link mà chưa từng bị kiểm.
+    HOP_LE = ("ok:", "khong_kiem_duoc", "chuyen_huong")
+    bo_sot = [t["id"] for t in real
+              if t.get("url") and not str(t.get("_url_status", "")).startswith(HOP_LE)]
+    thieu_muc = [t["id"] for t in real if t.get("url") and not t.get("url_loai")]
+    ok = not bo_sot and not thieu_muc
+    loi += not ok
+    n_ok = sum(1 for t in real if str(t.get("_url_status", "")).startswith("ok"))
+    n_chua = sum(1 for t in real if str(t.get("_url_status", "")).startswith("khong_kiem_duoc"))
+    print(f"  {'✓' if ok else '✗'} link REAL-*: {n_ok} xác minh sống · "
+          f"{n_chua} trang chặn bot (giữ, đánh dấu chưa xác minh) · "
+          f"{len(real) - n_ok - n_chua} không có link"
+          + (f" — BỎ SÓT KIỂM: {bo_sot}" if bo_sot else "")
+          + (f" — THIẾU MỨC: {thieu_muc}" if thieu_muc else ""))
+
+    # LUẬT: không được bịa hạn nộp. Hạn chỉ hợp lệ khi là nhãn "Hạn...:" — nếu nó
+    # rơi vào câu phúc lợi hay câu tiếng Anh có chữ "deadline" thì là đang bịa.
+    from core.tools import meta as _meta
+    han_bay = []
+    for t in real:
+        h = _meta(t["raw_text"])["han_nop"]
+        raw = (h["raw"] or "")
+        if raw and not re.search(r"hạn|deadline", raw.split(":")[0], re.I):
+            han_bay.append(f"{t['id']}:{raw[:30]}")
+    ok = not han_bay
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} không tin thật nào bị gán hạn nộp bịa"
+          + (f" — BỊA: {han_bay}" if han_bay else ""))
+
+    # LUẬT: đường sản phẩm KHÔNG được trả tin fixture. Học viên bấm vào một tin của
+    # "Sao Mai Tech" (tên bịa) là mất thời gian vào cơ hội không tồn tại.
+    sp = tim_tin(tu_khoa="AI", gioi_han=8)
+    lot = [x["opp_id"] for x in sp if x["opp_id"].startswith("OPP-")]
+    ok = not lot
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} tim_tin mặc định chỉ trả tin thật "
+          f"({len(sp)} tin)" + (f" — LỌT FIXTURE: {lot}" if lot else ""))
+
+    # Mọi tin đường sản phẩm trả ra phải có link bấm được — tin thật mà không có
+    # link thì học viên biết có cơ hội mà không có cách nào tới nơi nộp.
+    khong_link = [x["opp_id"] for x in sp if not x["url"]]
+    ok = bool(sp) and not khong_link
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} tin sản phẩm đều có link bấm được"
+          + (f" — THIẾU LINK: {khong_link}" if khong_link else "")
+          + ("" if sp else " — CHƯA CÓ TIN THẬT NÀO, chạy data/crawler.py"))
+
+    # LUẬT: khớp từ khoá theo RANH GIỚI TỪ. Bản cũ dùng substring nên "AI" trúng
+    # "tại/trải/bài" — tin tuyển nhân sự leo lên đầu khi tìm "thực tập AI".
+    from core.tools import (MAC_DINH_TIN, TRAN_TIN, _khop_tu, _kd, dispatch,
+                            xep_hang)
+    bay = [(t, v) for t, v in [("ai", "nhat ban tai viet nam"), ("ai", "trai nghiem"),
+                               ("ai", "cac bai dang"), ("data", "du lieu cap nhat")]
+           if _khop_tu(t, _kd(v))]
+    that = [(t, v) for t, v in [("ai", "ky su AI"), ("ai", "AI Engineer"),
+                                ("python", "thanh thao Python")]
+            if not _khop_tu(t, _kd(v))]
+    ok = not bay and not that
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} từ khoá khớp theo ranh giới từ"
+          + (f" — TRÚNG NHẦM: {bay}" if bay else "")
+          + (f" — TRƯỢT: {that}" if that else ""))
+
+    # LUẬT: hồ sơ CHỈ xếp hạng, KHÔNG loại tin. Và tin khớp kỹ năng phải đứng trên
+    # tin không khớp — nếu không thì upload CV xong vẫn ra tin chẳng liên quan.
+    HS = {"nam_hoc": 3, "nganh": "Công nghệ thông tin", "gpa": 3.42,
+          "ky_nang": ["Python", "SQL", "pandas", "LLM API (OpenAI, Gemini)"]}
+    co_hs = xep_hang(nam_hoc=3, profile=HS)
+    khong_hs = xep_hang(nam_hoc=3)
+    hang = [i for i, x in enumerate(co_hs) if x["khop_ky_nang"] or x["khop_nganh"]]
+    hang_khong = [i for i, x in enumerate(co_hs) if not (x["khop_ky_nang"] or x["khop_nganh"])]
+    ok = (len(co_hs) == len(khong_hs)                      # không được loại bớt tin nào
+          and (not hang or not hang_khong or max(hang) < min(hang_khong)))
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} hồ sơ chỉ xếp hạng, không loại tin "
+          f"({len(co_hs)} tin cả hai chiều; {len(hang)} tin khớp kỹ năng/ngành đứng trước)")
+
+    # LUẬT: cắt bớt thì phải nói ra. Im lặng hiện 8/14 là giấu 6 cơ hội.
+    _, ev = dispatch("tim_tin", {"gioi_han": 3}, HS, "mock")
+    tong = len(xep_hang(profile=HS))
+    ok = (ev["con_chua_hien"] == max(0, tong - 3) and ev["tong"] == tong
+          and len(tim_tin(gioi_han=9999, profile=HS)) <= TRAN_TIN)
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} báo số tin bị cắt (hiện 3/{tong}, "
+          f"còn {ev['con_chua_hien']}; trần cứng {TRAN_TIN})")
+
+    # Ba test dưới bắn vào logic lọc/xếp hạng → chạy trên fixture cho tất định,
+    # vì tin thật đổi theo mỗi lần crawl thì test sẽ lúc đạt lúc trượt.
+    hn = tim_tin(thanh_pho="Hà Nội", gioi_han=8, gom_fixture=True)
     ok = bool(hn) and all("Nội" in (x["thanh_pho"] or "") for x in hn)
     loi += not ok
     print(f"  {'✓' if ok else '✗'} lọc thành phố → {len(hn)} tin, tất cả ở Hà Nội")
 
-    hb = tim_tin(loai="hoc_bong", gioi_han=8)
+    hb = tim_tin(loai="hoc_bong", gioi_han=8, gom_fixture=True)
     ok = bool(hb) and all(x["loai"] == "hoc_bong" for x in hb)
     loi += not ok
     print(f"  {'✓' if ok else '✗'} lọc loại → {len(hb)} tin, tất cả là học bổng")
 
     # LUẬT: tim_tin KHÔNG được loại tin theo điều kiện. Sinh viên năm 1 vẫn phải
     # thấy tin đòi năm 3-4, kèm ghi chú — nếu lọc mất thì họ mất cơ hội mà không biết.
-    n1 = tim_tin(tu_khoa="AI", nam_hoc=1, gioi_han=8)
+    n1 = tim_tin(tu_khoa="AI", nam_hoc=1, gioi_han=8, gom_fixture=True)
     co_ghi_chu = [x for x in n1 if "vẫn nên xem" in x["ghi_chu"]]
     ok = bool(co_ghi_chu)
     loi += not ok
@@ -140,11 +237,72 @@ def main() -> int:
     ok = "Python" in hs["ky_nang"] and "SQL" in hs["ky_nang"]
     loi += not ok
     print(f"  {'✓' if ok else '✗'} ky_nang = {hs['ky_nang']}")
-    # luật 3: chỉ 6 field + 2 field kỹ thuật, không kèm gì khác từ CV
+    # luật 3: chỉ 7 field + 2 field kỹ thuật, không kèm gì khác từ CV
     la = set(hs) - {"nam_hoc", "nganh", "gpa", "thanh_pho", "ky_nang", "project",
-                    "_redact", "_so_ky_tu"}
+                    "co_github", "_redact", "_so_ky_tu"}
     loi += bool(la)
-    print(f"  {'✓' if not la else '✗ có field lạ: ' + str(la)} chỉ trả 6 field hồ sơ")
+    print(f"  {'✓' if not la else '✗ có field lạ: ' + str(la)} chỉ trả 7 field hồ sơ")
+
+    # CV có GitHub thì hồ sơ phải ghi nhận — nhiều tin ghi "ưu tiên có GitHub/project",
+    # trước đây field này không tồn tại nên người có GitHub vẫn bị báo là thiếu.
+    # Nhưng ghi nhận bằng cờ true/false, TUYỆT ĐỐI không được kéo theo đường link.
+    co_link = [k for k, v in hs.items()
+               if not k.startswith("_") and re.search(r"https?://|github\.com|\.vn/|\.io/",
+                                                      str(v), re.I)]
+    ok = hs.get("co_github") is True and not co_link
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} co_github = {hs.get('co_github')!r} và không field nào "
+          f"chứa link" + (f" — RÒ LINK Ở: {co_link}" if co_link else ""))
+
+    # ── upload .pdf ───────────────────────────────────────────────────────────
+    print("\nupload .pdf:")
+    fpdf = Path(__file__).parent / "data" / "cv-mau" / "CV-mau-01.pdf"
+    if not fpdf.exists():
+        import runpy
+        runpy.run_path(str(fpdf.parent / "make_pdf.py"), run_name="__main__")
+    try:
+        tp = cv.doc_file("CV-mau-01.pdf", fpdf.read_bytes())
+        ok = len(tp) > 300 and "GPA: 3.42" in tp
+        loi += not ok
+        print(f"  {'✓' if ok else '✗'} pypdf extract → {len(tp)} ký tự, đọc được dòng GPA")
+
+        sach2, _ = cv.redact(tp)
+        ro = [x for x in ("@example.com", "0912", "001234567890", "github.com/nguyenvana")
+              if x in sach2]
+        loi += bool(ro)
+        print(f"  {'✓' if not ro else '✗ CÒN RÒ: ' + str(ro)} redact trên text lấy từ PDF")
+
+        hp = cv.trich_ho_so(tp, mode="mock")
+        # GIỚI HẠN ĐÃ BIẾT, không phải bug: PDF font Helvetica không có dấu, nên
+        # regex mù với "nam 3" / "Ha Noi". Đường LLM (mode=real) lấy đủ 4/4 field.
+        ok = hp["gpa"] == 3.42 and hp["nam_hoc"] is None and hp["thanh_pho"] is None
+        loi += not ok
+        print(f"  {'✓' if ok else '✗'} regex trên PDF mất dấu: gpa={hp['gpa']}, "
+              f"nam_hoc={hp['nam_hoc']}, thanh_pho={hp['thanh_pho']} "
+              f"(None là ĐÚNG — cần mode=real để lấy)")
+    except RuntimeError as e:
+        loi += 1
+        print(f"  ✗ {e}")
+
+    # ── upload .docx ──────────────────────────────────────────────────────────
+    print("\nupload .docx:")
+    import io
+    import zipfile
+    dong = ["Sinh viên năm 3, ngành CNTT", "GPA: 3.42/4.0", "Hiện đang ở Hà Nội.",
+            "Python, SQL, pandas"]
+    xml = ('<?xml version="1.0"?><w:document xmlns:w="x"><w:body>'
+           + "".join(f"<w:p><w:r><w:t>{l}</w:t></w:r></w:p>" for l in dong)
+           + "</w:body></w:document>")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("word/document.xml", xml)
+    td = cv.doc_file("cv.docx", buf.getvalue())
+    hd = cv.trich_ho_so(td, mode="mock")
+    # .docx là XML UTF-8 nên dấu còn nguyên → regex đọc được, khác hẳn PDF ở trên
+    ok = hd["nam_hoc"] == 3 and hd["thanh_pho"] == "Hà Nội" and hd["gpa"] == 3.42
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} docx giữ dấu → regex lấy được "
+          f"nam_hoc={hd['nam_hoc']}, thanh_pho={hd['thanh_pho']!r}, gpa={hd['gpa']}")
 
     # ── server ────────────────────────────────────────────────────────────────
     print("\nserver:")
