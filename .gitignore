@@ -1,3 +1,12 @@
 .DS_Store
 node_modules/
 *.env
+
+# eval traces — output LLM, không commit
+codebase/eval/traces/*.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
