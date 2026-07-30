@@ -330,6 +330,31 @@ def verdict(tin_text: str, profile: dict, mode: str = "mock",
     # checker chạy ở CẢ HAI chế độ — grounding không bao giờ được tin lời model
     from .checker import kiem_tra
     kq["_grounding"] = kiem_tra(kq, tin_text)
+
+    # HẠ HẠNG những "đã khớp" mà hồ sơ không thể chứng minh (xem NGOAI_TAM_HO_SO
+    # trong checker.py). Checker chỉ BÁO CÁO; nếu không ai hành động theo báo cáo
+    # thì học viên vẫn đọc thấy "Ngành: phù hợp với yêu cầu" trên một tin đòi bằng
+    # tiến sĩ. Chuyển sang `gaps` — vẫn không phải hard_fail, vẫn không kết luận
+    # "không đủ điều kiện" (luật 4), chỉ nói thẳng là mình không biết.
+    qua_tam = kq["_grounding"].get("qua_tam_ho_so") or []
+    if qua_tam:
+        khoa = {(q["requirement"], q["evidence_line"]) for q in qua_tam}
+        kq["matched"] = [m for m in kq["matched"]
+                         if (m.get("requirement"), m.get("evidence_line")) not in khoa]
+        for q in qua_tam:
+            kq["gaps"].append({
+                "requirement": q["requirement"], "evidence_line": q["evidence_line"],
+                "why": f"Hồ sơ không khai được {q['loai']} — hệ thống không có căn cứ để "
+                       f"nói bạn đạt hay chưa. Bạn tự kiểm điều này trước khi nộp.",
+            })
+        # Đang nói "đã khớp" mà hoá ra không có căn cứ thì kết luận cũ không còn
+        # đứng được: hạ nen_apply xuống thieu_thong_tin.
+        if kq["verdict"] == "nen_apply":
+            kq["verdict"] = "thieu_thong_tin"
+        kq.setdefault("canh_bao", []).append(
+            "Tin này có yêu cầu nằm ngoài thứ hồ sơ khai được ("
+            + ", ".join(sorted({q["loai"] for q in qua_tam})) + ") — mình không kết luận thay bạn.")
+
     kq["_ms"] = int((time.time() - t0) * 1000)
     return kq
 

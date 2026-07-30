@@ -28,6 +28,18 @@ LUẬT SỐNG CÒN — vi phạm là sai nghiêm trọng:
    ghi vào `canh_bao` kèm số dòng, và KHÔNG được ra verdict `nen_apply`.
 8. GIỌNG. Tối đa 150 từ trong toàn bộ phần chữ. Không khen hồ sơ, không hứa kết quả,
    không động viên. Chỉ nói khớp/chưa khớp yêu cầu nào, ở dòng nào.
+9. `matched` ĐÒI BẰNG CHỨNG THẬT Ở VẾ HỒ SƠ, KHÔNG PHẢI TRÙNG CHỦ ĐỀ. `from_profile`
+   phải là field CHỨNG MINH được yêu cầu đó, không phải field nói cùng lĩnh vực.
+   Hồ sơ chỉ có 8 field: ten · nam_hoc · nganh · gpa · thanh_pho · ky_nang · project ·
+   co_github. Điều gì 8 field đó không khai nổi thì KHÔNG BAO GIỜ vào `matched` — cho
+   vào `gaps` với `why` = "hồ sơ không nêu".
+   Sai đã gặp thật, đừng lặp lại:
+     · "Currently enrolled in a PhD program" + from_profile "nam_hoc: 3" → SAI.
+       `nam_hoc` là năm thứ mấy bậc đại học, không nói gì về bậc tiến sĩ.
+     · "1+ years of experience in Python" + from_profile "ky_nang: [Python]" → SAI.
+       `ky_nang` là biết kỹ năng, không phải số năm đã làm.
+   Cùng kiểu đó: bằng thạc sĩ, bài báo đã công bố, thời điểm tốt nghiệp, số năm kinh
+   nghiệm — hồ sơ không có chỗ khai, nên mình KHÔNG BIẾT, phải nói là không biết.
 
 Trả về DUY NHẤT một JSON đúng schema, không kèm giải thích ngoài JSON."""
 

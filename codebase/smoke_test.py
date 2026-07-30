@@ -291,6 +291,35 @@ def main() -> int:
     loi += not ok
     print(f"  {'✓' if ok else '✗'} doi_chieu('OPP-001') → {r['ket_qua']['verdict']}")
 
+    # LUẬT: checker phải soát CẢ HAI VẾ của một khẳng định "đã khớp" — vế TIN
+    # (câu này có ở dòng L15 không) và vế HỒ SƠ (hồ sơ có căn cứ nào không).
+    # Ca thật bắt được: tin REAL-003 đòi "Currently enrolled in a PhD program",
+    # model xếp matched với from_profile="nam_hoc: 3" — sinh viên năm 3 đại học
+    # làm bằng chứng đang học tiến sĩ — và grounding vẫn chấm 7/7 vì câu trích
+    # ĐÚNG là ở L15. Trích đúng dòng không có nghĩa khẳng định đúng.
+    from core.checker import ngoai_tam_ho_so, kiem_tra
+    PHAI_BAT = ["Currently enrolled in a PhD program in Computer Science",
+                "Có bằng thạc sĩ hoặc đang học thạc sĩ",
+                "Publications at top-tier ML/AI conferences",
+                "1+ years of experience in programming using C, C++, or Python",
+                "Expected graduation in November 2026 or later"]
+    KHONG_BAT = ["Sinh viên năm 3 hoặc năm 4 các ngành CNTT, Toán tin",
+                 "GPA từ 3.0/4.0 trở lên", "Sinh viên năm cuối hoặc sắp tốt nghiệp",
+                 "Biết Python, đã từng làm ít nhất 1 project có dùng LLM API",
+                 "Strong foundation in machine learning, deep learning, linear algebra",
+                 "Đã tốt nghiệp hoặc sắp tốt nghiệp chuyên ngành Công nghệ thông tin"]
+    sot = [s for s in PHAI_BAT if not ngoai_tam_ho_so(s)]
+    oan = [s for s in KHONG_BAT if ngoai_tam_ho_so(s)]
+    # và phải THẬT SỰ bị gắn cờ khi nằm trong `matched`, không chỉ regex đúng
+    gia = kiem_tra({"matched": [{"requirement": "Currently enrolled in a PhD program",
+                                 "evidence_line": 1, "from_profile": "nam_hoc: 3"}]},
+                   "Currently enrolled in a PhD program")
+    ok = not sot and not oan and len(gia["qua_tam_ho_so"]) == 1 and not gia["grounding_pass"]
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} checker soát cả vế hồ sơ (bằng cấp/số năm KN/bài báo "
+          f"không suy ra được từ 8 field → không được xếp 'đã khớp')"
+          + (f" — SÓT: {sot}" if sot else "") + (f" — OAN: {oan}" if oan else ""))
+
     # ── CV: redact + rút field ────────────────────────────────────────────────
     print("\nCV (data/cv-mau/CV-mau-01.txt):")
     from pathlib import Path
