@@ -14,7 +14,7 @@
       },
       {
         "role": "user",
-        "content": "CV MAU - HOAN TOAN BIA, dung de test chuc nang upload PDF.\nKHONG phai CV cua nguoi that.\nNGUYEN VAN A\nEmail: [EMAIL]\nDien thoai: [PHONE]\nGitHub: [LINK]\nCCCD: 0[PHONE]\nHOC VAN\nDai hoc Bach Khoa - Sinh vien nam 3, nganh Cong nghe thong tin\nGPA: 3.42/4.0\nHien dang o Ha Noi.\nKY NANG\nPython, SQL, pandas, Git, LLM API (OpenAI, Gemini), Docker co ban\nDU AN\n1. Chatbot hoi dap tai lieu hoc tap - dung LLM API + tim kiem theo doan.\n2. Dashboard phan tich diem hoc tap - SQL + Power BI.\nKHOA HOC\nAI Thuc Chien (Batch 03) - hoan thanh Day 1 den Day 5, track AI PM.\n"
+        "content": "CV MAU - HOAN TOAN BIA, dung de test chuc nang upload PDF.\nKHONG phai CV cua nguoi that.\n[TÊN]\nEmail: [EMAIL]\nDien thoai: [PHONE]\nGitHub: [LINK]\nCCCD: 0[PHONE]\nHOC VAN\nDai hoc Bach Khoa - Sinh vien nam 3, nganh Cong nghe thong tin\nGPA: 3.42/4.0\nHien dang o Ha Noi.\nKY NANG\nPython, SQL, pandas, Git, LLM API (OpenAI, Gemini), Docker co ban\nDU AN\n1. Chatbot hoi dap tai lieu hoc tap - dung LLM API + tim kiem theo doan.\n2. Dashboard phan tich diem hoc tap - SQL + Power BI.\nKHOA HOC\nAI Thuc Chien (Batch 03) - hoan thanh Day 1 den Day 5, track AI PM.\n"
       }
     ]
   },

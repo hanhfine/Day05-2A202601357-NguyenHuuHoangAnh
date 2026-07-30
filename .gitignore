@@ -10,3 +10,11 @@ __pycache__/
 # BTC từ trước), nên dòng dưới CHƯA có tác dụng gì. Nó chỉ chặn việc add lại sau khi
 # đã `git rm --cached`. Xử lý thế nào phải hỏi BTC — xem ghi chú trong ke-hoach.md §0.
 data/vlearn-pack/
+
+# Trace của bước rút hồ sơ từ CV — chứa nội dung CV thật (họ tên, học vấn, kinh
+# nghiệm). redact() đã bỏ email/SĐT/link trước khi gửi đi, nhưng HỌ TÊN thì cố ý
+# giữ lại (hồ sơ cần `ten` để xưng hô — xem docstring core/cv.py), nên trace vẫn
+# là dữ liệu cá nhân. README luật 4: không dùng dữ liệu thật của người thật.
+# Trace chat/verdict thì KHÔNG chặn — đó mới là bằng chứng R5 (gọi tool, phán
+# quyết, grounding) và không mang nội dung CV.
+eval/traces/*-cv-*.json

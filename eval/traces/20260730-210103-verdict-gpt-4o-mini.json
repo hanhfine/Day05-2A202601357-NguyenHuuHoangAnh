@@ -1,0 +1,57 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "request": {
+    "model": "gpt-4o-mini",
+    "temperature": 0,
+    "response_format": {
+      "type": "json_object"
+    },
+    "messages": [
+      {
+        "role": "system",
+        "content": "Bạn là trợ lý đối chiếu MỘT tin thực tập/học bổng với hồ sơ một học viên.\n\nPHẠM VI: bạn chỉ đối chiếu tin được dán với hồ sơ được khai. Bạn KHÔNG đi tìm tin,\nKHÔNG viết CV/thư/bài luận hộ, KHÔNG dự đoán xác suất đỗ, KHÔNG chấm điểm hồ sơ.\n\nLUẬT SỐNG CÒN — vi phạm là sai nghiêm trọng:\n\n1. TRÍCH DẪN. Mọi khẳng định về yêu cầu, điều kiện, hạn nộp phải kèm `evidence_line`\n   là số dòng Lk có chứa chữ đó. Cấm trích dòng không chứa nội dung bạn nói.\n2. KHÔNG BỊA. Yêu cầu nào tin KHÔNG nêu thì đưa vào `not_stated`. Cấm suy diễn\n   một yêu cầu rồi coi nó là gap. Tin không nói GPA thì không có yêu cầu GPA.\n3. \"ƯU TIÊN\" KHÁC \"BẮT BUỘC\". Chỉ điền `hard_fail` khi tin ghi thẳng bằng chữ rằng\n   đó là điều kiện bắt buộc/tối thiểu VÀ hồ sơ không đạt. \"Ưu tiên...\" luôn là `gaps`.\n4. KHÔNG BAO GIỜ CHẶN. Không được kết luận học viên \"không đủ điều kiện\". Trường hợp\n   xấu nhất bạn được phép nói là verdict `rui_ro_cao` kèm chỉ rõ dòng làm bạn lo.\n   Lý do: nếu bạn chặn sai một người thật ra đủ điều kiện, họ mất hẳn cơ hội và\n   không có cách nào biết — lỗi đó không sửa được.\n5. THIẾU THÔNG TIN THÌ HỎI, ĐÚNG MỘT CÂU. Nếu hồ sơ thiếu đúng cái field mà tin đòi,\n   trả verdict `thieu_thong_tin`, `thieu_o_dau` = \"ho_so\", và `one_question` là MỘT câu\n   hỏi vào đúng field đó. Nếu chính cái tin quá sơ sài để đối chiếu, `thieu_o_dau` = \"tin\".\n   Không hỏi 2-3 câu. Không vừa hỏi vừa ra verdict.\n6. HẠN NỘP. Chép nguyên văn vào `deadline.raw`. Chỉ điền `parsed` (YYYY-MM-DD) khi tin\n   ghi rõ cả ngày/tháng/năm. Thiếu năm hoặc mơ hồ → `parsed` = null, `ambiguous` = true.\n   Cấm tự suy ra năm.\n7. DẤU HIỆU BẤT THƯỜNG. Tin đòi đóng phí/đặt cọc trước, hoặc hứa thu nhập bất thường →\n   ghi vào `canh_bao` kèm số dòng, và KHÔNG được ra verdict `nen_apply`.\n8. GIỌNG. Tối đa 150 từ trong toàn bộ phần chữ. Không khen hồ sơ, không hứa kết quả,\n   không động viên. Chỉ nói khớp/chưa khớp yêu cầu nào, ở dòng nào.\n\nTrả về DUY NHẤT một JSON đúng schema, không kèm giải thích ngoài JSON."
+      },
+      {
+        "role": "user",
+        "content": "### Tin đã dán (mỗi dòng có số Lk — trích dẫn bằng số này)\nL1: [PhD Internship- AI Research — Qualcomm]\nL2: Company\nL3: Qualcomm Vietnam Company Limited, Hanoi Branch Office\nL4: Job Area\nL5: Interns Group, Interns Group > Interim Intern\nL6: Qualcomm Overview\nL7: Qualcomm is a company of inventors that unlocked 5G ushering in an age of rapid acceleration in connectivity and new possibilities that will transform industries, create jobs, and enrich lives. But this is just the beginning. It takes inventive minds with diverse skills, backgrounds, and cultures to transform 5Gs potential into world-changing technologies and products. This is the Invention Age - and this is where you come in.\nL8: General Summary\nL9: About Qualcomm AI Research\nL10: Qualcomm AI Research focuses on pushing the boundaries of efficient machine learning, generative AI, large language and vision models, robotics intelligence, multimodal learning, and on‑device optimization. Our research powers next‑generation experiences across mobile devices, XR, vehicles, robotics, and IoT systems.\nL11: Role Overview\nL12: As a PhD research intern, you will work with world‑class researchers on impactful projects, gain exposure to Qualcomm’s advanced AI hardware/software ecosystem, and contribute to novel algorithms that address real‑world deployment constraints. You will contribute to the full research lifecycle, from ideation to experiments, evaluation, and publications. Topics of interest include:\nL13: Generative AI (text, image, video, 3D/4D)Large Language Models (LLMs), Large Vision Models (LVMs)Efficient model training & inference, test-time scalingMultimodal world modeling (video, vision, action, 3D scenes)\nL14: Qualifications\nL15: Currently enrolled in a PhD program in Computer Science, Computer Engineering, Electrical Engineering, or related fields.\nL16: Available for 3 months during summer.\nL17: Expected graduation in November 2026 or later.1+ years of experience in programming using C, C++, or Python.\nL18: Strong foundation in machine learning, deep learning, linear algebra, optimization, and neural network fundamentals.\nL19: Familiarity with ML frameworks such as PyTorch, TensorFlow, or TFLite.\nL20: Research & Academic Strength: Publication track record at major ML/AI conferences: NeurIPS, ICML, ICLR, CVPR, ICCV, ECCV, EMNLP, ACL, etc.\nL21: Applicants: Qualcomm is an equal opportunity employer. If you are an individual with a disability and need an accommodation during the application/hiring process, rest assured that Qualcomm is committed to providing an accessible process. You may e-mail myhr.support@qualcomm.com or call Qualcomm's toll-free number found here. Upon request, Qualcomm will provide reasonable accommodations to support individuals with disabilities to be able participate in the hiring process. Qualcomm is also committed to making our workplace accessible for individuals with disabilities.\nL22: Qualcomm expects its employees to abide by all applicable policies and procedures, including but not limited to security and other requirements regarding protection of Company confidential information and other confidential and/or proprietary information, to the extent those requirements are permissible under applicable law.\nL23: To all Staffing and Recruiting Agencies: Our Careers Site is only for individuals seeking a job at Qualcomm. Staffing and recruiting agencies and individuals being represented by an agency are not authorized to use this site or to submit profiles, applications or resumes, and any such submissions will be considered unsolicited. Qualcomm does not accept unsolicited resumes or applications from agencies. Please do not forward resumes to our jobs alias, Qualcomm employees or any other company location. Qualcomm is not responsible for any fees related to unsolicited resumes/applications.\nL24: If you would like more information about this role, please contact Qualcomm Careers.\nL25: Toàn thời gian\nL26: Địa điểm: Hà Nội.\nL27: Google Jobs ghi tin đăng: 5 ngày trước. Tin không nêu ngày chốt hồ sơ.\n\n### Hồ sơ học viên khai\n{\n  \"ten\": \"[TÊN]\",\n  \"project\": \"Product Price Prediction using Fine-tuned Llama 3.2 with QLoRA|PyTorch, PEFT, BitsAndBytes, FastAPI\",\n  \"co_github\": true,\n  \"nam_hoc\": null,\n  \"gpa\": 3.46,\n  \"nganh\": \"Computer Science\",\n  \"thanh_pho\": \"Bac Ninh\",\n  \"ky_nang\": [\n    \"Python\",\n    \"C++\",\n    \"Java\",\n    \"Machine Learning\",\n    \"Deep Learning\",\n    \"CNN\",\n    \"Transformers\",\n    \"Computer Vision\",\n    \"FastAPI\",\n    \"PostgreSQL\"\n  ]\n}\n\n### Schema bắt buộc\n{\n  \"verdict\": \"nen_apply\" | \"rui_ro_cao\" | \"thieu_thong_tin\",\n  \"thieu_o_dau\": \"tin\" | \"ho_so\" | null,\n  \"matched\":    [{\"requirement\": str, \"evidence_line\": int, \"from_profile\": str}],\n  \"gaps\":       [{\"requirement\": str, \"evidence_line\": int, \"why\": str}],\n  \"hard_fail\":  [{\"rule\": str, \"evidence_line\": int}],\n  \"not_stated\": [str],\n  \"one_question\": str | null,\n  \"deadline\": {\"raw\": str|null, \"evidence_line\": int|null, \"parsed\": str|null, \"ambiguous\": bool},\n  \"next_3\": [str],\n  \"canh_bao\": [str],\n  \"refusal\": str | null\n}\n\nĐối chiếu tin trên với hồ sơ trên. Trả về JSON."
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-E7LbbdQ6mMnPzgWT06ICFJYULoRe6",
+    "object": "chat.completion",
+    "created": 1785420055,
+    "model": "gpt-4o-mini-2024-07-18",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"verdict\": \"thieu_thong_tin\",\n  \"thieu_o_dau\": \"ho_so\",\n  \"matched\": [\n    {\n      \"requirement\": \"Currently enrolled in a PhD program in Computer Science, Computer Engineering, Electrical Engineering, or related fields.\",\n      \"evidence_line\": 15,\n      \"from_profile\": \"nganh: Computer Science\"\n    },\n    {\n      \"requirement\": \"1+ years of experience in programming using C, C++, or Python.\",\n      \"evidence_line\": 17,\n      \"from_profile\": \"ky_nang: C++, Python\"\n    }\n  ],\n  \"gaps\": [\n    {\n      \"requirement\": \"Available for 3 months during summer.\",\n      \"evidence_line\": 16,\n      \"why\": \"Hồ sơ không nêu thông tin về thời gian có thể làm việc.\"\n    },\n    {\n      \"requirement\": \"Expected graduation in November 2026 or later.\",\n      \"evidence_line\": 17,\n      \"why\": \"Hồ sơ không nêu thông tin về năm tốt nghiệp.\"\n    },\n    {\n      \"requirement\": \"Strong foundation in machine learning, deep learning, linear algebra, optimization, and neural network fundamentals.\",\n      \"evidence_line\": 18,\n      \"why\": \"Hồ sơ không nêu rõ về nền tảng kiến thức này.\"\n    },\n    {\n      \"requirement\": \"Familiarity with ML frameworks such as PyTorch, TensorFlow, or TFLite.\",\n      \"evidence_line\": 19,\n      \"why\": \"Hồ sơ không nêu rõ về sự quen thuộc với các framework ML.\"\n    },\n    {\n      \"requirement\": \"Publication track record at major ML/AI conferences: NeurIPS, ICML, ICLR, CVPR, ICCV, ECCV, EMNLP, ACL, etc.\",\n      \"evidence_line\": 20,\n      \"why\": \"Hồ sơ không nêu thông tin về các bài báo đã công bố.\"\n    }\n  ],\n  \"hard_fail\": [],\n  \"not_stated\": [],\n  \"one_question\": \"Bạn có thể cung cấp thông tin về thời gian có thể làm việc không?\",\n  \"deadline\": {\n    \"raw\": \"Tin không nêu ngày chốt hồ sơ.\",\n    \"evidence_line\": 27,\n    \"parsed\": null,\n    \"ambiguous\": true\n  },\n  \"next_3\": [],\n  \"canh_bao\": [],\n  \"refusal\": null\n}",
+          "refusal": null,
+          "annotations": []
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1932,
+      "completion_tokens": 532,
+      "total_tokens": 2464,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "service_tier": "default",
+    "system_fingerprint": "fp_c980d3075f"
+  }
+}
