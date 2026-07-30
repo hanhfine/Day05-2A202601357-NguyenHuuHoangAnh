@@ -102,8 +102,12 @@ header .sc b{color:var(--ink);font-weight:620}
 .tag.warnt{background:var(--warnbg);color:var(--warn);border-color:var(--warnline)}
 
 /* ── layout ─────────────────────────────────────────────────────────────── */
+/* TỈ LỆ PHẢI NÓI ĐƯỢC ĐIỀU GÌ ĐÓ. `1.25fr / .85fr` chỉ là hai số, và trên màn
+   rộng nó phình panel phải ra vô nghĩa — hồ sơ có 6 ô nhập, rộng thêm không giúp
+   gì. Khai lại thành một quan hệ: chat là MẶT BÀN LÀM VIỆC (nhận hết phần dôi
+   ra), panel là TỜ THAM CHIẾU giữ bề ngang đọc thoải mái rồi thôi. */
 main{
-  flex:1;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(340px,.85fr);
+  flex:1;display:grid;grid-template-columns:minmax(0,1fr) clamp(330px,26%,400px);
   gap:16px;padding:16px 22px;min-height:0;
 }
 @media(max-width:980px){main{grid-template-columns:1fr;overflow:auto}}
@@ -179,23 +183,44 @@ li:last-child{border:0}
 }
 
 /* ── thẻ tin tìm được ───────────────────────────────────────────────────── */
-.ops{display:grid;gap:10px;margin-top:10px}
+/* NHỊP KHÔNG ĐỀU: bên trong một thẻ là ba dòng thuộc CÙNG một ý (tên → vì sao →
+   dữ kiện) nên bó sát nhau; giữa hai thẻ là hai cơ hội KHÁC nhau nên nới rộng
+   hơn hẳn. Cách đều nhau tuốt là kiểu bố cục của việc không ai quyết định gì. */
+.ops{display:grid;gap:14px;margin-top:12px}
 .op{
-  border:1px solid var(--line);border-radius:var(--r-md);padding:12px;background:var(--card);
-  display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:start;
+  border:1px solid var(--line);border-radius:var(--r-md);padding:13px 14px;background:var(--card);
+  display:flex;flex-direction:column;gap:10px;
   transition:border-color .15s,box-shadow .15s,transform .15s;
 }
 .op:hover{border-color:var(--accent-line);box-shadow:var(--sh-2);transform:translateY(-1px)}
-.op .t{grid-column:2;min-width:0}
-/* Tên tin KHÔNG cắt cụt nữa. Trước đây `white-space:nowrap` + ellipsis xén mất
-   đuôi tiêu đề — mà tiêu đề là thứ học viên đọc để quyết định có bấm hay không,
-   và đuôi thường mới là chỗ ghi level ("(Intern/ Fresher level)"). */
-.op .t b{display:block;font-size:14px;font-weight:640;line-height:1.4;letter-spacing:-.005em}
-.op .meta{display:block;font-size:12px;color:var(--mute);margin-top:3px}
-.op .act{grid-column:2;display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:8px}
+/* FLEX, KHÔNG PHẢI BLOCK — và đây là sửa lỗi, không phải chuyện thẩm mỹ.
+   `.meta` để display:block khiến khoảng trắng xuống dòng trong template literal
+   kẹt giữa hai block sibling và biến thành anonymous block: đo được 4 line box
+   = 75px trống nằm giữa tên tin và dòng dữ kiện. Flex container thì bỏ hẳn text
+   node chỉ-chứa-khoảng-trắng, nên lỗi này không quay lại dù template xuống dòng
+   kiểu gì. */
+.op .t{display:flex;flex-direction:column;gap:5px;min-width:0}
+
+/* Tầng 1 — tên tin. KHÔNG cắt cụt: đuôi tiêu đề thường mới là chỗ ghi level
+   ("(Intern/ Fresher level)"), xén đi là xén đúng thứ đang cần phân biệt. */
+.op .t b{font-size:15px;font-weight:640;line-height:1.35;letter-spacing:-.008em}
+
+/* Tầng 2 — vì sao tin này ở đây. Đậm hơn dữ kiện, nhạt hơn tên. */
+.op .vi{font-size:12.5px;font-weight:500;color:var(--mute);line-height:1.45}
+
+/* Tầng 3 — dữ kiện tra cứu. Nhẹ nhất, nhưng mã tin thì nổi lên (xem .id). */
+.op .meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--mute)}
+/* Mã tin là thứ học viên GÕ LẠI để đối chiếu, không phải văn xuôi — nên cho nó
+   hình dạng của một token bấm/chép được, không để lẫn trong chuỗi ngăn bằng `·`. */
+.op .id{
+  font:600 11.5px/1.5 ui-monospace,"Cascadia Mono",Consolas,monospace;
+  padding:1px 6px;border-radius:5px;background:var(--accent-soft);
+  border:1px solid var(--line);color:var(--ink);user-select:all;
+}
+.op .act{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
 .k{
-  grid-column:1;padding:2px 7px;border-radius:var(--r-sm);font-size:10.5px;font-weight:650;
-  letter-spacing:.02em;background:var(--accent-soft);color:var(--mute);
+  padding:1px 6px;border-radius:5px;font-size:10.5px;font-weight:650;
+  letter-spacing:.02em;background:transparent;color:var(--mute);
   border:1px solid var(--line);white-space:nowrap;
 }
 
@@ -205,9 +230,11 @@ li:last-child{border:0}
    link này chết" lại là chữ mờ nhất trang. Cả buổi làm cho hệ thống chịu nói ra
    mấy điều đó rồi lại để CSS giấu đi thì hỏng ở khâu cuối.
    Giờ chúng dùng màu NGHĨA (warn) ở độ mờ đầy đủ.                              */
+/* align-self: badge co theo nội dung. Trong flex column, mặc định `stretch` sẽ
+   kéo nó chiếm hết bề ngang thẻ và trông như một thanh cảnh báo toàn chiều rộng. */
 .gan{
-  display:inline-flex;align-items:center;gap:5px;margin-top:5px;
-  padding:2px 8px;border-radius:var(--r-sm);font-size:12px;font-weight:600;
+  display:inline-flex;align-self:flex-start;align-items:center;gap:5px;
+  padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600;
   background:var(--warnbg);color:var(--warn);border:1px solid var(--warnline);
 }
 .chua-xm{font-size:11.5px;font-weight:600;color:var(--warn)}
@@ -253,8 +280,12 @@ li:last-child{border:0}
 }
 .tabs button:hover{color:var(--ink)}
 .tabs button.on{color:var(--ink);border-bottom-color:var(--ink);background:var(--soft)}
-.tp{padding:16px;overflow-y:auto;flex:1;min-height:0}
+/* Form hồ sơ chỉ cao ~60% panel, phần dưới trước đây là khoảng trống chết. Cho
+   .tp thành flex column rồi đẩy ghi chú riêng tư xuống đáy: vừa hết chỗ trống,
+   vừa đặt lời trấn an ở đúng nơi mắt dừng lại sau khi điền xong. */
+.tp{padding:16px;overflow-y:auto;flex:1;min-height:0;display:flex;flex-direction:column}
 .tp[hidden]{display:none}
+.tp .day{margin-top:auto;padding-top:14px}
 label.f{display:block;font-size:11px;color:var(--mute);margin:0 0 4px;font-weight:650;letter-spacing:.02em}
 input[type=text],input[type=number],textarea.x,select{
   width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);
@@ -351,7 +382,7 @@ input[type=text]:hover,input[type=number]:hover,select:hover{border-color:var(--
         <input type="text" id="fSkill" placeholder="Python, SQL…">
         <div style="margin-top:9px"><label class="f">Hoặc chọn persona giả để test</label>
           <select id="profSel"></select></div>
-        <p class="note">Hồ sơ chỉ nằm trong phiên làm việc này — không có database, không ghi ra file.
+        <p class="note day">Hồ sơ chỉ nằm trong phiên làm việc này — không có database, không ghi ra file.
           Email / điện thoại / link / số giấy tờ trong CV bị thay bằng placeholder ngay tại máy
           trước khi gửi đi.</p>
       </div>
@@ -498,18 +529,31 @@ function veDanhSach(ds, conLai, tong){
   const dau = gan===ds.length
     ? `<div class="note" style="margin-top:8px">Không có tin nào khớp hẳn điều kiện bạn nêu.
        Dưới đây là ${ds.length} tin <b>gần đúng nhất</b> — mỗi tin ghi rõ chỗ lệch.</div>` : '';
-  /* Nhãn "gần đúng" giờ là badge màu cảnh báo, không còn là chữ xám lẫn vào ghi
-     chú. Tin gần đúng trông y hệt tin khớp hẳn là đúng cái bẫy hệ thống phải
-     tránh — học viên dồn thời gian vào tin lệch mà không biết mình đang lệch. */
-  return dau + `<div class="ops">` + ds.map(o=>`<article class="op">
-      <span class="k">${NHAN_LOAI[o.loai] || 'thực tập'}</span>
-      <div class="t"><b>${esc(o.title)}</b>
-        ${o.thieu?.length?`<span class="gan"><span aria-hidden="true">⚠</span> gần đúng — ${esc(o.thieu.join('; '))}</span>`:''}
-        <span class="meta">${esc(o.opp_id)} · ${esc(o.thanh_pho||'—')}${o.cap_do?.length?` · ${esc(o.cap_do.join('/'))}`:''} · hạn ${esc(o.han_nop||'không nêu')} · ${esc(o.ghi_chu)}</span></div>
+  /* BA TẦNG, KHÔNG PHẢI MỘT DÒNG CHẠY DÀI.
+     Bản trước dồn 7 thông tin khác loại vào một chuỗi nối bằng dấu `·` cùng cỡ
+     cùng màu: mã tin, thành phố, level, hạn nộp, rồi lý do khớp. Mắt không có
+     chỗ bám, và thứ học viên cần nhất lại chìm nhất — `opp_id` là thứ họ phải
+     GÕ LẠI để đối chiếu, mà nó nằm lẫn giữa chuỗi văn xuôi.
+       tầng 1  tên tin              — cái để quyết định có đọc tiếp không
+       tầng 2  vì sao tin này ở đây — lý do khớp, hoặc chỗ lệch nếu gần đúng
+       tầng 3  dữ kiện tra cứu     — mã tin (token gõ được), loại, nơi, hạn
+     `ghi_chu` từ tim_tin đã chứa sẵn tiền tố "GẦN ĐÚNG (...)" nên phải cắt đi:
+     badge ⚠ ngay trên đã nói rồi, để nguyên là cùng một chỗ lệch hiện hai lần. */
+  return dau + `<div class="ops">` + ds.map(o=>{
+    const gan = o.thieu?.length;
+    const vi  = (o.ghi_chu||'').replace(/^GẦN ĐÚNG \([^)]*\)\s*·\s*/, '');
+    return `<article class="op">
+      <div class="t">
+        <b>${esc(o.title)}</b>
+        ${gan?`<span class="gan"><span aria-hidden="true">⚠</span> ${esc(o.thieu.join('; '))}</span>`:''}
+        ${vi?`<span class="vi">${esc(vi)}</span>`:''}
+        <span class="meta"><code class="id">${esc(o.opp_id)}</code><span class="k">${NHAN_LOAI[o.loai]||'thực tập'}</span>${esc(o.thanh_pho||'—')}${o.cap_do?.length?` · ${esc(o.cap_do.join('/'))}`:''} · hạn ${esc(o.han_nop||'không nêu')}</span>
+      </div>
       <div class="act">
         ${veLink(o)}
         <button class="btn" data-doi="${o.opp_id}">Đối chiếu</button>
-      </div></article>`).join('') + `</div>` + con;
+      </div></article>`;
+  }).join('') + `</div>` + con;
 }
 function veVerdict(d, tin){
   const v = NHAN[d.verdict] || NHAN.thieu_thong_tin;
