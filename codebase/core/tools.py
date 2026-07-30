@@ -90,7 +90,7 @@ _TP_GOC = {
     "hochiminh": "tp.hcm", "tphcm": "tp.hcm", "hcm": "tp.hcm", "saigon": "tp.hcm",
     "sg": "tp.hcm", "thanhphohochiminh": "tp.hcm",
     "danang": "đà nẵng", "dn": "đà nẵng",
-    "hue": "huế", "thuathienhue": "huế", "cantho": "cần thơ",
+    "bacninh": "bắc ninh", "hue": "huế", "thuathienhue": "huế", "cantho": "cần thơ",
     "online": "online", "remote": "online", "tuxa": "online", "workfromhome": "online",
 }
 
