@@ -237,22 +237,33 @@ def main() -> int:
     ok = "Python" in hs["ky_nang"] and "SQL" in hs["ky_nang"]
     loi += not ok
     print(f"  {'✓' if ok else '✗'} ky_nang = {hs['ky_nang']}")
-    # luật 3: chỉ 7 field + 2 field kỹ thuật, không kèm gì khác từ CV
-    la = set(hs) - {"nam_hoc", "nganh", "gpa", "thanh_pho", "ky_nang", "project",
+    # luật 3: chỉ 8 field + 2 field kỹ thuật, không kèm gì khác từ CV
+    la = set(hs) - {"ten", "nam_hoc", "nganh", "gpa", "thanh_pho", "ky_nang", "project",
                     "co_github", "_redact", "_so_ky_tu"}
     loi += bool(la)
-    print(f"  {'✓' if not la else '✗ có field lạ: ' + str(la)} chỉ trả 7 field hồ sơ")
+    print(f"  {'✓' if not la else '✗ có field lạ: ' + str(la)} chỉ trả 8 field hồ sơ")
+
+    # `ten` là ngoại lệ CÓ CHỦ Ý của luật tối thiểu hoá PII (xem docstring cv.py).
+    # Mở đúng field tên — email/SĐT/link/CCCD vẫn phải chặn, kiểm ngay dưới đây.
+    ok = (hs.get("ten") or "").upper().startswith("NGUYEN VAN A")
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} ten = {hs.get('ten')!r} (chờ 'NGUYEN VAN A')")
 
     # CV có GitHub thì hồ sơ phải ghi nhận — nhiều tin ghi "ưu tiên có GitHub/project",
     # trước đây field này không tồn tại nên người có GitHub vẫn bị báo là thiếu.
     # Nhưng ghi nhận bằng cờ true/false, TUYỆT ĐỐI không được kéo theo đường link.
-    co_link = [k for k, v in hs.items()
-               if not k.startswith("_") and re.search(r"https?://|github\.com|\.vn/|\.io/",
-                                                      str(v), re.I)]
-    ok = hs.get("co_github") is True and not co_link
+    # Mở field `ten` là nới luật PII một nấc, nên chỗ này phải siết lại: KHÔNG field
+    # nào được chứa link, email, số điện thoại hay CCCD — kể cả field ten mới thêm.
+    RO = {"link": r"https?://|github\.com|\.vn/|\.io/",
+          "email": r"[\w.+-]+@[\w-]+\.\w+",
+          "điện thoại": r"(?:\+84|0)(?:[\s.-]?\d){8,10}\b",
+          "CCCD": r"\b\d{9,12}\b"}
+    ro_ri_hs = [f"{k}:{ten_ro}" for k, v in hs.items() if not k.startswith("_")
+                for ten_ro, pat in RO.items() if re.search(pat, str(v), re.I)]
+    ok = hs.get("co_github") is True and not ro_ri_hs
     loi += not ok
     print(f"  {'✓' if ok else '✗'} co_github = {hs.get('co_github')!r} và không field nào "
-          f"chứa link" + (f" — RÒ LINK Ở: {co_link}" if co_link else ""))
+          f"chứa link/email/SĐT/CCCD" + (f" — RÒ: {ro_ri_hs}" if ro_ri_hs else ""))
 
     # ── upload .pdf ───────────────────────────────────────────────────────────
     print("\nupload .pdf:")

@@ -384,6 +384,24 @@ function ghimTin(tin){
     `<div class="ln" data-i="${i+1}"><span class="no">${i+1}</span><span>${esc(l)||'&nbsp;'}</span></div>`).join('');
 }
 
+/* Hồ sơ vẫn được gửi kèm MỌI lượt chat, nên agent luôn biết — nhưng trước đây
+   không có gì hiện ra, người dùng tưởng nó chưa nhận. Đưa hẳn một tin nhắn vào
+   khung chat, và ghim vào LICH_SU để model biết hồ sơ vừa được nạp/đổi. */
+function baoCV(d, thieu){
+  const co = [d.ten, d.nam_hoc!=null?`năm ${d.nam_hoc}`:null, d.nganh,
+              d.gpa!=null?`GPA ${d.gpa}`:null, d.thanh_pho,
+              d.ky_nang?.length?`${d.ky_nang.length} kỹ năng`:null,
+              d.co_github?'có GitHub':null].filter(Boolean).join(' · ');
+  const lai = LICH_SU.length ? 'Đã cập nhật hồ sơ từ CV mới' : 'Đã nhận hồ sơ từ CV';
+  them('a', `<b>${lai}${d.ten?`, chào ${esc(d.ten)}`:''}.</b><br>${esc(co||'chưa lấy được field nào')}
+    ${thieu.length?`<br><span class="why">CV không ghi rõ: ${esc(thieu.join(', '))} — mình không đoán, bạn điền tay ở panel Hồ sơ.</span>`:''}
+    <br><span class="why">Mình dùng hồ sơ này để xếp hạng tin. Không lưu email, số điện thoại, link hay CCCD của bạn.</span>`, true);
+  LICH_SU.push({role:'assistant', content:
+    `(Hệ thống: học viên vừa ${LICH_SU.length?'cập nhật':'nạp'} hồ sơ từ CV — ${co}. `
+    + `Hồ sơ mới nhất luôn nằm trong phần "Hồ sơ học viên đang khai" ở đầu hội thoại; `
+    + `nếu có mâu thuẫn với hồ sơ nhắc trước đó thì lấy hồ sơ mới này.)`});
+}
+
 /* ── CV ── */
 async function napCV(file){
   $('#cvMsg').innerHTML = `<div class="note">Đang đọc CV…</div>`;
@@ -391,12 +409,17 @@ async function napCV(file){
   const r = await fetch('/api/cv?mode=' + (DATA.co_api_key?'real':'mock'), {method:'POST', body:fd});
   const d = await r.json();
   if(!r.ok){ $('#cvMsg').innerHTML = `<div class="err">${esc(d.loi)}</div>`; return; }
+  /* XOÁ SẠCH TRƯỚC KHI ĐIỀN. Bản cũ chỉ ghi đè khi CV mới CÓ field đó, nên up CV
+     thứ hai mà thiếu GPA là GPA của CV thứ nhất còn nguyên — trộn hồ sơ hai người
+     rồi đem đi đối chiếu, không có gì báo. Up CV mới = thay hẳn, không cộng dồn. */
+  for(const id of ['#fNam','#fGpa','#fNganh','#fCity','#fSkill']) $(id).value = '';
+  CV_THEM = {};
   if(d.nam_hoc!=null) $('#fNam').value = d.nam_hoc;
   if(d.gpa!=null) $('#fGpa').value = d.gpa;
   if(d.nganh) $('#fNganh').value = d.nganh;
   if(d.thanh_pho) $('#fCity').value = d.thanh_pho;
   if(d.ky_nang?.length) $('#fSkill').value = d.ky_nang.join(', ');
-  CV_THEM = {project: d.project ?? null, co_github: !!d.co_github};
+  CV_THEM = {ten: d.ten ?? null, project: d.project ?? null, co_github: !!d.co_github};
   const an = Object.entries(d._redact||{}).map(([k,v])=>`${v} ${k}`).join(', ');
   const thieu = ['nam_hoc','gpa','nganh','thanh_pho'].filter(k=>d[k]==null||d[k]==='');
   const them = [d.co_github?'có GitHub':null, d.project?'có project':null].filter(Boolean);
@@ -404,6 +427,7 @@ async function napCV(file){
     ${them.length?`Ghi nhận thêm: <b>${them.join(', ')}</b> (chỉ lưu có/không, không lưu link).`:''}
     ${an?`Đã ẩn trước khi gửi: ${esc(an)}.`:''}
     ${thieu.length?`<br>CV không ghi rõ: <b>${thieu.join(', ')}</b> — điền tay bên dưới, mình không đoán.`:''}</div>`;
+  baoCV(d, thieu);
 }
 
 /* ── sự kiện ── */
@@ -449,6 +473,7 @@ $('#inp').addEventListener('input', e=>{
   e.target.style.height='auto'; e.target.style.height = Math.min(e.target.scrollHeight,130)+'px'; });
 $('#profSel').onchange = ()=>{
   const p = DATA.profiles.find(x=>x.id===$('#profSel').value); if(!p) return;
+  CV_THEM = {};   /* chuyển sang hồ sơ mẫu thì bỏ hẳn dữ liệu CV, không để dính lẫn */
   $('#fNam').value=p.nam_hoc??''; $('#fGpa').value=p.gpa??'';
   $('#fNganh').value=p.nganh??''; $('#fCity').value=p.thanh_pho??'';
   $('#fSkill').value=(p.ky_nang||[]).join(', ');
