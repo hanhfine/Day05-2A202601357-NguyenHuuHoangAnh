@@ -92,8 +92,9 @@ def _detect_explicit_ma_tin(user_msg: str) -> str | None:
     """
     if not user_msg:
         return None
-    from core.tools import RE_MA_DUNG
-    ma = RE_MA_DUNG.search(user_msg)
+    # Regex: mã tin có format OPP-* hoặc REAL-* với 3 chữ số
+    re_ma_tin = re.compile(r"\b(?:OPP|REAL)-\d{3}\b")
+    ma = re_ma_tin.search(user_msg)
     if not ma:
         return None
     # Kiểm xem message có từ hỏi chi tiết không
