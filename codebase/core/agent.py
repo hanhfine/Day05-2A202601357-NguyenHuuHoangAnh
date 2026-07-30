@@ -8,6 +8,7 @@ Có HAI lời gọi AI trong một lượt "đối chiếu tin":
 về yêu cầu của một tin. Nói rõ chuyện này trong spec §4 để không ai tưởng chat là quyết định.
 """
 import json
+import re
 
 from . import llm
 from .tools import TOOLS, dispatch
@@ -83,6 +84,25 @@ def _gon(m: dict) -> dict:
     return r
 
 
+def _detect_explicit_ma_tin(user_msg: str) -> str | None:
+    """Nếu user nêu mã tin cụ thể (OPP-*/REAL-*) + từ hỏi chi tiết, trả mã tin.
+
+    VÍ DỤ: "đối chiếu OPP-001" → "OPP-001"
+            "xem chi tiết REAL-005" → "REAL-005"
+    """
+    if not user_msg:
+        return None
+    from core.tools import RE_MA_DUNG
+    ma = RE_MA_DUNG.search(user_msg)
+    if not ma:
+        return None
+    # Kiểm xem message có từ hỏi chi tiết không
+    tu_ho = r"đối chiếu|xem|chi tiết|yêu cầu|jd|cv|gì|nào|công ty|hạn"
+    if re.search(tu_ho, user_msg, re.I):
+        return ma.group(0)
+    return None
+
+
 def chat(lich_su: list, profile: dict, mode: str = "real") -> dict:
     """lich_su: list message (user/assistant/tool) từ client. Server không giữ state."""
     ho_so = json.dumps({k: v for k, v in (profile or {}).items()
@@ -91,6 +111,20 @@ def chat(lich_su: list, profile: dict, mode: str = "real") -> dict:
     msgs = [{"role": "system", "content": f"{SYSTEM}\n\n### Hồ sơ học viên đang khai\n{ho_so}"}]
     msgs += list(lich_su)
     events = []
+
+    # Phát hiện nếu user nêu mã tin cụ thể + hỏi chi tiết → auto-route đến doi_chieu
+    if msgs and isinstance(msgs[-1], dict) and msgs[-1].get("role") == "user":
+        ma_tin = _detect_explicit_ma_tin(msgs[-1].get("content", ""))
+        if ma_tin:
+            # Tự gọi doi_chieu cho user
+            kq, ev = dispatch("doi_chieu", {"opp_id": ma_tin}, profile, mode)
+            events.append(ev)
+            msgs.append({"role": "assistant", "tool_calls": [{
+                "id": "auto", "type": "function",
+                "function": {"name": "doi_chieu", "arguments": json.dumps({"opp_id": ma_tin})}
+            }]})
+            msgs.append({"role": "tool", "tool_call_id": "auto",
+                        "content": json.dumps(kq, ensure_ascii=False)})
 
     for _ in range(MAX_VONG):
         m = llm.chat_raw(msgs, TOOLS)
