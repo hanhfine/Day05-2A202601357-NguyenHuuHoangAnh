@@ -9,7 +9,10 @@
       "verdict_mong_doi": "nen_apply",
       "nhan": "Happy path — khớp năm học, GPA, kỹ năng, thành phố",
       "ly_do": "P-01 năm 3, GPA 3.4 ≥ 3.0, có Python+LLM API, ở Hà Nội → không có gap nào ngăn cản",
-      "rubric": ["R1", "R4"]
+      "rubric": [
+        "R1",
+        "R4"
+      ]
     },
     {
       "id": "G-02",
@@ -18,8 +21,14 @@
       "verdict_mong_doi": "nen_apply",
       "nhan": "P-03 GPA 2.8 < 3.0 nhưng OPP-001 không dùng từ 'bắt buộc' → mock xếp vào gaps → nen_apply (giới hạn mock)",
       "ly_do": "Mock chỉ hard_fail khi dòng có từ 'bắt buộc/tối thiểu'. OPP-001 ghi 'GPA từ 3.0 trở lên' không kèm từ đó → gaps[]. Mode real sẽ bắt được case này.",
-      "kiem_them": {"gaps_not_empty": true, "hard_fail_empty": true},
-      "rubric": ["R1", "R2"]
+      "kiem_them": {
+        "gaps_not_empty": true,
+        "hard_fail_empty": true
+      },
+      "rubric": [
+        "R1",
+        "R2"
+      ]
     },
     {
       "id": "G-03",
@@ -28,8 +37,15 @@
       "verdict_mong_doi": "nen_apply",
       "nhan": "P-01 đủ GPA 3.4 ≥ 3.2, deadline '5/8' mơ hồ → deadline.ambiguous=true",
       "ly_do": "GPA khớp, không có hard_fail → nen_apply. Kiểm thêm: deadline.parsed=null và ambiguous=true",
-      "kiem_them": {"deadline.ambiguous": true, "deadline.parsed": null},
-      "rubric": ["R1", "R3", "R4"]
+      "kiem_them": {
+        "deadline.ambiguous": true,
+        "deadline.parsed": null
+      },
+      "rubric": [
+        "R1",
+        "R3",
+        "R4"
+      ]
     },
     {
       "id": "G-04",
@@ -38,7 +54,10 @@
       "verdict_mong_doi": "rui_ro_cao",
       "nhan": "P-03 GPA 2.8 < 3.2 → hard_fail GPA trên OPP-002",
       "ly_do": "Điều kiện 'chính quy, GPA từ 3.2' bắt buộc. P-03 GPA 2.8 không đạt",
-      "rubric": ["R1", "R2"]
+      "rubric": [
+        "R1",
+        "R2"
+      ]
     },
     {
       "id": "G-05",
@@ -47,8 +66,16 @@
       "verdict_mong_doi": "thieu_thong_tin",
       "nhan": "P-02 chưa khai năm học → hỏi đúng 1 câu, không kèm phán quyết",
       "ly_do": "OPP-003 đòi năm 3-4, hồ sơ P-02 nam_hoc=null → thieu_thong_tin/thieu_o_dau=ho_so + one_question",
-      "kiem_them": {"thieu_o_dau": "ho_so", "one_question_not_null": true, "matched_empty": true},
-      "rubric": ["R1", "R5", "G10"]
+      "kiem_them": {
+        "thieu_o_dau": "ho_so",
+        "one_question_not_null": true,
+        "matched_empty": true
+      },
+      "rubric": [
+        "R1",
+        "R5",
+        "G10"
+      ]
     },
     {
       "id": "G-06",
@@ -57,7 +84,10 @@
       "verdict_mong_doi": "rui_ro_cao",
       "nhan": "P-01 ở Hà Nội, OPP-003 bắt buộc onsite TP.HCM → hard_fail địa điểm",
       "ly_do": "Dòng 'Yêu cầu bắt buộc: có thể đến văn phòng TP.HCM' → hard_fail, không phải gap",
-      "rubric": ["R1", "R2"]
+      "rubric": [
+        "R1",
+        "R2"
+      ]
     },
     {
       "id": "G-07",
@@ -66,8 +96,13 @@
       "verdict_mong_doi": "rui_ro_cao",
       "nhan": "Tin đòi phí xử lý 500k → tuyệt đối không nen_apply dù hồ sơ khớp",
       "ly_do": "Nguyên tắc ④: có phí → rui_ro_cao + canh_bao, bất kể profile nào",
-      "kiem_them": {"canh_bao_not_empty": true},
-      "rubric": ["R1", "R2"]
+      "kiem_them": {
+        "canh_bao_not_empty": true
+      },
+      "rubric": [
+        "R1",
+        "R2"
+      ]
     },
     {
       "id": "G-08",
@@ -76,8 +111,13 @@
       "verdict_mong_doi": "rui_ro_cao",
       "nhan": "Tin đòi phí — P-04 dù phù hợp vẫn phải rui_ro_cao",
       "ly_do": "Kiểm thêm: OPP-004 'nhận mọi năm' nhưng có phí → không bao giờ ra nen_apply",
-      "kiem_them": {"canh_bao_not_empty": true},
-      "rubric": ["R1", "R2"]
+      "kiem_them": {
+        "canh_bao_not_empty": true
+      },
+      "rubric": [
+        "R1",
+        "R2"
+      ]
     },
     {
       "id": "G-09",
@@ -86,7 +126,11 @@
       "verdict_mong_doi": "nen_apply",
       "nhan": "KỊCH BẢN ĐÁNG SỢ NHẤT — tin nhận mọi năm, P-04 năm 2 → KHÔNG được chặn",
       "ly_do": "spec §4 #10: 'Không được chặn sinh viên năm 2 khi tin ghi mọi năm'",
-      "rubric": ["R1", "R2", "R4"]
+      "rubric": [
+        "R1",
+        "R2",
+        "R4"
+      ]
     },
     {
       "id": "G-10",
@@ -95,8 +139,13 @@
       "verdict_mong_doi": "nen_apply",
       "nhan": "P-01 năm 3, OPP-005 online không đòi GPA → nen_apply",
       "ly_do": "'Không yêu cầu GPA' → matched; online không xét địa điểm",
-      "kiem_them": {"not_stated_contains_gpa": true},
-      "rubric": ["R1", "R4"]
+      "kiem_them": {
+        "not_stated_contains_gpa": true
+      },
+      "rubric": [
+        "R1",
+        "R4"
+      ]
     },
     {
       "id": "G-11",
@@ -105,8 +154,13 @@
       "verdict_mong_doi": "thieu_thong_tin",
       "nhan": "Tin mơ hồ không có yêu cầu cụ thể → thieu_thong_tin/thieu_o_dau=tin",
       "ly_do": "Chỉ 4 dòng, không có từ khoá yêu cầu → không đủ căn cứ, KHÔNG suy diễn",
-      "kiem_them": {"thieu_o_dau": "tin"},
-      "rubric": ["R1", "R5"]
+      "kiem_them": {
+        "thieu_o_dau": "tin"
+      },
+      "rubric": [
+        "R1",
+        "R5"
+      ]
     },
     {
       "id": "G-12",
@@ -115,7 +169,10 @@
       "verdict_mong_doi": "rui_ro_cao",
       "nhan": "P-03 GPA 2.8 < 3.5 bắt buộc → rui_ro_cao. Phần gap/hard_fail KHÔNG nói 'không đủ điều kiện'",
       "ly_do": "Điều kiện bắt buộc rõ ràng 'GPA tối thiểu 3.5/4.0'",
-      "rubric": ["R1", "R2"]
+      "rubric": [
+        "R1",
+        "R2"
+      ]
     },
     {
       "id": "G-13",
@@ -125,7 +182,10 @@
       "nhan": "P-01 năm 3, GPA 3.4 < 3.5 bắt buộc → rui_ro_cao (GPA thiếu 0.1)",
       "verdict_mong_doi": "rui_ro_cao",
       "ly_do": "OPP-007 đòi GPA 3.5 bắt buộc. P-01 có 3.4 → hard_fail",
-      "rubric": ["R1", "R2"]
+      "rubric": [
+        "R1",
+        "R2"
+      ]
     },
     {
       "id": "G-14",
@@ -134,8 +194,13 @@
       "verdict_mong_doi": "thieu_thong_tin",
       "nhan": "Tin quá ngắn (2 dòng) → không đủ căn cứ, thieu_o_dau=tin",
       "ly_do": "len(co_chu) < 4 → tự động thieu_thong_tin, không phân tích thêm",
-      "kiem_them": {"thieu_o_dau": "tin"},
-      "rubric": ["R1", "R5"]
+      "kiem_them": {
+        "thieu_o_dau": "tin"
+      },
+      "rubric": [
+        "R1",
+        "R5"
+      ]
     },
     {
       "id": "G-15",
@@ -144,8 +209,15 @@
       "verdict_mong_doi": "nen_apply",
       "nhan": "'Ưu tiên' paper là gap, KHÔNG phải hard_fail → vẫn nen_apply",
       "ly_do": "Spec: 'ưu tiên' ≠ 'bắt buộc'. Thiếu paper → gaps[], không phải hard_fail[]",
-      "kiem_them": {"hard_fail_empty": true, "gaps_not_empty": true},
-      "rubric": ["R1", "R2", "R4"]
+      "kiem_them": {
+        "hard_fail_empty": true,
+        "gaps_not_empty": true
+      },
+      "rubric": [
+        "R1",
+        "R2",
+        "R4"
+      ]
     },
     {
       "id": "G-16",
@@ -154,8 +226,15 @@
       "verdict_mong_doi": "thieu_thong_tin",
       "nhan": "P-02 chưa khai năm học, OPP-009 đòi năm 3 trở lên → hỏi đúng 1 câu",
       "ly_do": "Thiếu nam_hoc → one_question được đặt → thieu_thong_tin/thieu_o_dau=ho_so",
-      "kiem_them": {"thieu_o_dau": "ho_so", "one_question_not_null": true},
-      "rubric": ["R1", "R5", "G10"]
+      "kiem_them": {
+        "thieu_o_dau": "ho_so",
+        "one_question_not_null": true
+      },
+      "rubric": [
+        "R1",
+        "R5",
+        "G10"
+      ]
     },
     {
       "id": "G-17",
@@ -164,7 +243,10 @@
       "verdict_mong_doi": "nen_apply",
       "nhan": "Logistics Đà Nẵng (bản cứng) là gap, KHÔNG hard_fail → P-01 ở Hà Nội vẫn nen_apply",
       "ly_do": "README: 'chỉ nhận hồ sơ tại Đà Nẵng' là chi phí logistics, không phải điều kiện tư cách",
-      "rubric": ["R1", "R4"]
+      "rubric": [
+        "R1",
+        "R4"
+      ]
     },
     {
       "id": "G-18",
@@ -173,7 +255,10 @@
       "verdict_mong_doi": "nen_apply",
       "nhan": "P-04 năm 2, OPP-010 nhận năm 2-4, GPA 3.6 ≥ 3.0 → nen_apply dù logistics Đà Nẵng",
       "ly_do": "Năm khớp, GPA khớp. Gap duy nhất là logistics → vẫn nen_apply",
-      "rubric": ["R1", "R4"]
+      "rubric": [
+        "R1",
+        "R4"
+      ]
     },
     {
       "id": "G-19",
@@ -182,8 +267,14 @@
       "verdict_mong_doi": "nen_apply",
       "nhan": "P-04 năm 2, OPP-001 đòi năm 3-4 — mock xếp vào gaps (không có 'bắt buộc') → nen_apply (giới hạn mock)",
       "ly_do": "Dòng năm học OPP-001 không có 'bắt buộc' → mock đặt vào gaps, không hard_fail → nen_apply. Mode real phải ra rui_ro_cao. Đây là giới hạn đã ghi trong README mục 'Giới hạn của mock'.",
-      "kiem_them": {"gaps_not_empty": true, "hard_fail_empty": true},
-      "rubric": ["R1", "R2"]
+      "kiem_them": {
+        "gaps_not_empty": true,
+        "hard_fail_empty": true
+      },
+      "rubric": [
+        "R1",
+        "R2"
+      ]
     },
     {
       "id": "G-20",
@@ -192,7 +283,10 @@
       "verdict_mong_doi": "nen_apply",
       "nhan": "OPP-005 không yêu cầu GPA, không yêu cầu năm, online → P-03 (GPA 2.8) vẫn nen_apply",
       "ly_do": "Tin ghi rõ 'Không yêu cầu GPA', 'mọi năm học', 'online' → tất cả field là matched hoặc not_stated",
-      "rubric": ["R1", "R4"]
+      "rubric": [
+        "R1",
+        "R4"
+      ]
     },
     {
       "id": "G-21",
@@ -201,7 +295,10 @@
       "verdict_mong_doi": "rui_ro_cao",
       "nhan": "P-04 ở Đà Nẵng, OPP-003 bắt buộc onsite TP.HCM → hard_fail địa điểm",
       "ly_do": "'Yêu cầu bắt buộc: có thể đến văn phòng TP.HCM' là điều kiện cứng",
-      "rubric": ["R1", "R2"]
+      "rubric": [
+        "R1",
+        "R2"
+      ]
     },
     {
       "id": "G-22",
@@ -210,8 +307,13 @@
       "verdict_mong_doi": "rui_ro_cao",
       "nhan": "Phí + P-02 → rui_ro_cao. Tin đòi phí luôn thắng, kể cả khi hồ sơ thiếu thông tin",
       "ly_do": "Kiểm luật: cây quyết định đặt co_phi trước cau_hoi → canh_bao phải có",
-      "kiem_them": {"canh_bao_not_empty": true},
-      "rubric": ["R1", "R2"]
+      "kiem_them": {
+        "canh_bao_not_empty": true
+      },
+      "rubric": [
+        "R1",
+        "R2"
+      ]
     },
     {
       "id": "G-23",
@@ -220,8 +322,13 @@
       "verdict_mong_doi": "rui_ro_cao",
       "nhan": "Tin đòi phí + có 'Zalo' + 'số lượng có hạn' → 2 cảnh báo",
       "ly_do": "RE_PHI và RE_BAT_THUONG đều match → canh_bao phải có ít nhất 2 phần tử",
-      "kiem_them": {"canh_bao_min_length": 2},
-      "rubric": ["R1", "R2"]
+      "kiem_them": {
+        "canh_bao_min_length": 2
+      },
+      "rubric": [
+        "R1",
+        "R2"
+      ]
     },
     {
       "id": "G-24",
@@ -230,7 +337,10 @@
       "verdict_mong_doi": "nen_apply",
       "nhan": "P-04 năm 2 (≥ năm 2), GPA 3.6 ≥ 3.5 → nen_apply trên học bổng Bách Khoa",
       "ly_do": "OPP-007 đòi 'năm 2 trở lên' + GPA 3.5. P-04 đều đạt",
-      "rubric": ["R1", "R4"]
+      "rubric": [
+        "R1",
+        "R4"
+      ]
     },
     {
       "id": "G-25",
@@ -239,8 +349,13 @@
       "verdict_mong_doi": "thieu_thong_tin",
       "nhan": "Tin mơ hồ với P-04 → vẫn thieu_thong_tin (không phụ thuộc profile)",
       "ly_do": "Tin quá thiếu nội dung, không có từ khoá yêu cầu nào → không thể đối chiếu",
-      "kiem_them": {"thieu_o_dau": "tin"},
-      "rubric": ["R1", "R5"]
+      "kiem_them": {
+        "thieu_o_dau": "tin"
+      },
+      "rubric": [
+        "R1",
+        "R5"
+      ]
     }
   ]
 }
