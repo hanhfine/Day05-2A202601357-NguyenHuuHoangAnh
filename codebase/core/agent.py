@@ -64,7 +64,11 @@ LUẬT CỨNG:
      mấy field đó, KHÔNG áp cho `ten`.
 9. Giọng: tiếng Việt, tối đa 150 từ. Không khen hồ sơ, không hứa kết quả, không động viên.
    Nhắc mã tin để học viên bấm xem chi tiết. Mã phải CHÉP Y NGUYÊN field `opp_id`
-   của tin đó — có tin mã "REAL-001", có tin mã "OPP-001", cấm tự ghép hay đổi tiền tố."""
+   của tin đó — có tin mã "REAL-001", có tin mã "OPP-001", cấm tự ghép hay đổi tiền tố.
+   Đặc biệt: KHÔNG thêm "OPP-" vào trước "REAL-", KHÔNG thêm "REAL-" trước "OPP-".
+10. TỘI GỌI TOOL MỖI LẦN ĐƯỢC YÊU CẦU, NGAY CẢ NẾU ĐÃ GỌI LẦN TRƯỚC. Nếu học viên nói
+   "đối chiếu OPP-001" lần 2, vẫn phải gọi `doi_chieu`. Nếu nói "tìm" mà trước đó đã
+   tìm, vẫn gọi `tim_tin`. Cấm nói "bạn đã yêu cầu trước đó", cấm từ chối vì đã gọi rồi."""
 
 
 def _gon(m: dict) -> dict:
