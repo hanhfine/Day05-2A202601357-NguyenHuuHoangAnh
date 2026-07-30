@@ -23,6 +23,17 @@ REPO = CODEBASE.parent
 
 app = Flask(__name__, static_folder=None)
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024      # CV quá 8MB thì chặn
+app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+
+
+@app.after_request
+def disable_cache(response):
+    """Tắt cache trình duyệt để sửa HTML/CSS/JS là F5 thấy ngay, không cần restart server."""
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 
 @app.get("/")
@@ -108,4 +119,6 @@ def api_feedback():
 if __name__ == "__main__":
     print(f"→ http://127.0.0.1:5000   (provider={llm.provider()} model={llm.model()} "
           f"key={'có' if llm.co_key() else 'CHƯA CÓ — chỉ chạy được mode mock'})")
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    web_files = [str(p) for p in (CODEBASE / "web").glob("*")]
+    core_files = [str(p) for p in (CODEBASE / "core").glob("*.py")]
+    app.run(host="127.0.0.1", port=5000, debug=True, extra_files=web_files + core_files)
