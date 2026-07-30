@@ -18,6 +18,7 @@ Giới hạn phải nói thẳng: regex KHÔNG bắt được tên người. B�
 Vì vậy luật 1 và 3 mới là lớp bảo vệ chính, không phải luật 2.
 """
 import re
+from datetime import date
 
 from . import llm
 
@@ -115,6 +116,54 @@ def doc_file(ten: str, du_lieu: bytes) -> str:
     return du_lieu.decode("utf-8", "ignore")
 
 
+# "HaUI 2022- 2026", "2021–2025", "2022 - nay" — khoảng thời gian học, kiểu ghi phổ
+# biến nhất trong mục EDUCATION của CV tiếng Anh. Cho phép mọi loại gạch nối và
+# khoảng trắng lẻ vì bản trích từ PDF hay chèn space lung tung ("2022- 2026").
+RE_KHOANG_HOC = re.compile(
+    r"\b(19[89]\d|20[0-4]\d)\s*[-–—]\s*(19[89]\d|20[0-4]\d|nay|now|present|hiện tại)\b", re.I)
+
+
+def _suy_nam_hoc(text: str, hom_nay: date | None = None) -> tuple[int | None, str | None]:
+    """Suy năm thứ mấy từ khoảng năm học trong CV → (nam_hoc, câu giải thích).
+
+    VÌ SAO ĐƯỢC PHÉP SUY Ở ĐÂY, TRONG KHI HẠN NỘP THÌ CẤM:
+    hai chỗ khác hẳn nhau. Hạn nộp ghi "15/08" là dữ liệu THIẾU HẲN năm — điền vào
+    là bịa. Còn "2022–2026" là dữ liệu CÓ ĐỦ: hai mốc do CV nói ra, cộng ngày hôm
+    nay, ra năm thứ mấy bằng phép trừ. Đó là tính, không phải đoán.
+
+    Bỏ qua thì hại thật, đo được: hồ sơ có `nam_hoc` sai (2022) cho 0 tin khớp năm
+    và dán nhầm 5 tin là lệch năm; để None thì mất luôn điểm cộng khi khớp năm. Giá
+    trị đúng (4) cho 2 tin khớp. Thông tin nằm sẵn trong CV, chỉ là hệ thống không
+    đọc nổi dạng đó.
+
+    Năm học VN bắt đầu tháng 9: tháng 7/2026 vẫn thuộc niên khoá 2025-2026, nên
+    người nhập học 2022 đang là năm 4, không phải năm 5.
+    """
+    m = RE_KHOANG_HOC.search(text or "")
+    if not m:
+        return None, None
+    bd = int(m.group(1))
+    cuoi = m.group(2)
+    hom_nay = hom_nay or date.today()
+    nien_khoa = hom_nay.year if hom_nay.month >= 9 else hom_nay.year - 1
+    nam = nien_khoa - bd + 1
+    if nam < 1:
+        return None, None                       # chưa nhập học
+    if cuoi.isdigit():
+        dai = int(cuoi) - bd
+        if dai < 1 or dai > 8:
+            return None, None                   # khoảng vô lý, không suy
+        # ĐÃ RA TRƯỜNG thì để trống: hồ sơ không có field nào diễn đạt "đã tốt
+        # nghiệp", khai đại năm cuối là nói sai về họ. So bằng `>=` chứ không phải
+        # `>`: người học 2022–2026 xong niên khoá 2025-2026 là tốt nghiệp, nên sang
+        # niên khoá 2026 (từ tháng 9/2026) họ không còn là sinh viên năm nào cả.
+        if nien_khoa >= int(cuoi):
+            return None, None
+        nam = min(nam, dai)
+    nam = min(nam, 8)
+    return nam, f"suy từ khoảng học {bd}–{cuoi} trong CV so với niên khoá {nien_khoa}-{nien_khoa+1}"
+
+
 def _nam_hoc(v) -> int | None:
     """`nam_hoc` là NĂM THỨ MẤY (1-8), không phải năm dương lịch.
 
@@ -162,8 +211,20 @@ def trich_ho_so(text: str, mode: str = "real") -> dict:
     # mà nhãn "GitHub" thì luôn còn trong text. Chỉ nâng lên true, không hạ xuống false.
     co_git = bool(o.get("co_github")) or bool(RE_GITHUB.search(sach))
     ten = str(o.get("ten")).strip() if o.get("ten") else None
+
+    # Model hay trả về NĂM NHẬP HỌC thay vì năm thứ mấy, vì mục EDUCATION của CV
+    # ghi kiểu "HaUI 2022- 2026". _nam_hoc() chặn đúng (2022 không phải năm thứ
+    # mấy) nhưng chặn xong là mất trắng, trong khi khoảng đó thừa dữ kiện để TÍNH
+    # ra năm 4. Chỉ suy khi model không đưa được giá trị hợp lệ — không ghi đè.
+    nam, vi_sao = _nam_hoc(o.get("nam_hoc")), None
+    if nam is None:
+        nam, vi_sao = _suy_nam_hoc(sach)
+
     return {"ten": ten if ten and len(ten) <= 60 else None,
-            "nam_hoc": _nam_hoc(o.get("nam_hoc")),
+            "nam_hoc": nam,
+            # UI phải phân biệt "CV ghi sẵn" với "hệ thống tự tính" — im lặng điền
+            # một con số học viên không hề khai là kiểu âm thầm quyết thay họ.
+            "_nam_hoc_suy_ra": vi_sao,
             "nganh": o.get("nganh") or None,
             "gpa": float(gpa) if isinstance(gpa, (int, float)) else None,
             "thanh_pho": o.get("thanh_pho") or None,

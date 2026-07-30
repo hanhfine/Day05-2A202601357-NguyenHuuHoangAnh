@@ -343,7 +343,7 @@ def main() -> int:
     print(f"  {'✓' if ok else '✗'} ky_nang = {hs['ky_nang']}")
     # luật 3: chỉ 8 field + 2 field kỹ thuật, không kèm gì khác từ CV
     la = set(hs) - {"ten", "nam_hoc", "nganh", "gpa", "thanh_pho", "ky_nang", "project",
-                    "co_github", "_redact", "_so_ky_tu"}
+                    "co_github", "_redact", "_so_ky_tu", "_nam_hoc_suy_ra"}
     loi += bool(la)
     print(f"  {'✓' if not la else '✗ có field lạ: ' + str(la)} chỉ trả 8 field hồ sơ")
 
@@ -357,6 +357,25 @@ def main() -> int:
     loi += not ok
     print(f"  {'✓' if ok else '✗'} nam_hoc chỉ nhận 1-8, năm dương lịch → None"
           + (f" — LỌT: {sai}" if sai else ""))
+
+    # Chặn 2022 là đúng, nhưng chặn xong mà bỏ trắng thì mất thông tin CÓ THẬT:
+    # mục EDUCATION hay ghi "HaUI 2022- 2026", đủ dữ kiện để TRỪ ra năm thứ mấy.
+    # Khác hạn nộp "15/08" thiếu hẳn năm — đó mới là chỗ cấm suy.
+    from datetime import date
+    from core.cv import _suy_nam_hoc
+    CA = [("HaUI 2022- 2026 Computer Science", date(2026, 7, 30), 4),   # đang năm 4
+          ("Đại học Bách Khoa 2022 - 2026", date(2026, 10, 1), None),   # sang niên khoá → đã TN
+          ("HUST 2023–2027", date(2026, 7, 30), 3),
+          ("FPT University 2025 - 2029", date(2026, 7, 30), 1),
+          ("2021-2025", date(2026, 7, 30), None),                       # TN 2025, không khai bừa
+          ("HaUI 2022 - nay", date(2026, 7, 30), 4),                    # khoảng mở
+          ("Kinh nghiệm 2019-2021 tại công ty X", date(2026, 7, 30), None),
+          ("Không có khoảng năm nào", date(2026, 7, 30), None)]
+    lech = [(t, _suy_nam_hoc(t, h)[0], m) for t, h, m in CA if _suy_nam_hoc(t, h)[0] != m]
+    ok = not lech
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} suy nam_hoc từ khoảng học ({len(CA)} ca: đang học → năm thứ "
+          f"mấy · đã tốt nghiệp → None)" + (f" — LỆCH: {lech}" if lech else ""))
 
     # `ten` là ngoại lệ CÓ CHỦ Ý của luật tối thiểu hoá PII (xem docstring cv.py).
     # Mở đúng field tên — email/SĐT/link/CCCD vẫn phải chặn, kiểm ngay dưới đây.
