@@ -173,13 +173,23 @@ def main() -> int:
           "ky_nang": ["Python", "SQL", "pandas", "LLM API (OpenAI, Gemini)"]}
     co_hs = xep_hang(nam_hoc=3, profile=HS)
     khong_hs = xep_hang(nam_hoc=3)
-    hang = [i for i, x in enumerate(co_hs) if x["khop_ky_nang"] or x["khop_nganh"]]
-    hang_khong = [i for i, x in enumerate(co_hs) if not (x["khop_ky_nang"] or x["khop_nganh"])]
-    ok = (len(co_hs) == len(khong_hs)                      # không được loại bớt tin nào
-          and (not hang or not hang_khong or max(hang) < min(hang_khong)))
+    # So thứ hạng TRONG CÙNG NHÓM `thieu`, không so trên cả bảng: sắp xếp là
+    # (số điều kiện thiếu, rồi tới điểm), nên một tin Senior khớp Python vẫn phải
+    # đứng SAU tin entry-level không khớp kỹ năng nào — học viên nộp được tin thứ
+    # hai, không nộp được tin thứ nhất. So trên cả bảng là bắt sai chính luật đó.
+    nhom = {}
+    for i, x in enumerate(co_hs):
+        nhom.setdefault(len(x["thieu"]), []).append((i, bool(x["khop_ky_nang"] or x["khop_nganh"])))
+    lech_hang = [n for n, ds in nhom.items()
+                 if (co := [i for i, k in ds if k]) and (kh := [i for i, k in ds if not k])
+                 and max(co) > min(kh)]
+    khop = sum(1 for x in co_hs if x["khop_ky_nang"] or x["khop_nganh"])
+    ok = len(co_hs) == len(khong_hs) and not lech_hang   # không được loại bớt tin nào
     loi += not ok
     print(f"  {'✓' if ok else '✗'} hồ sơ chỉ xếp hạng, không loại tin "
-          f"({len(co_hs)} tin cả hai chiều; {len(hang)} tin khớp kỹ năng/ngành đứng trước)")
+          f"({len(co_hs)} tin cả hai chiều; {khop} tin khớp kỹ năng/ngành đứng trước "
+          f"trong nhóm của nó)"
+          + (f" — NHÓM LỆCH: {lech_hang}" if lech_hang else ""))
 
     # LUẬT: KHÔNG BAO GIỜ trả về rỗng. Hỏi điều kiện không tin nào đạt thì vẫn phải
     # đưa tin gần đúng kèm nhãn chỗ lệch — nói "không có cơ hội nào" là đẩy học viên
@@ -210,13 +220,20 @@ def main() -> int:
           + (f" — LỆCH: {lech}" if lech else ""))
 
     # LUẬT: cắt bớt thì phải nói ra. Im lặng hiện 8/14 là giấu 6 cơ hội.
+    # `tong`/`con_chua_hien` đếm trên tin ĐẠT ĐỦ ĐIỀU KIỆN (thieu rỗng), không phải
+    # trên cả bảng — corpus có tin Senior mang nhãn `thieu`, gộp chúng vào con số
+    # "còn N tin nữa" là hứa với học viên nhiều cơ hội hơn thực có.
     _, ev = dispatch("tim_tin", {"gioi_han": 3}, HS, "mock")
-    tong = len(xep_hang(profile=HS))
-    ok = (ev["con_chua_hien"] == max(0, tong - 3) and ev["tong"] == tong
+    tat_ca = xep_hang(profile=HS)
+    dat = [x for x in tat_ca if not x["thieu"]]
+    hien = min(3, len(tat_ca))
+    gan_dang_hien = sum(1 for x in tat_ca[:hien] if x["thieu"])
+    ok = (ev["tong"] == len(dat)
+          and ev["con_chua_hien"] == max(0, len(dat) - (hien - gan_dang_hien))
           and len(tim_tin(gioi_han=9999, profile=HS)) <= TRAN_TIN)
     loi += not ok
-    print(f"  {'✓' if ok else '✗'} báo số tin bị cắt (hiện 3/{tong}, "
-          f"còn {ev['con_chua_hien']}; trần cứng {TRAN_TIN})")
+    print(f"  {'✓' if ok else '✗'} báo số tin bị cắt (hiện {hien}/{len(dat)} tin đạt "
+          f"trong {len(tat_ca)} tin, còn {ev['con_chua_hien']}; trần cứng {TRAN_TIN})")
 
     # Ba test dưới bắn vào logic lọc/xếp hạng → chạy trên fixture cho tất định,
     # vì tin thật đổi theo mỗi lần crawl thì test sẽ lúc đạt lúc trượt.
@@ -229,6 +246,36 @@ def main() -> int:
     ok = bool(hb) and all(x["loai"] == "hoc_bong" for x in hb)
     loi += not ok
     print(f"  {'✓' if ok else '✗'} lọc loại → {len(hb)} tin, tất cả là học bổng")
+
+    # LUẬT LEVEL: `cap_do` là LIST nên tin đa level phải ĐẠT ở MỌI level nó ghi.
+    # Chạy trên corpus giả cho tất định — tin thật đổi theo mỗi lần crawl.
+    import core.tools as _T
+    _goc_corpus, _goc_fixture = _T.tai_corpus, _T.la_fixture
+    _T.tai_corpus = lambda: [
+        {"id": "L-01", "kind": "thuc_tap", "cap_do": ["intern", "fresher"],
+         "title": "AI Eng (Intern/Fresher)", "raw_text": "[AI]\n- Python\nVăn phòng Hà Nội"},
+        {"id": "L-02", "kind": "viec_lam", "cap_do": ["senior"],
+         "title": "Senior AI Eng", "raw_text": "[AI]\n- Python\nVăn phòng Hà Nội"},
+        {"id": "L-03", "kind": "viec_lam", "cap_do": [],
+         "title": "AI Eng (tin không nêu level)", "raw_text": "[AI]\n- Python\nVăn phòng Hà Nội"},
+    ]
+    _T.la_fixture = lambda t: False
+    try:
+        dat = {k: {x["opp_id"] for x in _T.xep_hang(**kw) if not x["thieu"]}
+               for k, kw in [("thuc_tap", {"loai": "thuc_tap"}),
+                             ("fresher", {"cap_do": "fresher"}),
+                             ("junior", {"cap_do": "junior"}),
+                             ("không nêu", {})]}
+    finally:
+        _T.tai_corpus, _T.la_fixture = _goc_corpus, _goc_fixture
+    ok = ("L-01" in dat["thuc_tap"] and "L-01" in dat["fresher"]   # đa level: đạt cả hai
+          and "L-01" not in dat["junior"]                          # nhưng không phải junior
+          and all("L-02" not in v for v in dat.values())           # senior: không bao giờ đạt
+          and all("L-03" in v for v in dat.values()))              # không nêu: không bị loại
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} level: tin đa level đạt ở mọi level nó ghi, tin senior "
+          f"luôn có nhãn, tin không nêu không bị loại"
+          + ("" if ok else f" — ĐẠT THEO CÂU HỎI: {dat}"))
 
     # LUẬT: tim_tin KHÔNG được loại tin theo điều kiện. Sinh viên năm 1 vẫn phải
     # thấy tin đòi năm 3-4, kèm ghi chú — nếu lọc mất thì họ mất cơ hội mà không biết.

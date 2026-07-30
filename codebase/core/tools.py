@@ -127,6 +127,10 @@ def _bien_the(ky_nang: str) -> list[str]:
 TRAN_TIN = 25          # trần cứng số tin trả về một lượt
 MAC_DINH_TIN = 8
 
+# Thang level hệ thống phục vụ. Tin nêu rõ level NGOÀI thang này (senior/middle/lead)
+# vẫn được giữ trong corpus nhưng phải bị hạ hạng và dán nhãn — xem xep_hang().
+LV_SINH_VIEN = {"intern", "fresher", "junior"}
+
 
 def xep_hang(tu_khoa: str | None = None, thanh_pho: str | None = None,
              loai: str | None = None, nam_hoc: int | None = None,
@@ -178,6 +182,12 @@ def xep_hang(tu_khoa: str | None = None, thanh_pho: str | None = None,
         lv_muon = cap_do or ("intern" if loai == "thuc_tap" else None)
         if lv_muon and cap_do_tin and lv_muon not in cap_do_tin:
             thieu.append(f"tin cho {'/'.join(cap_do_tin)}, không phải {lv_muon}")
+        elif not lv_muon and cap_do_tin and not (set(cap_do_tin) & LV_SINH_VIEN):
+            # Tin NÊU RÕ một level ngoài thang hệ thống phục vụ (senior/middle/lead).
+            # Phải nói ra ngay cả khi học viên không hỏi level nào: query fresher của
+            # Google Jobs trả về cả "Senior AI Engineer", và tin đó im lặng thì trông
+            # y như tin khớp hẳn. Vẫn KHÔNG loại — chỉ hạ hạng và dán nhãn.
+            thieu.append(f"tin cho {'/'.join(cap_do_tin)}")
 
         if tp_muon:
             tp_tin = chuan_tp(m["thanh_pho"])

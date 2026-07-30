@@ -73,6 +73,20 @@ def _kd(s: str) -> str:
     return "".join(c for c in s if unicodedata.category(c) != "Mn")
 
 
+def _khop_tu(tu: str, van: str) -> bool:
+    """Có `tu` đứng thành từ riêng trong `van` không (cả hai đã bỏ dấu, lowercase).
+
+    BẢN CŨ DÙNG `tu in van` VÀ ĐÓ LÀ NGUỒN CỦA HAI TIN RÁC:
+      · "ai" khớp substring trong "t[ai] Việt Nam" → REAL-005 "RECRUITMENT INTERN"
+        (công ty headhunt tuyển intern Nhân sự) lọt qua filter lĩnh vực.
+      · "intern" khớp trong "[intern]al developer tools" → tin "Backend Engineer
+        Junior+/Senior" bị dán cap_do=["intern"].
+    `core/tools.py` đã sửa đúng lỗi này cho phía tìm kiếm nhưng crawler thì chưa —
+    nên rác vẫn vào được corpus từ đầu nguồn.
+    """
+    return re.search(rf"(?<![a-z0-9]){re.escape(tu.strip())}(?![a-z0-9])", van) is not None
+
+
 def _lien_quan_ai(title: str, desc: str) -> bool:
     """Tin có thuộc lĩnh vực hệ thống phục vụ (IT/data/AI) không.
 
@@ -83,64 +97,88 @@ def _lien_quan_ai(title: str, desc: str) -> bool:
     viên tìm "thực tập AI". Từ lúc thêm query fresher/junior thì lỗ này rộng hơn
     nhiều: "Sales Fresher", "HR Junior", "Marketing Intern" đều sẽ lọt.
     Muốn vào corpus thì tin phải nhắc một từ THUỘC LĨNH VỰC.
+
+    Cũng bỏ "software": nó khớp "Design software" trong tin Design Engineer /
+    Detailing Engineer — mấy tin cơ khí-xây dựng, không phải IT.
     """
     txt = _kd(title + " " + desc)
-    return any(k in txt for k in [
-        "ai ", "machine learning", "data", "python", "nlp", "llm",
+    return any(_khop_tu(k, txt) for k in [
+        "ai", "machine learning", "data", "python", "nlp", "llm",
         "deep learning", "computer vision", "mlops", "analytics",
-        "backend", "software", "cntt", "cong nghe thong tin",
+        "backend", "cntt", "cong nghe thong tin",
         "khoa hoc may tinh", "ky thuat may tinh", "lap trinh", "developer",
     ])
 
 
-def _kind(title: str, desc: str) -> str:
-    """Loại cơ hội: học bổng / thực tập / việc làm (fresher-junior).
-
-    Thứ tự ưu tiên có chủ đích: tin nào nhắc "intern" thì vào `thuc_tap` NGAY,
-    kể cả khi nó cũng nhắc "fresher" (vd REAL-014 "AI Engineer (Intern/Fresher
-    level)"). Lý do: `thuc_tap` là câu hỏi hay gặp nhất, xếp tin đa level vào đó
-    giữ nó hiện ra ở lượt tìm phổ biến nhất — còn nhánh fresher vẫn thấy nó nhờ
-    field `cap_do`, không mất đường nào.
-    """
-    txt = _kd(title + " " + desc)
-    if any(k in txt for k in ["hoc bong", "scholarship", "hoc phi"]):
-        return "hoc_bong"
-    if any(k in txt for k in ["intern", "thuc tap"]):
-        return "thuc_tap"
-    return "viec_lam"
+_HB = ["hoc bong", "scholarship", "hoc phi"]
+_TT = ["intern", "internship", "thuc tap"]
 
 
 # Level KHÔNG loại trừ nhau: một tin ghi "Intern/Fresher level" thuộc cả hai.
 # Nên `cap_do` là LIST, không phải một giá trị — xếp REAL-014 vào đúng một ô là
 # tự tay bỏ mất nửa số học viên đáng thấy nó.
 _CAP_DO = {
-    "intern": ["intern", "thuc tap", "internship", "sinh vien thuc tap"],
+    "intern": _TT + ["sinh vien thuc tap"],
     "fresher": ["fresher", "moi tot nghiep", "entry level", "entry-level",
                 "sap tot nghiep", "new graduate", "no experience"],
     "junior": ["junior", "1-2 nam kinh nghiem", "1 nam kinh nghiem",
                "duoi 2 nam kinh nghiem"],
 }
 
+# "senior" KHÔNG nằm trong thang hệ thống phục vụ, nhưng vẫn phải gán nhãn: query
+# fresher/junior của Google Jobs trả về cả "Senior AI Engineer", "AI Engineer (Middle
+# Level)", "AI Engineer Lead". Không nhãn thì cap_do rỗng, mà rỗng nghĩa là "tin không
+# nêu level" nên xep_hang() không bao giờ loại — học viên hỏi fresher lại thấy tin
+# Senior xếp hạng KHỚP HẲN.
+#
+# TÁCH RIÊNG VÌ CHỈ ĐƯỢC DÒ TRONG TIÊU ĐỀ. Trong mô tả thì mấy từ này gần như luôn nói
+# chuyện khác: "Other tasks as assigned by direct manager" là mô tả công việc chứ không
+# phải yêu cầu level, mà mọi việc đều có manager — nó làm tin "Data Analyst Ngân Hàng
+# Shinhan" (thật ra entry level) bị dán senior rồi ẩn khỏi mắt học viên. Tương tự
+# "Qualcomm's leadership in generative AI" là câu quảng cáo công ty.
+# Cấp bậc cao thì gần như luôn nằm ở tiêu đề, nên chỉ đọc tiêu đề là đủ và sạch hơn.
+_CAP_DO_TITLE = {
+    "senior": ["senior", "middle", "mid-level", "middle level", "lead", "principal",
+               "manager", "truong nhom", "3 nam kinh nghiem", "5 nam kinh nghiem"],
+}
 
-def _cap_do(title: str, desc: str, kind: str) -> list[str]:
-    """Các level tin này nhận. RỖNG nghĩa là tin không nêu — KHÔNG phải "không nhận".
 
-    Rỗng và "không khớp" phải phân biệt được: `xep_hang` chỉ ghi thiếu khi tin
-    NÊU RÕ level khác cái học viên hỏi. Tin im lặng thì vẫn hiện — cùng lý do
-    với luật không lọc theo năm học/GPA: đoán sai một tin là học viên mất hẳn
-    cơ hội mà không có cách nào biết.
+def _phan_loai(title: str, desc: str) -> tuple[str, list[str]]:
+    """→ (kind, cap_do). Trả CẢ HAI cùng lúc, không tách thành hai hàm public.
+
+    VÌ SAO GỘP: hai field phải nhất quán — `kind="thuc_tap"` thì `cap_do` buộc phải
+    chứa "intern". Bản trước để hai hàm tự đọc tin độc lập nên chúng chỏi nhau:
+    "Junior Industrial Data & AI Engineer" ra kind=thuc_tap (mô tả có nhắc "thực tập")
+    nhưng cap_do=["junior"] (tiêu đề ghi Junior). Tin đó rồi hiện ra ở câu "tìm thực
+    tập" như tin khớp hẳn, dù đúng ra là việc junior. Suy `kind` TỪ `cap_do` thì
+    không còn đường nào để lệch.
+
+    ĐỌC TIÊU ĐỀ TRƯỚC, MÔ TẢ SAU. Mô tả tuyển dụng nhắc level rất tuỳ tiện: tin
+    "Design Engineer (Open for fresher)" có câu "Internship or academic project
+    experience" ở phần yêu cầu; tin "Backend Engineer Junior+/Senior" có "internal
+    developer tools". Tiêu đề thì gần như luôn nói đúng level.
     """
-    # Học bổng KHÔNG có level — intern/fresher/junior là thang bậc của việc làm.
-    # Phải chặn ở đây vì mô tả học bổng rất hay nhắc "cơ hội thực tập tại X" như một
-    # phúc lợi: tin "Học bổng VinIF" bị dán cap_do=["intern"] chỉ vì câu đó, rồi hiện
-    # ra khi học viên tìm thực tập.
-    if kind == "hoc_bong":
-        return []
-    txt = _kd(title + " " + desc)
-    ra = [lv for lv, tu in _CAP_DO.items() if any(k in txt for k in tu)]
-    if not ra and kind == "thuc_tap":
-        ra = ["intern"]     # kind đã suy ra từ chính mấy từ đó, giữ nhất quán
-    return ra
+    t, d = _kd(title), _kd(desc)
+
+    # Học bổng xét riêng và trước hết — nó không nằm trên thang level nào.
+    for van in (t, d):
+        if any(_khop_tu(k, van) for k in _HB):
+            return "hoc_bong", []
+
+    # Level: tiêu đề nêu thì lấy đúng nó và DỪNG, không xét mô tả nữa.
+    # `_CAP_DO_TITLE` (senior) chỉ góp vào lượt đọc tiêu đề — xem chú thích ở dict đó.
+    cap_do: list[str] = []
+    for van, tu_dien in ((t, {**_CAP_DO, **_CAP_DO_TITLE}), (d, _CAP_DO)):
+        cap_do = [lv for lv, tu in tu_dien.items()
+                  if any(_khop_tu(k, van) for k in tu)]
+        if cap_do:
+            break
+
+    # `intern` thắng khi tin nhận nhiều level (vd "AI Engineer (Intern/Fresher level)"):
+    # thực tập là câu hỏi hay gặp nhất, mà nhánh fresher vẫn thấy tin đó nhờ `cap_do`.
+    return ("thuc_tap" if "intern" in cap_do else "viec_lam"), cap_do
+
+
 
 
 def _chuan_ngay(s: str) -> str:
@@ -672,6 +710,57 @@ def loai_trung(tin_list: list[dict]) -> list[dict]:
     return out
 
 
+def phan_loai_lai(preview: bool = False) -> None:
+    """Áp lại luật phân loại lên tin REAL-* SẴN CÓ trong corpus. Không gọi mạng.
+
+    VÌ SAO CẦN: `raw_text` của tin đã crawl nằm sẵn trong corpus.json, nên mỗi lần sửa
+    `_kind`/`_cap_do`/`_lien_quan_ai` thì không có lý gì phải crawl lại — free tier chỉ
+    có 100 search/tháng, một lần chạy đủ query đã tốn 12. Tách hàm này ra để sửa luật
+    phân loại được kiểm ngay trên đúng data thật, không phải trả tiền để xem kết quả.
+
+    Tin trượt `_lien_quan_ai` bị LOẠI KHỎI corpus và các tin còn lại được đánh số lại.
+    Đây là chỗ duy nhất trong hệ thống được xoá tin — vì tin sai lĩnh vực không phải
+    "cơ hội có thể học viên vẫn muốn", nó là rác từ đầu nguồn.
+    """
+    f = D / "corpus.json"
+    d = json.loads(f.read_text(encoding="utf-8"))
+    giu = [t for t in d["postings"] if not str(t.get("id", "")).startswith("REAL-")]
+    real = [t for t in d["postings"] if str(t.get("id", "")).startswith("REAL-")]
+
+    loai_bo, moi = [], []
+    for t in real:
+        if not _lien_quan_ai(t["title"], t["raw_text"]):
+            loai_bo.append(t)
+            continue
+        cu = (t["kind"], tuple(t.get("cap_do") or []))
+        t["kind"], t["cap_do"] = _phan_loai(t["title"], t["raw_text"])
+        t["_doi"] = cu != (t["kind"], tuple(t["cap_do"]))
+        moi.append(t)
+
+    print(f"\n=== Phân loại lại {len(real)} tin REAL-* ===")
+    if loai_bo:
+        print(f"\nLOẠI {len(loai_bo)} tin sai lĩnh vực:")
+        for t in loai_bo:
+            print(f"  ✗ [{t['id']}] {t['title'][:60]}")
+    print(f"\nGIỮ {len(moi)} tin (đánh số lại):")
+    for i, t in enumerate(moi, start=1):
+        cu_id = t["id"]
+        t["id"] = f"REAL-{i:03d}"
+        dau = "★" if t.pop("_doi") else " "
+        print(f"  {dau} [{t['id']}] [{t['kind']:9}] [{'/'.join(t['cap_do']) or '-':22}] "
+              f"{t['title'][:42]}"
+              + (f"   (was {cu_id})" if cu_id != t["id"] else ""))
+    print("  ★ = phân loại đã đổi so với corpus cũ")
+
+    if preview:
+        print("\n--preview: không ghi file.")
+        return
+    d["postings"] = giu + moi
+    f.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\n✓ Đã ghi {f}\n  Tổng: {len(d['postings'])} tin "
+          f"({len(giu)} OPP-* + {len(moi)} REAL-*)")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Crawler tin thực tập/học bổng thật")
     parser.add_argument("--preview", action="store_true",
@@ -682,9 +771,15 @@ def main():
                         help="Dùng data mẫu thay vì gọi API (không cần SERPAPI_KEY)")
     parser.add_argument("--bo-qua-kiem-url", action="store_true",
                         help="Không bấm thử link (chỉ dùng khi offline — corpus sẽ có link chưa kiểm)")
+    parser.add_argument("--phan-loai-lai", action="store_true",
+                        help="Chạy lại _kind/_cap_do/_lien_quan_ai trên tin REAL-* SẴN CÓ "
+                             "trong corpus. Không gọi API, không tốn quota SerpAPI.")
     args = parser.parse_args()
 
     print(f"=== Crawler bắt đầu: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ===")
+
+    if args.phan_loai_lai:
+        return phan_loai_lai(args.preview)
 
     if args.mock or not SERPAPI_KEY:
         if not SERPAPI_KEY and not args.mock:
@@ -701,8 +796,7 @@ def main():
     # Chuẩn hóa format
     for i, t in enumerate(tin_moi, start=1):
         t["id"] = f"REAL-{i:03d}"
-        t["kind"] = _kind(t["title"], t["raw_text"])
-        t["cap_do"] = _cap_do(t["title"], t["raw_text"], t["kind"])
+        t["kind"], t["cap_do"] = _phan_loai(t["title"], t["raw_text"])
         t["_nguon"] = t.pop("nguon", "unknown")
         t["_crawled_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
         t["url"] = t.get("url") or ""   # link gốc để user click
