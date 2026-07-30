@@ -1,0 +1,130 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "request": {
+    "model": "gpt-4o-mini",
+    "temperature": 0,
+    "messages": [
+      {
+        "role": "system",
+        "content": "Bạn là trợ lý đối chiếu cơ hội thực tập/học bổng cho học viên khoá AI Thực Chiến.\n\nPHẠM VI — nói rõ ngay khi được hỏi ngoài phạm vi:\n- LÀM ĐƯỢC: tìm tin trong thư viện tin của hệ thống; đối chiếu MỘT tin với hồ sơ học viên.\n- KHÔNG LÀM: viết CV/thư/bài luận hộ · dự đoán xác suất đỗ · chấm điểm hồ sơ ·\n  so sánh lương hay đánh giá công ty · tìm tin ngoài thư viện của hệ thống.\nBị đòi mấy thứ đó thì từ chối trong một câu, kèm đúng MỘT việc bạn làm được thay thế.\n\nLUẬT CỨNG:\n0. KHÔNG BAO GIỜ TRẢ LỜI SUÔNG \"KHÔNG CÓ TIN NÀO\". `tim_tin` luôn trả về tin gần đúng\n   nhất kèm field `thieu` ghi rõ tin lệch chỗ nào so với điều kiện học viên nêu.\n   `so_tin_dat_du_dieu_kien` = 0 thì nói thẳng \"không có tin nào khớp hẳn\", RỒI VẪN\n   giới thiệu mấy tin gần đúng kèm chỗ lệch của từng tin, để học viên tự quyết.\n   Tin nào có `thieu` thì bắt buộc nêu chỗ lệch khi nhắc tới nó — cấm giới thiệu tin\n   gần đúng như thể nó khớp hẳn. Lý do: học viên nghe \"không có cơ hội nào\" sẽ thôi\n   tìm, trong khi thư viện đang có tin họ thừa sức nộp, chỉ khác thành phố.\n1. Từ `tim_tin` bạn CHỈ được nhắc lại đúng các field nó trả về (tên tin, mã, loại,\n   thành phố, hạn nộp, ghi chú khớp) — mấy field này rút tự động, CHƯA soát trích dẫn,\n   nên khi nhắc số liệu hãy nói thêm \"đối chiếu để chắc\". Mọi điều khác về một tin —\n   yêu cầu cụ thể, điều kiện đủ/không đủ, giấy tờ cần — cấm nói nếu chưa gọi `doi_chieu`\n   cho tin đó. Không biết thì gọi tool, không đoán.\n2. LINK — TUYỆT ĐỐI KHÔNG TỰ GÕ. Cấm viết bất kỳ URL nào trong câu trả lời, kể cả khi\n   bạn \"nhớ\" trang tuyển dụng của công ty đó. Link chỉ đến từ field `url` của `tim_tin`\n   và UI tự hiện nút cho học viên bấm — bạn không cần nhắc lại. `url` rỗng nghĩa là máy\n   đã bấm thử và link chết: nói \"tin này chưa có link kiểm chứng được\", không đoán thay.\n   Lý do: link không nằm trong `raw_text` nên checker trích dẫn KHÔNG soi tới nó — bạn\n   bịa một link thì không có gì chặn, học viên bấm vào lại rơi vào trang chết.\n3. Khi `doi_chieu` trả kết quả: thuật lại ĐÚNG nội dung đó. Không thêm yêu cầu nào\n   không có trong `matched`/`gaps`/`hard_fail`. Những gì nằm ở `not_stated` thì nói rõ\n   là \"tin không nêu\", tuyệt đối không suy diễn thành điều kiện.\n4. KHÔNG BAO GIỜ kết luận học viên \"không đủ điều kiện\". Xấu nhất được phép nói là\n   \"rủi ro cao, kiểm mấy điểm này trước\". Lý do: chặn sai một người thật ra đủ điều kiện\n   thì họ mất hẳn cơ hội và không có cách nào biết — lỗi đó không sửa được.\n5. Hồ sơ thiếu đúng field mà tin đòi (`verdict` = thieu_thong_tin): hỏi lại ĐÚNG MỘT câu\n   vào field đó. Không hỏi 2-3 câu. Không vừa hỏi vừa phán quyết.\n6. Hạn nộp mơ hồ (`deadline.ambiguous`): nói rõ tin ghi gì và rằng bạn không tự suy ra năm.\n7. `canh_bao` không rỗng: nêu ngay đầu câu trả lời.\n8. HỒ SƠ LUÔN CÓ SẴN — ĐỌC NÓ TRƯỚC KHI NÓI \"KHÔNG BIẾT\". Phần \"Hồ sơ học viên đang\n   khai\" ở cuối prompt này là hồ sơ MỚI NHẤT, cập nhật mỗi lượt (học viên upload CV\n   là nó tự đổi). Field nào có giá trị trong đó thì bạn BIẾT, phải trả lời thẳng;\n   cấm nói \"không có\" về một field đang có giá trị. Hồ sơ cũ nhắc trong hội thoại mà\n   mâu thuẫn thì lấy hồ sơ ở cuối prompt.\n   - Hỏi \"tôi tên gì\" → đọc field `ten` và đáp thẳng, vd `ten`=\"Trần B\" → \"Bạn là Trần B.\"\n     Chỉ khi `ten` là null mới nói hồ sơ chưa có tên và mời họ điền. Cấm đoán tên.\n   - Xưng hô bằng `ten` nếu có, nhưng một lần là đủ, đừng lặp mỗi câu.\n   - RIÊNG email, số điện thoại, link, địa chỉ, CCCD thì hệ thống thật sự KHÔNG lưu —\n     hỏi mấy thứ đó thì nói mình không giữ, kèm lý do một câu. Luật này chỉ áp cho\n     mấy field đó, KHÔNG áp cho `ten`.\n9. Giọng: tiếng Việt, tối đa 150 từ. Không khen hồ sơ, không hứa kết quả, không động viên.\n   Nhắc mã tin (OPP-0xx) để học viên bấm xem chi tiết.\n\n### Hồ sơ học viên đang khai\n{\"ten\": \"NGUYEN VAN A\", \"nam_hoc\": 3, \"nganh\": \"Công nghệ thông tin\", \"gpa\": 3.42, \"thanh_pho\": \"Hà Nội\", \"ky_nang\": [\"Python\", \"SQL\", \"pandas\", \"LLM API\"], \"co_github\": true}"
+      },
+      {
+        "role": "user",
+        "content": "tìm thực tập AI ở Đà Nẵng"
+      },
+      {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_rxvniGogMXmGrHdwTBV32oCQ",
+            "type": "function",
+            "function": {
+              "name": "tim_tin",
+              "arguments": "{\"tu_khoa\":\"AI\",\"thanh_pho\":\"Đà Nẵng\",\"loai\":\"thuc_tap\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_rxvniGogMXmGrHdwTBV32oCQ",
+        "content": "{\"so_tin_hien\": 8, \"so_tin_dat_du_dieu_kien\": 0, \"so_tin_gan_dung_dang_hien\": 8, \"con_chua_hien\": 0, \"danh_sach\": [{\"opp_id\": \"REAL-001\", \"title\": \"[Hà Nội] – 01 Thực tập sinh lập trình trí tuệ nhân tạo\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": null, \"han_nop\": null, \"ghi_chu\": \"GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp ngành · khớp Python, LLM API · năm học khớp\", \"url\": \"https://vn.linkedin.com/jobs/view/h%C3%A0-n%E1%BB%99i-%E2%80%93-01-th%E1%BB%B1c-t%E1%BA%ADp-sinh-l%E1%BA%ADp-tr%C3%ACnh-tr%C3%AD-tu%E1%BB%87-nh%C3%A2n-t%E1%BA%A1o-at-lumi-vi%E1%BB%87t-nam-4439073410?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic\", \"url_loai\": \"tin\", \"link_xac_minh\": false, \"khop_ky_nang\": [\"Python\", \"LLM API\"], \"khop_nganh\": true, \"thieu\": [\"ở Hà Nội, không phải Đà Nẵng\"]}, {\"opp_id\": \"REAL-004\", \"title\": \"Chương Trình Thực Tập AI Guru\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": null, \"han_nop\": null, \"ghi_chu\": \"GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp ngành · khớp Python, SQL · tin không nêu năm học\", \"url\": \"https://www.topcv.vn/viec-lam/chuong-trinh-thuc-tap-ai-guru/2238625.html?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic\", \"url_loai\": \"tin\", \"link_xac_minh\": false, \"khop_ky_nang\": [\"Python\", \"SQL\"], \"khop_nganh\": true, \"thieu\": [\"ở Hà Nội, không phải Đà Nẵng\"]}, {\"opp_id\": \"REAL-013\", \"title\": \"Business Analyst Intern\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": null, \"han_nop\": null, \"ghi_chu\": \"GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp Python, SQL · năm học khớp\", \"url\": \"https://careerviet.vn/vi/tim-viec-lam/business-analyst-intern.35C7FAB4.html?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic\", \"url_loai\": \"tin\", \"link_xac_minh\": true, \"khop_ky_nang\": [\"Python\", \"SQL\"], \"khop_nganh\": false, \"thieu\": [\"ở Hà Nội, không phải Đà Nẵng\"]}, {\"opp_id\": \"REAL-003\", \"title\": \"PhD Internship- AI Research\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": null, \"han_nop\": null, \"ghi_chu\": \"GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp Python · tin không nêu năm học\", \"url\": \"https://vn.linkedin.com/jobs/view/phd-internship-ai-research-at-qualcomm-4386875853?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic\", \"url_loai\": \"tin\", \"link_xac_minh\": false, \"khop_ky_nang\": [\"Python\"], \"khop_nganh\": false, \"thieu\": [\"ở Hà Nội, không phải Đà Nẵng\"]}, {\"opp_id\": \"REAL-007\", \"title\": \"Data Analyst Intern (Game Industry)\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": null, \"han_nop\": null, \"ghi_chu\": \"GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp SQL · tin không nêu năm học\", \"url\": \"https://www.topcv.vn/viec-lam/data-analyst-intern-game-industry/2248994.html?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic\", \"url_loai\": \"tin\", \"link_xac_minh\": false, \"khop_ky_nang\": [\"SQL\"], \"khop_nganh\": false, \"thieu\": [\"ở Hà Nội, không phải Đà Nẵng\"]}, {\"opp_id\": \"REAL-010\", \"title\": \"Data Science Intern\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": null, \"han_nop\": null, \"ghi_chu\": \"GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp Python · tin không nêu năm học\", \"url\": \"https://www.topcv.vn/viec-lam/data-science-intern/2005516.html?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic\", \"url_loai\": \"tin\", \"link_xac_minh\": false, \"khop_ky_nang\": [\"Python\"], \"khop_nganh\": false, \"thieu\": [\"ở Hà Nội, không phải Đà Nẵng\"]}, {\"opp_id\": \"REAL-012\", \"title\": \"IT Business Analyst & Quality Control Intern\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": null, \"han_nop\": null, \"ghi_chu\": \"GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp ngành · tin không nêu năm học\", \"url\": \"https://www.topcv.vn/viec-lam/it-business-analyst-quality-control-intern/2249247.html?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic\", \"url_loai\": \"tin\", \"link_xac_minh\": false, \"khop_ky_nang\": [], \"khop_nganh\": true, \"thieu\": [\"ở Hà Nội, không phải Đà Nẵng\"]}, {\"opp_id\": \"REAL-009\", \"title\": \"Data Analyst Intern\", \"loai\": \"thuc_tap\", \"thanh_pho\": \"Hà Nội\", \"gpa_yeu_cau\": null, \"han_nop\": null, \"ghi_chu\": \"GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · năm học khớp\", \"url\": \"https://jobsgo.vn/viec-lam/data-analyst-intern-28099038279.html?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic\", \"url_loai\": \"tin\", \"link_xac_minh\": false, \"khop_ky_nang\": [], \"khop_nganh\": false, \"thieu\": [\"ở Hà Nội, không phải Đà Nẵng\"]}], \"nhac\": \"KHÔNG có tin nào đạt đủ điều kiện học viên nêu. Danh sách dưới đây là tin GẦN ĐÚNG nhất — mỗi tin có field `thieu` ghi rõ nó lệch chỗ nào. Nói thẳng là không có tin khớp hẳn, rồi vẫn giới thiệu mấy tin này kèm chỗ lệch, để học viên tự quyết. TUYỆT ĐỐI không trả lời suông là 'không tìm thấy tin nào' rồi dừng.\"}"
+      }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "tim_tin",
+          "description": "Tìm tin thực tập/học bổng trong thư viện tin của hệ thống. Hệ thống TỰ xếp hạng theo hồ sơ học viên (kỹ năng, ngành, năm học) — bạn không cần và không thể truyền hồ sơ vào. Trả về `con_chua_hien` = số tin khớp còn lại chưa hiện: nếu > 0 phải nói cho học viên biết còn bao nhiêu tin nữa. Trả danh sách rút gọn — KHÔNG được dùng kết quả này để nói về yêu cầu của một tin cụ thể, muốn vậy phải gọi doi_chieu.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "tu_khoa": {
+                "type": "string",
+                "description": "Chủ đề học viên muốn, vd 'AI', 'data', 'NLP'. Bỏ trống nếu họ chỉ nói 'tìm tin hợp với em' — khi đó hệ thống xếp hạng thuần theo hồ sơ."
+              },
+              "thanh_pho": {
+                "type": "string",
+                "description": "Hà Nội / TP.HCM / Đà Nẵng / online"
+              },
+              "loai": {
+                "type": "string",
+                "enum": [
+                  "thuc_tap",
+                  "hoc_bong"
+                ]
+              },
+              "nam_hoc": {
+                "type": "integer",
+                "description": "năm học của học viên, nếu đã biết"
+              },
+              "gioi_han": {
+                "type": "integer",
+                "description": "số tin trả về, mặc định 8, tối đa 25"
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "doi_chieu",
+          "description": "Đối chiếu MỘT tin với hồ sơ học viên. Đây là cách DUY NHẤT để biết và nói về yêu cầu, điều kiện, hạn nộp của một tin. Kết quả đã được máy soát trích dẫn — trình bày lại đúng nội dung, không thêm bớt.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "opp_id": {
+                "type": "string",
+                "description": "mã tin, vd OPP-001"
+              }
+            },
+            "required": [
+              "opp_id"
+            ]
+          }
+        }
+      }
+    ],
+    "tool_choice": "auto"
+  },
+  "response": {
+    "id": "chatcmpl-E7Hhmnyo5UDVRspPvYzndFzVZUPLh",
+    "object": "chat.completion",
+    "created": 1785405062,
+    "model": "gpt-4o-mini-2024-07-18",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Hiện tại không có tin nào đạt đủ điều kiện học viên nêu. Dưới đây là danh sách các tin GẦN ĐÚNG nhất — mỗi tin có ghi rõ chỗ lệch:\n\n1. **[Hà Nội] – 01 Thực tập sinh lập trình trí tuệ nhân tạo** (OPP-REAL-001)\n   - Thành phố: Hà Nội\n   - Ghi chú: GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp ngành · khớp Python, LLM API · năm học khớp\n\n2. **Chương Trình Thực Tập AI Guru** (OPP-REAL-004)\n   - Thành phố: Hà Nội\n   - Ghi chú: GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp ngành · khớp Python, SQL · tin không nêu năm học\n\n3. **Business Analyst Intern** (OPP-REAL-013)\n   - Thành phố: Hà Nội\n   - Ghi chú: GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp Python, SQL · năm học khớp\n\n4. **PhD Internship- AI Research** (OPP-REAL-003)\n   - Thành phố: Hà Nội\n   - Ghi chú: GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp Python · tin không nêu năm học\n\n5. **Data Analyst Intern (Game Industry)** (OPP-REAL-007)\n   - Thành phố: Hà Nội\n   - Ghi chú: GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp SQL · tin không nêu năm học\n\n6. **Data Science Intern** (OPP-REAL-010)\n   - Thành phố: Hà Nội\n   - Ghi chú: GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp Python · tin không nêu năm học\n\n7. **IT Business Analyst & Quality Control Intern** (OPP-REAL-012)\n   - Thành phố: Hà Nội\n   - Ghi chú: GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · khớp ngành · tin không nêu năm học\n\n8. **Data Analyst Intern** (OPP-REAL-009)\n   - Thành phố: Hà Nội\n   - Ghi chú: GẦN ĐÚNG (ở Hà Nội, không phải Đà Nẵng) · năm học khớp\n\nBạn có thể xem chi tiết từng tin bằng mã tin tương ứng.",
+          "refusal": null,
+          "annotations": []
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 3677,
+      "completion_tokens": 589,
+      "total_tokens": 4266,
+      "prompt_tokens_details": {
+        "cached_tokens": 1792,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "service_tier": "default",
+    "system_fingerprint": "fp_66ee548660"
+  }
+}

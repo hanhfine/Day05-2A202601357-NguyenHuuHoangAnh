@@ -67,7 +67,9 @@ def _sach(s) -> str:
 
 
 def _kd(s: str) -> str:
-    s = unicodedata.normalize("NFD", s.lower())
+    # `đ` là U+0111, không phân rã được bằng NFD nên phải thay tay — xem chú thích
+    # cùng chỗ trong core/tools.py.
+    s = unicodedata.normalize("NFD", s.lower()).replace("đ", "d")
     return "".join(c for c in s if unicodedata.category(c) != "Mn")
 
 

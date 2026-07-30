@@ -1,0 +1,57 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "request": {
+    "model": "gpt-4o-mini",
+    "temperature": 0,
+    "response_format": {
+      "type": "json_object"
+    },
+    "messages": [
+      {
+        "role": "system",
+        "content": "Bạn rút thông tin từ một CV đã được ẩn thông tin liên hệ.\n\nTrả về DUY NHẤT JSON:\n{\"nam_hoc\": int|null, \"nganh\": str|null, \"gpa\": number|null, \"thanh_pho\": str|null,\n \"ky_nang\": [str], \"project\": str|null}\n\nLUẬT:\n- CV không ghi rõ field nào thì để null / mảng rỗng. TUYỆT ĐỐI không suy đoán.\n  Không có GPA thì là null — đừng ước lượng từ học lực.\n- KHÔNG trả về tên người, email, số điện thoại, link, địa chỉ, số CCCD, tên trường\n  dù chúng có xuất hiện. Chỉ 6 field trên.\n- `gpa` quy về thang 4. CV ghi thang 10 thì chia 2.5 và làm tròn 2 số.\n- `ky_nang` là tên công nghệ/kỹ năng cụ thể, tối đa 10 mục."
+      },
+      {
+        "role": "user",
+        "content": " \r\n                     JD VỊ TRÍ           AI           INTERN  \n                   &lt;          VNATECH&gt;  \n                Website:         [LINK]   \n                    CÔNG TY CỔ PHẦN PHÁT TRIỂN VÀ CHUYỂN GIAO CÔNG NGHỆ VIỆT NAM (VNATECH)         là doanh nghiệp hoạt động trong lĩnh vực tự động hóa công nghiệp và chuyển đổi số, chuyên cung cấp các giải pháp Smart Factory, MES, IoT, Robot công nghiệp và Logistics thông minh. Với hơn 10 năm kinh nghiệm, VNATECH đã đồng hành cùng nhiều doanh nghiệp trong và ngoài nước, góp phần nâng cao hiệu quả sản xuất, tối ưu quy trình vận hành và thúc đẩy quá trình chuyển đổi số tại Việt Nam. Môi trường làm việc chuyên nghiệp, năng động cùng nhiều cơ hội học hỏi và phát triển là nền tảng giúp nhân sự phát huy năng lực và xây dựng sự nghiệp bền vững.  \n                 1. MÔ TẢ CÔNG VIỆC            \n   - Lập trình và phát triển các ứng dụng xử lý ảnh công nghiệp.  \n   - Phát triển các ứng dụng AI nền tảng thị giác máy  \n   - Phát triển các ứng dụng tích hợp phân tích và xử lý hình ảnh, dữ liệu thu thập từ các cảm biến, thiết bị công nghiệp.  \n   - Phân tích và xử lý âm thanh, phân tích và xử lý dữ liệu sản xuất...  \n          \n                  2. QUYỀN LỢI   \n                 -                 Lương cứng:       Thỏa thuận theo năng lực          \n      - Đào tạo chuyên sâu: Được tiếp cận về kỹ thuật Vision, công nghệ Vision AI,  cách sử dụng phần mềm Cognex, Hikvision và kiến thức quang học.  \n      - Môi trường làm việc: Năng động tại một trong những công ty tự động hóa hàng đầu Việt Nam.  \n      - Cơ hội thăng tiến: Lộ trình phát triển rõ ràng từ thực tập sinh lên   \n      - Chế độ đãi ngộ: Mức lương thoả thuận theo trình độ và kinh nghiệm làm việc, hỗ trợ thực tập cạnh tranh, thưởng dự án và các chế độ phúc lợi khác theo quy định công ty.  \n    \n                 3. YÊU CẦU  \n   - Ứng viên đang là sinh viên năm cuối hoặc đã tốt nghiệp đi làm được fulltime các ngành: Điện - Điện tử, Tự động hóa, Cơ điện tử, Công nghệ thông tin hoặc các ngành kỹ thuật liên quan.  \n   - Yêu thích lĩnh vực xử lý ảnh và tự động hóa công nghiệp, có laptop cá nhân   \n   - Có tư duy logic tốt, tinh thần ham học hỏi và chịu khó trong công việc  \n    - Chưa có kinh nghiệm sẽ được hướng dẫn tìm hiểu từ các bước cơ bản đến nâng cao.  \n   - Có laptop cá nhân và có thể đi công tác  \n         4. THỜI GIAN LÀM VIỆC:     8h-17h30 từ T2-T7 hàng tuần.  \n                  5.                     ĐỊA ĐIỂM LÀM VIỆC  \n   Địa chỉ VP: VT09-BT02 Xala - Hà Đông - Hà Nội.  \n   Thời gian làm việc:  8h-17h30 từ T2-T7 hàng tuần.  \n      \n   Ứng viên vui lòng gửi CV qua Email:     [EMAIL]  \n   LIÊN HỆ: [PHONE] (Ms Dung)  \n        "
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-E7DjqzqdBqUzEPIknnBfj1ClbN3hX",
+    "object": "chat.completion",
+    "created": 1785389814,
+    "model": "gpt-4o-mini-2024-07-18",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"nam_hoc\": null,\n  \"nganh\": \"Công nghệ thông tin\",\n  \"gpa\": null,\n  \"thanh_pho\": \"Hà Nội\",\n  \"ky_nang\": [\n    \"Lập trình\",\n    \"Xử lý ảnh\",\n    \"AI\",\n    \"Phân tích dữ liệu\",\n    \"Cảm biến\",\n    \"Tự động hóa\",\n    \"Quang học\",\n    \"Vision AI\"\n  ],\n  \"project\": null\n}",
+          "refusal": null,
+          "annotations": []
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 986,
+      "completion_tokens": 105,
+      "total_tokens": 1091,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "service_tier": "default",
+    "system_fingerprint": "fp_ab0a2ab924"
+  }
+}

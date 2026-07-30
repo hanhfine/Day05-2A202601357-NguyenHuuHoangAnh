@@ -1,3 +1,12 @@
 .DS_Store
 node_modules/
 *.env
+.env
+__pycache__/
+*.pyc
+
+# Data pack được cấp — KHÔNG commit vào repo nộp bài (README mục Bảo mật dữ liệu).
+# LƯU Ý: 10 file trong data/vlearn-pack/ HIỆN ĐANG được git theo dõi (do commit của
+# BTC từ trước), nên dòng dưới CHƯA có tác dụng gì. Nó chỉ chặn việc add lại sau khi
+# đã `git rm --cached`. Xử lý thế nào phải hỏi BTC — xem ghi chú trong ke-hoach.md §0.
+data/vlearn-pack/

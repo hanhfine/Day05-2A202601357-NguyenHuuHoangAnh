@@ -1,0 +1,121 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "request": {
+    "model": "gpt-4o-mini",
+    "temperature": 0,
+    "messages": [
+      {
+        "role": "system",
+        "content": "Bạn là trợ lý đối chiếu cơ hội thực tập/học bổng cho học viên khoá AI Thực Chiến.\n\nPHẠM VI — nói rõ ngay khi được hỏi ngoài phạm vi:\n- LÀM ĐƯỢC: tìm tin trong thư viện tin của hệ thống; đối chiếu MỘT tin với hồ sơ học viên.\n- KHÔNG LÀM: viết CV/thư/bài luận hộ · dự đoán xác suất đỗ · chấm điểm hồ sơ ·\n  so sánh lương hay đánh giá công ty · tìm tin ngoài thư viện của hệ thống.\nBị đòi mấy thứ đó thì từ chối trong một câu, kèm đúng MỘT việc bạn làm được thay thế.\n\nLUẬT CỨNG:\n1. Từ `tim_tin` bạn CHỈ được nhắc lại đúng các field nó trả về (tên tin, mã, loại,\n   thành phố, hạn nộp, ghi chú khớp) — mấy field này rút tự động, CHƯA soát trích dẫn,\n   nên khi nhắc số liệu hãy nói thêm \"đối chiếu để chắc\". Mọi điều khác về một tin —\n   yêu cầu cụ thể, điều kiện đủ/không đủ, giấy tờ cần — cấm nói nếu chưa gọi `doi_chieu`\n   cho tin đó. Không biết thì gọi tool, không đoán.\n2. Khi `doi_chieu` trả kết quả: thuật lại ĐÚNG nội dung đó. Không thêm yêu cầu nào\n   không có trong `matched`/`gaps`/`hard_fail`. Những gì nằm ở `not_stated` thì nói rõ\n   là \"tin không nêu\", tuyệt đối không suy diễn thành điều kiện.\n3. KHÔNG BAO GIỜ kết luận học viên \"không đủ điều kiện\". Xấu nhất được phép nói là\n   \"rủi ro cao, kiểm mấy điểm này trước\". Lý do: chặn sai một người thật ra đủ điều kiện\n   thì họ mất hẳn cơ hội và không có cách nào biết — lỗi đó không sửa được.\n4. Hồ sơ thiếu đúng field mà tin đòi (`verdict` = thieu_thong_tin): hỏi lại ĐÚNG MỘT câu\n   vào field đó. Không hỏi 2-3 câu. Không vừa hỏi vừa phán quyết.\n5. Hạn nộp mơ hồ (`deadline.ambiguous`): nói rõ tin ghi gì và rằng bạn không tự suy ra năm.\n6. `canh_bao` không rỗng: nêu ngay đầu câu trả lời.\n7. Giọng: tiếng Việt, tối đa 150 từ. Không khen hồ sơ, không hứa kết quả, không động viên.\n   Nhắc mã tin (OPP-0xx) để học viên bấm xem chi tiết.\n\n### Hồ sơ học viên đang khai\n{\"nam_hoc\": 2022, \"gpa\": 3.46, \"nganh\": \"Computer Science\", \"thanh_pho\": \"Bac Ninh\", \"ky_nang\": [\"Python\", \"C++\", \"Java\", \"Machine Learning\", \"Deep Learning\", \"CNN\", \"Transformers\", \"Computer Vision\", \"FastAPI\", \"PostgreSQL\"]}"
+      },
+      {
+        "role": "user",
+        "content": "tìm thực tập AI ở Hà Nội cho mình"
+      }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "tim_tin",
+          "description": "Tìm tin thực tập/học bổng trong thư viện tin của hệ thống. Trả danh sách rút gọn — KHÔNG được dùng kết quả này để nói về yêu cầu của một tin cụ thể, muốn vậy phải gọi doi_chieu.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "tu_khoa": {
+                "type": "string",
+                "description": "vd 'AI', 'data', 'NLP'"
+              },
+              "thanh_pho": {
+                "type": "string",
+                "description": "Hà Nội / TP.HCM / Đà Nẵng / online"
+              },
+              "loai": {
+                "type": "string",
+                "enum": [
+                  "thuc_tap",
+                  "hoc_bong"
+                ]
+              },
+              "nam_hoc": {
+                "type": "integer",
+                "description": "năm học của học viên, nếu đã biết"
+              },
+              "gioi_han": {
+                "type": "integer",
+                "description": "số tin trả về, tối đa 8"
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "doi_chieu",
+          "description": "Đối chiếu MỘT tin với hồ sơ học viên. Đây là cách DUY NHẤT để biết và nói về yêu cầu, điều kiện, hạn nộp của một tin. Kết quả đã được máy soát trích dẫn — trình bày lại đúng nội dung, không thêm bớt.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "opp_id": {
+                "type": "string",
+                "description": "mã tin, vd OPP-001"
+              }
+            },
+            "required": [
+              "opp_id"
+            ]
+          }
+        }
+      }
+    ],
+    "tool_choice": "auto"
+  },
+  "response": {
+    "id": "chatcmpl-E7DhbtNEf0x8bT0I2fWyVuZ3VAQ4C",
+    "object": "chat.completion",
+    "created": 1785389675,
+    "model": "gpt-4o-mini-2024-07-18",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": null,
+          "tool_calls": [
+            {
+              "id": "call_VowHviVDejcE0xs9AS0OXtmm",
+              "type": "function",
+              "function": {
+                "name": "tim_tin",
+                "arguments": "{\"tu_khoa\":\"AI\",\"thanh_pho\":\"Hà Nội\",\"loai\":\"thuc_tap\"}"
+              }
+            }
+          ],
+          "refusal": null,
+          "annotations": []
+        },
+        "logprobs": null,
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 980,
+      "completion_tokens": 34,
+      "total_tokens": 1014,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "service_tier": "default",
+    "system_fingerprint": "fp_66ee548660"
+  }
+}

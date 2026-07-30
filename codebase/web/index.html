@@ -329,9 +329,16 @@ function veDanhSach(ds, conLai, tong){
   const con = conLai>0
     ? `<div class="note" style="margin-top:6px">Đang hiện ${ds.length}/${tong} tin khớp —
        còn <b>${conLai}</b> tin nữa. Nhắn "xem thêm" để mình hiện tiếp.</div>` : '';
-  return `<div class="ops">` + ds.map(o=>`<div class="op">
+  /* Không tin nào đạt đủ điều kiện thì vẫn hiện tin gần đúng, nhưng phải nói trước
+     mặt là chúng lệch — thà cho xem kèm cảnh báo còn hơn trả về danh sách trống. */
+  const gan = ds.filter(o=>o.thieu?.length).length;
+  const dau = gan===ds.length
+    ? `<div class="note" style="margin-top:8px">Không có tin nào khớp hẳn điều kiện bạn nêu.
+       Dưới đây là ${ds.length} tin <b>gần đúng nhất</b> — mỗi tin ghi rõ chỗ lệch.</div>` : '';
+  return dau + `<div class="ops">` + ds.map(o=>`<div class="op">
       <span class="k">${o.loai==='hoc_bong'?'học bổng':'thực tập'}</span>
       <div class="t"><b>${esc(o.title)}</b>
+        ${o.thieu?.length?`<span class="why" style="display:block">⚠ gần đúng — ${esc(o.thieu.join('; '))}</span>`:''}
         <span>${esc(o.opp_id)} · ${esc(o.thanh_pho||'—')} · hạn ${esc(o.han_nop||'không nêu')} · ${esc(o.ghi_chu)}</span></div>
       <div style="display:flex;gap:6px;flex:none;align-items:center">
         ${veLink(o)}

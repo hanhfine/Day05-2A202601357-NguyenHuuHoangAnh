@@ -24,7 +24,10 @@ D = Path(__file__).resolve().parent.parent / "data"
 
 
 def _kd(s: str) -> str:
-    s = unicodedata.normalize("NFD", (s or "").lower())
+    """Bỏ dấu tiếng Việt. `đ` phải xử lý riêng: nó là U+0111, KHÔNG phân rã được bằng
+    NFD như `à`/`ằ`, nên nếu không thay tay thì `đà nẵng` ra `đa nang` (còn nguyên đ)
+    trong khi người dùng gõ `da nang` — hai chuỗi không bao giờ khớp nhau."""
+    s = unicodedata.normalize("NFD", (s or "").lower()).replace("đ", "d")
     return "".join(c for c in s if unicodedata.category(c) != "Mn")
 
 
@@ -80,6 +83,24 @@ _DEM = {"co", "ban", "va", "cac", "cho", "tu", "voi", "tren", "duoc", "biet", "h
         "kien", "thuc", "nang", "kha", "tot", "gioi", "the", "and", "the", "api"}
 
 
+# Tên thành phố có nhiều cách viết. Bản cũ so bằng `muon not in co` nên "TP.HCM" không
+# khớp "Hồ Chí Minh" — tin AI Engineer Intern ở HCM bị loại sạch dù đúng là tin AI.
+_TP_GOC = {
+    "hanoi": "hà nội", "hn": "hà nội",
+    "hochiminh": "tp.hcm", "tphcm": "tp.hcm", "hcm": "tp.hcm", "saigon": "tp.hcm",
+    "sg": "tp.hcm", "thanhphohochiminh": "tp.hcm",
+    "danang": "đà nẵng", "dn": "đà nẵng",
+    "hue": "huế", "thuathienhue": "huế", "cantho": "cần thơ",
+    "online": "online", "remote": "online", "tuxa": "online", "workfromhome": "online",
+}
+
+
+def chuan_tp(s: str | None) -> str:
+    """'TP.HCM' / 'Hồ Chí Minh' / 'saigon' → cùng một chuỗi. Không nhận ra thì trả nguyên."""
+    goc = re.sub(r"[^a-z0-9]", "", _kd(s or ""))
+    return _TP_GOC.get(goc, _kd(s or "").strip())
+
+
 def _khop_tu(tu: str, van: str) -> bool:
     """Có `tu` đứng thành từ riêng trong `van` không (cả hai đã bỏ dấu, lowercase)."""
     if not tu:
@@ -110,29 +131,43 @@ MAC_DINH_TIN = 8
 def xep_hang(tu_khoa: str | None = None, thanh_pho: str | None = None,
              loai: str | None = None, nam_hoc: int | None = None,
              gom_fixture: bool = False, profile: dict | None = None) -> list[dict]:
-    """Toàn bộ tin khớp, đã xếp hạng, CHƯA cắt bớt. `tim_tin` mới là bản cắt."""
+    """Toàn bộ tin, đã xếp hạng, CHƯA cắt bớt. Mỗi tin kèm `thieu` = các điều kiện
+    người dùng nêu mà tin KHÔNG đạt.
+
+    KHÔNG LOẠI TIN NÀO. Bản cũ lọc cứng theo thành phố / loại / từ khoá, nên hỏi
+    "AI intern" ở một thành phố không có tin là trả về RỖNG — học viên tưởng không
+    có cơ hội nào, trong khi corpus đang có tin AI ở thành phố khác. Trả rỗng là dạng
+    nặng nhất của việc âm thầm cắt cơ hội.
+
+    Giờ mọi tin đều đi tiếp, sắp theo (số điều kiện thiếu, rồi tới điểm). Tin đạt đủ
+    luôn đứng trước; tin gần đúng xếp sau và PHẢI mang nhãn thiếu gì để học viên tự
+    quyết, chứ không biến mất.
+    """
     kq = []
     tk = [t for t in _kd(tu_khoa or "").split() if len(t) > 1]
     ho_so = profile or {}
     ky_nang_hs = [k for k in (ho_so.get("ky_nang") or []) if str(k).strip()]
     nganh_hs = _kd(str(ho_so.get("nganh") or ""))
+    tp_muon = chuan_tp(thanh_pho) if thanh_pho else ""
     for t in tai_corpus():
         if la_fixture(t) and not gom_fixture:
             continue
         m = meta(t["raw_text"])
-        if loai and t["kind"] != loai:
-            continue
-        if thanh_pho:
-            muon, co = _kd(thanh_pho), _kd(m["thanh_pho"] or "")
-            if muon not in co and not (muon in ("online", "remote") and co == "online"):
-                continue
         van = _kd(t["title"] + " " + t["raw_text"])
+        thieu = []
 
-        # điểm từ khoá người dùng gõ — tính riêng vì CHỈ nó được quyền loại tin
+        if loai and t["kind"] != loai:
+            thieu.append("học bổng" if loai == "hoc_bong" else "thực tập")
+        if tp_muon:
+            tp_tin = chuan_tp(m["thanh_pho"])
+            if tp_tin != tp_muon and not (tp_muon == "online" and tp_tin == "online"):
+                thieu.append(f"ở {m['thanh_pho'] or 'nơi tin không nêu'}, không phải {thanh_pho}")
+
+        # điểm từ khoá người dùng gõ
         diem_tk = sum(2 for k in tk
                       if any(_khop_tu(b, van) for b in DONG_NGHIA.get(k, [k])))
         if tk and diem_tk == 0:
-            continue
+            thieu.append(f"không nhắc tới {tu_khoa}")
 
         # điểm từ hồ sơ — CHỈ xếp hạng, KHÔNG BAO GIỜ loại tin. Hồ sơ không khớp
         # kỹ năng nào thì tin tụt xuống dưới, chứ không được biến mất: học viên
@@ -160,6 +195,10 @@ def xep_hang(tu_khoa: str | None = None, thanh_pho: str | None = None,
             ghi = f"khớp {', '.join(khop_kn[:4])} · {ghi}"
         if khop_nganh:
             ghi = f"khớp ngành · {ghi}"
+        # Tin gần đúng phải tự khai chỗ lệch, ngay đầu ghi chú — không được để học viên
+        # tưởng nó đạt đủ điều kiện họ hỏi.
+        if thieu:
+            ghi = f"GẦN ĐÚNG ({'; '.join(thieu)}) · {ghi}"
         # url/url_loai đã được crawler bấm thử; link chết ở đó đã bị xoá thành "".
         # link_xac_minh=False nghĩa là trang chặn bot nên máy không tự vào kiểm được —
         # link vẫn giữ, nhưng phải nói rõ chứ không được im lặng cho qua.
@@ -170,8 +209,10 @@ def xep_hang(tu_khoa: str | None = None, thanh_pho: str | None = None,
                    "url_loai": t.get("url_loai") or "",
                    "link_xac_minh": str(t.get("_url_status", "")).startswith("ok"),
                    "khop_ky_nang": khop_kn, "khop_nganh": khop_nganh,
-                   "_diem": diem})
-    kq.sort(key=lambda x: -x["_diem"])
+                   "thieu": thieu, "_diem": diem})
+    # Đạt đủ điều kiện lên trước, rồi mới tới tin thiếu ít nhất, trong mỗi nhóm thì
+    # điểm cao trước. Nhờ vậy cắt bớt kiểu gì cũng không bao giờ ra danh sách rỗng.
+    kq.sort(key=lambda x: (len(x["thieu"]), -x["_diem"]))
     for x in kq:
         x.pop("_diem")
     return kq
@@ -235,7 +276,9 @@ TOOLS = [
                        "biết và nói về yêu cầu, điều kiện, hạn nộp của một tin. Kết quả đã "
                        "được máy soát trích dẫn — trình bày lại đúng nội dung, không thêm bớt.",
         "parameters": {"type": "object", "properties": {
-            "opp_id": {"type": "string", "description": "mã tin, vd OPP-001"}},
+            "opp_id": {"type": "string",
+                       "description": "mã tin, chép y nguyên field opp_id từ tim_tin "
+                                      "(vd 'REAL-001' hoặc 'OPP-001')"}},
             "required": ["opp_id"]}}},
 ]
 
@@ -255,17 +298,30 @@ def dispatch(ten: str, args: dict, profile: dict, mode: str) -> tuple[dict, dict
         # Hồ sơ do server bơm vào, model KHÔNG tự truyền được — nó chỉ đổi thứ tự,
         # không đổi tập tin trả về.
         tat_ca = xep_hang(**a, profile=profile)
-        ds = tat_ca[:gh]
-        con = len(tat_ca) - len(ds)
-        # Nói thẳng còn bao nhiêu tin bị cắt. Im lặng cắt bớt là âm thầm giấu cơ hội —
-        # học viên không có cách nào biết mình chưa xem hết.
-        kq_model = {"so_tin_hien": len(ds), "tong_so_tin_khop": len(tat_ca),
+        dat = [x for x in tat_ca if not x["thieu"]]
+        ds = tat_ca[:gh]          # đã sắp: tin đạt đủ trước, gần đúng sau
+        so_gan = sum(1 for x in ds if x["thieu"])
+        con = max(0, len(dat) - (len(ds) - so_gan))
+        # Nói thẳng còn bao nhiêu tin bị cắt, và tin nào chỉ là gần đúng. Im lặng cắt
+        # bớt hay im lặng trộn tin gần đúng vào đều là nói dối học viên theo kiểu khác.
+        kq_model = {"so_tin_hien": len(ds), "so_tin_dat_du_dieu_kien": len(dat),
+                    "so_tin_gan_dung_dang_hien": so_gan,
                     "con_chua_hien": con, "danh_sach": ds}
-        if con:
-            kq_model["nhac"] = (f"Còn {con} tin khớp nữa chưa hiện. Nói rõ cho học viên "
-                                f"biết và mời họ xin xem thêm nếu muốn.")
+        if not dat:
+            kq_model["nhac"] = (
+                "KHÔNG có tin nào đạt đủ điều kiện học viên nêu. Danh sách dưới đây là "
+                "tin GẦN ĐÚNG nhất — mỗi tin có field `thieu` ghi rõ nó lệch chỗ nào. "
+                "Nói thẳng là không có tin khớp hẳn, rồi vẫn giới thiệu mấy tin này kèm "
+                "chỗ lệch, để học viên tự quyết. TUYỆT ĐỐI không trả lời suông là "
+                "'không tìm thấy tin nào' rồi dừng.")
+        elif so_gan:
+            kq_model["nhac"] = (f"{len(dat)} tin đạt đủ điều kiện, {so_gan} tin cuối chỉ "
+                                f"GẦN ĐÚNG — phải nói rõ tin nào lệch và lệch chỗ nào.")
+        elif con:
+            kq_model["nhac"] = (f"Còn {con} tin đạt đủ điều kiện nữa chưa hiện. Nói rõ cho "
+                                f"học viên biết và mời họ xin xem thêm nếu muốn.")
         return kq_model, {"loai": "tim_tin", "data": ds, "con_chua_hien": con,
-                          "tong": len(tat_ca)}
+                          "tong": len(dat), "so_gan_dung": so_gan}
     if ten == "doi_chieu":
         r = doi_chieu(args.get("opp_id", ""), profile, mode)
         if "loi" in r:

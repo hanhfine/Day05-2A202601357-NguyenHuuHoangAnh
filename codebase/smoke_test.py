@@ -181,6 +181,34 @@ def main() -> int:
     print(f"  {'✓' if ok else '✗'} hồ sơ chỉ xếp hạng, không loại tin "
           f"({len(co_hs)} tin cả hai chiều; {len(hang)} tin khớp kỹ năng/ngành đứng trước)")
 
+    # LUẬT: KHÔNG BAO GIỜ trả về rỗng. Hỏi điều kiện không tin nào đạt thì vẫn phải
+    # đưa tin gần đúng kèm nhãn chỗ lệch — nói "không có cơ hội nào" là đẩy học viên
+    # bỏ cuộc trong khi thư viện đang có tin họ thừa sức nộp, chỉ khác thành phố.
+    from core.tools import chuan_tp
+    rong, thieu_nhan = [], []
+    for kw in [{"loai": "hoc_bong"}, {"tu_khoa": "AI", "thanh_pho": "Đà Nẵng"},
+               {"tu_khoa": "blockchain"}, {"tu_khoa": "AI", "thanh_pho": "online"},
+               {"loai": "hoc_bong", "thanh_pho": "Huế", "tu_khoa": "quantum"}]:
+        r = xep_hang(profile=HS, **kw)
+        if not r:
+            rong.append(kw)
+        if r and not all(x["thieu"] for x in r if "GẦN ĐÚNG" in x["ghi_chu"]):
+            thieu_nhan.append(kw)
+    ok = not rong and not thieu_nhan
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} không truy vấn nào trả về rỗng, tin gần đúng đều có nhãn"
+          + (f" — RỖNG: {rong}" if rong else ""))
+
+    # Tên thành phố nhiều cách viết phải quy về một mối, nếu không tin ở TP.HCM bị
+    # loại sạch khi người dùng gõ 'TP.HCM'. `đ` là U+0111, NFD không tách được.
+    cap = [("TP.HCM", "Hồ Chí Minh"), ("Hà Nội", "hanoi"), ("Đà Nẵng", "da nang"),
+           ("saigon", "TPHCM"), ("remote", "online")]
+    lech = [(a, b) for a, b in cap if chuan_tp(a) != chuan_tp(b)]
+    ok = not lech and _kd("Đà Nẵng") == "da nang"
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} tên thành phố quy về một mối (đ→d, TP.HCM=Hồ Chí Minh)"
+          + (f" — LỆCH: {lech}" if lech else ""))
+
     # LUẬT: cắt bớt thì phải nói ra. Im lặng hiện 8/14 là giấu 6 cơ hội.
     _, ev = dispatch("tim_tin", {"gioi_han": 3}, HS, "mock")
     tong = len(xep_hang(profile=HS))

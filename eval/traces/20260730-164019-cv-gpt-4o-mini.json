@@ -1,0 +1,57 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "request": {
+    "model": "gpt-4o-mini",
+    "temperature": 0,
+    "response_format": {
+      "type": "json_object"
+    },
+    "messages": [
+      {
+        "role": "system",
+        "content": "Bạn rút thông tin từ một CV đã được ẩn thông tin liên hệ.\n\nTrả về DUY NHẤT JSON:\n{\"ten\": str|null, \"nam_hoc\": int|null, \"nganh\": str|null, \"gpa\": number|null,\n \"thanh_pho\": str|null, \"ky_nang\": [str], \"project\": str|null, \"co_github\": true|false}\n\nLUẬT:\n- CV không ghi rõ field nào thì để null / mảng rỗng. TUYỆT ĐỐI không suy đoán.\n  Không có GPA thì là null — đừng ước lượng từ học lực.\n- `ten` là họ tên của ứng viên, chép đúng như CV ghi. CV không ghi tên rõ ràng thì\n  null — không lấy tên người tham chiếu, tên giảng viên hay tên công ty thay vào.\n- KHÔNG trả về email, số điện thoại, link, địa chỉ, số CCCD, tên trường dù chúng có\n  xuất hiện. Chỉ 8 field trên.\n- `gpa` quy về thang 4. CV ghi thang 10 thì chia 2.5 và làm tròn 2 số.\n- `ky_nang` là tên công nghệ/kỹ năng cụ thể, tối đa 10 mục.\n- `co_github` = true nếu CV có nhắc tới GitHub/GitLab/portfolio code, KỂ CẢ khi\n  đường link đã bị thay bằng [LINK]. Đây chỉ là cờ true/false — TUYỆT ĐỐI không\n  chép lại đường link vào bất kỳ field nào."
+      },
+      {
+        "role": "user",
+        "content": "NGUYEN PHUONG NAM\nAI INTERNSHIP\n [PHONE]✉ [EMAIL][LINK] Hai Ba Trung, Hanoi\nCAREER OBJECTIVE\nComputer Science student and AI enthusiast with hands-on experience building and deploying computer vision systems for real-world retail\nand manufacturing applications. Skilled in object detection, multi-object tracking, and cross-camera re-identification, with experience\ndeploying models on edge devices. Seeking a Computer Vision / Machine Learning Engineer role to contribute to production AI systems and\ngrow into a specialized ML Engineer.\nWORK EXPERIENCE\nAVIC 3-2026- 7-2026\nAI Engineer Intern\n1. Built an end-to-end pipeline: person detection (YOLO26) → per-camera tracking (ByteTrack) → QR/noQR classification (EfficientNet-\nB0) → cross-camera re-identification (TransReID).\n2. Trained TransReID on a self-collected upbody-crop dataset in Market-1501 format; labeled cross-camera identities using OSNet\nembeddings + Union-Find clustering.\n3. Tuned the ReID cosine-similarity threshold and classifier decision threshold to balance Precision/Recall, reducing cross-camera identity\nmismatches and false positives on imbalanced data.\n4. Built an entrance counting system tracking customer in/out flow using person detection + trajectory-based tracking.\n5. Designed zone-based counting logic to determine In/Out direction from each person's movement trajectory rather than simple line-\ncrossing; achieved ~95% counting accuracy on real-world data.\nEDUCATION\nHanoi University of Industry (HaUI) 2022- 2026\nComputer Science\nRelevant coursework: Machine Learning, Deep Learning, Computer Vision, Data Structures & Algorithms.\nSKILL\nComputer Vision YOLOv8, Object Tracking (ByteTrack/DeepSORT), Face Recognition (InsightFace/ArcFace), OpenCV\nFrameworks & Models PyTorch, TensorFlow/Keras; CNN, ResNet, MobileNetV2, EfficientNet\nTools & Deployment Docker, Flask, Streamlit, Git; Jetson edge deployment\nPROJECTS\nAI Video Dubbing System | Tech: Openai flask sql marianMT 2- 2026- 6 - 2026\nSource: [LINK]\nBuilt an automatic English video dubbing pipeline: Speech-to-Text (Whisper) → Translation (OpenAI / MarianMT) → Text-to-Speech →\nvideo composition. Designed a modular architecture allowing users to switch between online (OpenAI) and offline (MarianMT) translation\nengines; demoed through a Streamlit interface.\nTech: Python, Whisper, OpenAI, MarianMT, Streamlit\nTraffic Light Violation Detection | Tech: Python, YOLOv8, ByteTrack/DeepSORT, OpenCV 3 - 2026- 5 - 2026\nSource: [LINK]\nBuilt a computer vision system to detect red-light violations from traffic video. Used YOLOv8 to detect vehicles and ByteTrack/DeepSORT to\ntrack them across frames, flagging vehicles that cross the stop line while the light is red. Defined a region of interest and stop line, then applied\ntracking-based logic to identify each violating vehicle.\nFace Recognition Attendance System| Tech: Python, InsightFace, ArcFace, OpenCV 9- 2025- 10 - 2025\nSource: [LINK]\nBuilt a face recognition system for automated attendance. Used InsightFace (RetinaFace for detection, ArcFace for embeddings) to detect and\nidentify faces from a webcam feed, matching them against a registered gallery to log attendance automatically.\nCERTIFICATE\nMachine Learning Specialization 2025\nDeep Learning Specialization 2025"
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-E7HXOgohush35OwhYk0gfMqdzDi6M",
+    "object": "chat.completion",
+    "created": 1785404418,
+    "model": "gpt-4o-mini-2024-07-18",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"ten\": \"NGUYEN PHUONG NAM\",\n  \"nam_hoc\": 2022,\n  \"nganh\": \"Computer Science\",\n  \"gpa\": null,\n  \"thanh_pho\": \"Hanoi\",\n  \"ky_nang\": [\n    \"Computer Vision\",\n    \"YOLOv8\",\n    \"Object Tracking\",\n    \"Face Recognition\",\n    \"OpenCV\",\n    \"PyTorch\",\n    \"TensorFlow/Keras\",\n    \"Docker\",\n    \"Flask\",\n    \"Streamlit\"\n  ],\n  \"project\": \"AI Video Dubbing System | Tech: Openai flask sql marianMT, Traffic Light Violation Detection | Tech: Python, YOLOv8, ByteTrack/DeepSORT, OpenCV, Face Recognition Attendance System| Tech: Python, InsightFace, ArcFace, OpenCV\",\n  \"co_github\": false\n}",
+          "refusal": null,
+          "annotations": []
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1123,
+      "completion_tokens": 185,
+      "total_tokens": 1308,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "service_tier": "default",
+    "system_fingerprint": "fp_83afc1e615"
+  }
+}

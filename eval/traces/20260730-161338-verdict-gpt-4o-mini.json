@@ -1,0 +1,57 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "request": {
+    "model": "gpt-4o-mini",
+    "temperature": 0,
+    "response_format": {
+      "type": "json_object"
+    },
+    "messages": [
+      {
+        "role": "system",
+        "content": "Bạn là trợ lý đối chiếu MỘT tin thực tập/học bổng với hồ sơ một học viên.\n\nPHẠM VI: bạn chỉ đối chiếu tin được dán với hồ sơ được khai. Bạn KHÔNG đi tìm tin,\nKHÔNG viết CV/thư/bài luận hộ, KHÔNG dự đoán xác suất đỗ, KHÔNG chấm điểm hồ sơ.\n\nLUẬT SỐNG CÒN — vi phạm là sai nghiêm trọng:\n\n1. TRÍCH DẪN. Mọi khẳng định về yêu cầu, điều kiện, hạn nộp phải kèm `evidence_line`\n   là số dòng Lk có chứa chữ đó. Cấm trích dòng không chứa nội dung bạn nói.\n2. KHÔNG BỊA. Yêu cầu nào tin KHÔNG nêu thì đưa vào `not_stated`. Cấm suy diễn\n   một yêu cầu rồi coi nó là gap. Tin không nói GPA thì không có yêu cầu GPA.\n3. \"ƯU TIÊN\" KHÁC \"BẮT BUỘC\". Chỉ điền `hard_fail` khi tin ghi thẳng bằng chữ rằng\n   đó là điều kiện bắt buộc/tối thiểu VÀ hồ sơ không đạt. \"Ưu tiên...\" luôn là `gaps`.\n4. KHÔNG BAO GIỜ CHẶN. Không được kết luận học viên \"không đủ điều kiện\". Trường hợp\n   xấu nhất bạn được phép nói là verdict `rui_ro_cao` kèm chỉ rõ dòng làm bạn lo.\n   Lý do: nếu bạn chặn sai một người thật ra đủ điều kiện, họ mất hẳn cơ hội và\n   không có cách nào biết — lỗi đó không sửa được.\n5. THIẾU THÔNG TIN THÌ HỎI, ĐÚNG MỘT CÂU. Nếu hồ sơ thiếu đúng cái field mà tin đòi,\n   trả verdict `thieu_thong_tin`, `thieu_o_dau` = \"ho_so\", và `one_question` là MỘT câu\n   hỏi vào đúng field đó. Nếu chính cái tin quá sơ sài để đối chiếu, `thieu_o_dau` = \"tin\".\n   Không hỏi 2-3 câu. Không vừa hỏi vừa ra verdict.\n6. HẠN NỘP. Chép nguyên văn vào `deadline.raw`. Chỉ điền `parsed` (YYYY-MM-DD) khi tin\n   ghi rõ cả ngày/tháng/năm. Thiếu năm hoặc mơ hồ → `parsed` = null, `ambiguous` = true.\n   Cấm tự suy ra năm.\n7. DẤU HIỆU BẤT THƯỜNG. Tin đòi đóng phí/đặt cọc trước, hoặc hứa thu nhập bất thường →\n   ghi vào `canh_bao` kèm số dòng, và KHÔNG được ra verdict `nen_apply`.\n8. GIỌNG. Tối đa 150 từ trong toàn bộ phần chữ. Không khen hồ sơ, không hứa kết quả,\n   không động viên. Chỉ nói khớp/chưa khớp yêu cầu nào, ở dòng nào.\n\nTrả về DUY NHẤT một JSON đúng schema, không kèm giải thích ngoài JSON."
+      },
+      {
+        "role": "user",
+        "content": "### Tin đã dán (mỗi dòng có số Lk — trích dẫn bằng số này)\nL1: [[Hà Nội] – 01 Thực tập sinh lập trình trí tuệ nhân tạo — Lumi Việt Nam]\nL2: Mô tả công việc\nL3: Nghiên cứu và Phát triển: Tham gia nghiên cứu, phát triển và tối ưu các hệ thống camera thông minh ứng dụng trong giải pháp nhà thông minh.\nL4: Hỗ trợ giải quyết Bài toán AI: Hỗ trợ xử lý các bài toán AI trong lĩnh vực thị giác máy tính như:\nL5: Nhận diện và phát hiện vật thể (Object Detection).\nL6: Theo dõi vật thể (Object Tracking).\nL7: Nhận diện khuôn mặt (Face Recognition).\nL8: Nhận diện hành vi con người (Human Behavior Recognition).\nL9: Học hỏi Triển khai trên Phần cứng Nhúng: Học hỏi và hỗ trợ triển khai, tối ưu các mô hình AI trên nhiều nền tảng phần cứng nhúng AI Accelerator khác nhau như NVIDIA Jetson, Rockchip, Qualcomm, v.v.\nL10: Tìm hiểu Công nghệ mới: Tìm hiểu và áp dụng kiến thức về Large Language Models (LLM) và Retrieval-Augmented Generation (RAG) vào các dự án phù hợp dưới sự hướng dẫn.\nL11: Tham gia Quy trình Phát triển AI: Tham gia vào toàn bộ quy trình triển khai một bài toán Machine Learning từ khâu thu thập, xử lý dữ liệu, xây dựng mô hình, đánh giá đến triển khai thực tế.\nL12: Hỗ trợ Tích hợp hệ thống: Hỗ trợ tích hợp hệ thống AI vào kiến trúc tổng thể của sản phẩm, đảm bảo hiệu suất và độ tin cậy.\nL13: Phối hợp: Phối hợp cùng đội phần mềm nhúng, backend và phần cứng trong quá trình phát triển.\nL14: Yêu cầu ứng viên\nL15: Học vấn: Là sinh viên năm 3, 4 hoặc cuối các chuyên ngành Công nghệ Thông tin, Khoa học Máy tính, Trí tuệ Nhân tạo, Toán-Tin hoặc các ngành liên quan.\nL16: Kiến thức Nền tảng:\nL17: Có kiến thức nền tảng vững chắc về Lập trình (Python, C/C++).\nL18: Hiểu biết cơ bản về Machine Learning, Deep Learning và các thuật toán liên quan.\nL19: Có kiến thức về các thư viện/framework AI như TensorFlow, PyTorch, OpenCV là một lợi thế lớn.\nL20: Tư duy & Kỹ năng:\nL21: Đam mê & Tinh thần Tự học: Có niềm đam mê mãnh liệt với lĩnh vực AI và khả năng tự nghiên cứu, học hỏi công nghệ mới.\nL22: Tư duy Logic & Giải quyết Vấn đề: Có khả năng tư duy logic tốt để phân tích và giải quyết các vấn đề kỹ thuật.\nL23: Tinh thần Hợp tác: Có khả năng làm việc nhóm và giao tiếp tốt.\nL24: Quyền lợi\nL25: Được sử dụng miễn phí tất cả các tiện ích của công ty: trà, cafe, bánh kẹo, hoa quả…Cơ hội được trở thành nhân viên chính thức sau các kỳ đánh giá thực tậpMôi trường làm việc thân thiện, chuyên nghiệp, chia sẻ.\nL26: Môi trường dành cho người dám đón nhận thách thức để cùng Lumi là Leader của Lĩnh vực Nhà thông minh nói riêng và IOT nói chung.\nL27: Sáng kiến, đóng góp luôn được ghi nhận, sự khác biệt luôn được tôn trọng.\nL28: Du lịch cùng công ty ít nhất 1 lần/năm, các hoạt động team builiding, hoạt động thể thao…rất thường xuyên như “Ngày hội Gia Đình Lumi”, Câu lạc bộ Cầu Lông, Bóng Đá với quy mô chuyên nghiệp…\nL29: Toàn thời gian\nL30: Địa điểm: Hà Nội.\nL31: Google Jobs ghi tin đăng: 20 ngày trước. Tin không nêu ngày chốt hồ sơ.\n\n### Hồ sơ học viên khai\n{\n  \"project\": \"AI Video Dubbing System | Tech: Openai flask sql marianMT, Traffic Light Violation Detection | Tech: Python, YOLOv8, ByteTrack/DeepSORT, OpenCV, Face Recognition Attendance System| Tech: Python, InsightFace, ArcFace, OpenCV\",\n  \"co_github\": false,\n  \"nam_hoc\": 2022,\n  \"gpa\": null,\n  \"nganh\": \"Computer Science\",\n  \"thanh_pho\": \"Hanoi\",\n  \"ky_nang\": [\n    \"Computer Vision\",\n    \"YOLOv8\",\n    \"Object Tracking\",\n    \"Face Recognition\",\n    \"OpenCV\",\n    \"PyTorch\",\n    \"TensorFlow/Keras\",\n    \"Docker\",\n    \"Flask\",\n    \"Streamlit\"\n  ]\n}\n\n### Schema bắt buộc\n{\n  \"verdict\": \"nen_apply\" | \"rui_ro_cao\" | \"thieu_thong_tin\",\n  \"thieu_o_dau\": \"tin\" | \"ho_so\" | null,\n  \"matched\":    [{\"requirement\": str, \"evidence_line\": int, \"from_profile\": str}],\n  \"gaps\":       [{\"requirement\": str, \"evidence_line\": int, \"why\": str}],\n  \"hard_fail\":  [{\"rule\": str, \"evidence_line\": int}],\n  \"not_stated\": [str],\n  \"one_question\": str | null,\n  \"deadline\": {\"raw\": str|null, \"evidence_line\": int|null, \"parsed\": str|null, \"ambiguous\": bool},\n  \"next_3\": [str],\n  \"canh_bao\": [str],\n  \"refusal\": str | null\n}\n\nĐối chiếu tin trên với hồ sơ trên. Trả về JSON."
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-E7H7TWx7ukScc3dmQN0mo47F3CQiA",
+    "object": "chat.completion",
+    "created": 1785402811,
+    "model": "gpt-4o-mini-2024-07-18",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"verdict\": \"rui_ro_cao\",\n  \"thieu_o_dau\": \"ho_so\",\n  \"matched\": [\n    {\n      \"requirement\": \"Là sinh viên năm 3, 4 hoặc cuối các chuyên ngành Công nghệ Thông tin, Khoa học Máy tính, Trí tuệ Nhân tạo, Toán-Tin hoặc các ngành liên quan.\",\n      \"evidence_line\": 15,\n      \"from_profile\": \"Computer Science\"\n    },\n    {\n      \"requirement\": \"Có kiến thức nền tảng vững chắc về Lập trình (Python, C/C++).\",\n      \"evidence_line\": 17,\n      \"from_profile\": \"Python\"\n    },\n    {\n      \"requirement\": \"Có kiến thức về các thư viện/framework AI như TensorFlow, PyTorch, OpenCV là một lợi thế lớn.\",\n      \"evidence_line\": 19,\n      \"from_profile\": \"OpenCV, PyTorch, TensorFlow/Keras\"\n    }\n  ],\n  \"gaps\": [\n    {\n      \"requirement\": \"Hiểu biết cơ bản về Machine Learning, Deep Learning và các thuật toán liên quan.\",\n      \"evidence_line\": 18,\n      \"why\": \"Không có thông tin về hiểu biết về Machine Learning, Deep Learning.\"\n    },\n    {\n      \"requirement\": \"Đam mê & Tinh thần Tự học: Có niềm đam mê mãnh liệt với lĩnh vực AI và khả năng tự nghiên cứu, học hỏi công nghệ mới.\",\n      \"evidence_line\": 21,\n      \"why\": \"Không có thông tin về đam mê và khả năng tự học.\"\n    },\n    {\n      \"requirement\": \"Tư duy Logic & Giải quyết Vấn đề: Có khả năng tư duy logic tốt để phân tích và giải quyết các vấn đề kỹ thuật.\",\n      \"evidence_line\": 22,\n      \"why\": \"Không có thông tin về tư duy logic và khả năng giải quyết vấn đề.\"\n    },\n    {\n      \"requirement\": \"Tinh thần Hợp tác: Có khả năng làm việc nhóm và giao tiếp tốt.\",\n      \"evidence_line\": 23,\n      \"why\": \"Không có thông tin về khả năng làm việc nhóm và giao tiếp.\"\n    }\n  ],\n  \"hard_fail\": [],\n  \"not_stated\": [],\n  \"one_question\": \"Bạn có hiểu biết về Machine Learning và Deep Learning không?\",\n  \"deadline\": {\n    \"raw\": null,\n    \"evidence_line\": null,\n    \"parsed\": null,\n    \"ambiguous\": true\n  },\n  \"next_3\": [],\n  \"canh_bao\": [],\n  \"refusal\": null\n}",
+          "refusal": null,
+          "annotations": []
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1993,
+      "completion_tokens": 566,
+      "total_tokens": 2559,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "service_tier": "default",
+    "system_fingerprint": "fp_f344a168a1"
+  }
+}

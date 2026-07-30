@@ -1,0 +1,57 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "request": {
+    "model": "gpt-4o-mini",
+    "temperature": 0,
+    "response_format": {
+      "type": "json_object"
+    },
+    "messages": [
+      {
+        "role": "system",
+        "content": "Bạn là trợ lý đối chiếu MỘT tin thực tập/học bổng với hồ sơ một học viên.\n\nPHẠM VI: bạn chỉ đối chiếu tin được dán với hồ sơ được khai. Bạn KHÔNG đi tìm tin,\nKHÔNG viết CV/thư/bài luận hộ, KHÔNG dự đoán xác suất đỗ, KHÔNG chấm điểm hồ sơ.\n\nLUẬT SỐNG CÒN — vi phạm là sai nghiêm trọng:\n\n1. TRÍCH DẪN. Mọi khẳng định về yêu cầu, điều kiện, hạn nộp phải kèm `evidence_line`\n   là số dòng Lk có chứa chữ đó. Cấm trích dòng không chứa nội dung bạn nói.\n2. KHÔNG BỊA. Yêu cầu nào tin KHÔNG nêu thì đưa vào `not_stated`. Cấm suy diễn\n   một yêu cầu rồi coi nó là gap. Tin không nói GPA thì không có yêu cầu GPA.\n3. \"ƯU TIÊN\" KHÁC \"BẮT BUỘC\". Chỉ điền `hard_fail` khi tin ghi thẳng bằng chữ rằng\n   đó là điều kiện bắt buộc/tối thiểu VÀ hồ sơ không đạt. \"Ưu tiên...\" luôn là `gaps`.\n4. KHÔNG BAO GIỜ CHẶN. Không được kết luận học viên \"không đủ điều kiện\". Trường hợp\n   xấu nhất bạn được phép nói là verdict `rui_ro_cao` kèm chỉ rõ dòng làm bạn lo.\n   Lý do: nếu bạn chặn sai một người thật ra đủ điều kiện, họ mất hẳn cơ hội và\n   không có cách nào biết — lỗi đó không sửa được.\n5. THIẾU THÔNG TIN THÌ HỎI, ĐÚNG MỘT CÂU. Nếu hồ sơ thiếu đúng cái field mà tin đòi,\n   trả verdict `thieu_thong_tin`, `thieu_o_dau` = \"ho_so\", và `one_question` là MỘT câu\n   hỏi vào đúng field đó. Nếu chính cái tin quá sơ sài để đối chiếu, `thieu_o_dau` = \"tin\".\n   Không hỏi 2-3 câu. Không vừa hỏi vừa ra verdict.\n6. HẠN NỘP. Chép nguyên văn vào `deadline.raw`. Chỉ điền `parsed` (YYYY-MM-DD) khi tin\n   ghi rõ cả ngày/tháng/năm. Thiếu năm hoặc mơ hồ → `parsed` = null, `ambiguous` = true.\n   Cấm tự suy ra năm.\n7. DẤU HIỆU BẤT THƯỜNG. Tin đòi đóng phí/đặt cọc trước, hoặc hứa thu nhập bất thường →\n   ghi vào `canh_bao` kèm số dòng, và KHÔNG được ra verdict `nen_apply`.\n8. GIỌNG. Tối đa 150 từ trong toàn bộ phần chữ. Không khen hồ sơ, không hứa kết quả,\n   không động viên. Chỉ nói khớp/chưa khớp yêu cầu nào, ở dòng nào.\n\nTrả về DUY NHẤT một JSON đúng schema, không kèm giải thích ngoài JSON."
+      },
+      {
+        "role": "user",
+        "content": "### Tin đã dán (mỗi dòng có số Lk — trích dẫn bằng số này)\nL1: [Chương Trình Thực Tập AI Guru — Công ty Cp Công nghệ và Truyền thông Dagoras]\nL2: Mô tả công việc\nL3: Công ty CP Công nghệ và Truyền thông Dagoras triển khai chương trình thực tập AI Guru, kết hợp giữa:\nL4: Đào tạo thực chiến (training + on-job)Tham gia cuộc thi AI (Road to AI)Sinh viên tham gia sẽ:\nL5: Thực hiện dự án AI theo bài toán thực tếTham gia thi cùng các thí sinh khácĐược xác nhận & đóng dấu thực tập thông qua chương trình3. Thông tin chungThời gian: 6–8 tuần\nL6: Hình thức: Kết hợp online\nL7: 4. Nội dung thực tậpTham gia đào tạo: Python / Data / AI cơ bản đến ứng dụngThực hiện project: Xây dựng AI Agent (Text-to-SQL / ứng dụng AI)Làm việc theo nhóm, có mentor hỗ trợTham gia:\nL8: Cuộc thi AI (Road to AI)Demo & trình bày sản phẩm cuối kỳ\nL9: Yêu cầu ứng viên\nL10: 5. Đối tượngSinh viên năm cuối hoặc sắp tốt nghiệpChuyên ngành: Công nghệ thông tin, Khoa học máy tính, Khoa học dữ liệu…6. Yêu cầuCó kiến thức cơ bản: Python / SQLTư duy logic tốt, chủ động học hỏiƯu tiên:\nL11: Có GitHub / project cá nhânĐã tham gia cuộc thi/hackathon\nL12: Quyền lợi được hưởng\nL13: 7. Quyền lợiĐược xác nhận & đóng dấu thực tậpĐược đào tạo và hướng dẫn bởi đội ngũ chuyên mônTham gia cuộc thi AI thực chiếnCơ hội:\nL14: Nhận giải thưởngĐược giới thiệu việc làm / tuyển dụng chính thứcTham gia cộng đồng học tập & phát triển AI\nL15: Thực tập\nL16: Địa điểm: Hà Nội.\nL17: Google Jobs ghi tin đăng: 14 ngày trước. Tin không nêu ngày chốt hồ sơ.\n\n### Hồ sơ học viên khai\n{\n  \"nam_hoc\": 3,\n  \"nganh\": \"Công nghệ thông tin\",\n  \"gpa\": 3.42,\n  \"thanh_pho\": \"Hà Nội\",\n  \"ky_nang\": [\n    \"Python\",\n    \"SQL\",\n    \"pandas\",\n    \"Git\",\n    \"LLM API (OpenAI, Gemini)\",\n    \"Docker cơ bản\"\n  ],\n  \"project\": \"1. Chatbot hỏi đáp tài liệu học tập — dùng LLM API + tìm kiếm theo đoạn. 2. Dashboard phân tích điểm học tập — SQL + Power BI.\"\n}\n\n### Schema bắt buộc\n{\n  \"verdict\": \"nen_apply\" | \"rui_ro_cao\" | \"thieu_thong_tin\",\n  \"thieu_o_dau\": \"tin\" | \"ho_so\" | null,\n  \"matched\":    [{\"requirement\": str, \"evidence_line\": int, \"from_profile\": str}],\n  \"gaps\":       [{\"requirement\": str, \"evidence_line\": int, \"why\": str}],\n  \"hard_fail\":  [{\"rule\": str, \"evidence_line\": int}],\n  \"not_stated\": [str],\n  \"one_question\": str | null,\n  \"deadline\": {\"raw\": str|null, \"evidence_line\": int|null, \"parsed\": str|null, \"ambiguous\": bool},\n  \"next_3\": [str],\n  \"canh_bao\": [str],\n  \"refusal\": str | null\n}\n\nĐối chiếu tin trên với hồ sơ trên. Trả về JSON."
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-E7GmY9XiHleyURCmOHBypwd8VBxxX",
+    "object": "chat.completion",
+    "created": 1785401514,
+    "model": "gpt-4o-mini-2024-07-18",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"verdict\": \"rui_ro_cao\",\n  \"thieu_o_dau\": \"tin\",\n  \"matched\": [\n    {\n      \"requirement\": \"Đối tượng: Sinh viên năm cuối hoặc sắp tốt nghiệp\",\n      \"evidence_line\": 10,\n      \"from_profile\": \"nam_hoc: 3\"\n    },\n    {\n      \"requirement\": \"Chuyên ngành: Công nghệ thông tin\",\n      \"evidence_line\": 10,\n      \"from_profile\": \"nganh: Công nghệ thông tin\"\n    },\n    {\n      \"requirement\": \"Có kiến thức cơ bản: Python / SQL\",\n      \"evidence_line\": 11,\n      \"from_profile\": \"ky_nang: [Python, SQL]\"\n    }\n  ],\n  \"gaps\": [\n    {\n      \"requirement\": \"Tư duy logic tốt, chủ động học hỏi\",\n      \"evidence_line\": 11,\n      \"why\": \"Không có thông tin trong hồ sơ\"\n    },\n    {\n      \"requirement\": \"Ưu tiên: Có GitHub / project cá nhân\",\n      \"evidence_line\": 11,\n      \"why\": \"Không có thông tin trong hồ sơ\"\n    },\n    {\n      \"requirement\": \"Ưu tiên: Đã tham gia cuộc thi/hackathon\",\n      \"evidence_line\": 11,\n      \"why\": \"Không có thông tin trong hồ sơ\"\n    }\n  ],\n  \"hard_fail\": [],\n  \"not_stated\": [],\n  \"one_question\": \"Bạn có tham gia cuộc thi hoặc hackathon nào không?\",\n  \"deadline\": {\n    \"raw\": null,\n    \"evidence_line\": null,\n    \"parsed\": null,\n    \"ambiguous\": true\n  },\n  \"next_3\": [],\n  \"canh_bao\": [],\n  \"refusal\": null\n}",
+          "refusal": null,
+          "annotations": []
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1545,
+      "completion_tokens": 391,
+      "total_tokens": 1936,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "service_tier": "default",
+    "system_fingerprint": "fp_f344a168a1"
+  }
+}
