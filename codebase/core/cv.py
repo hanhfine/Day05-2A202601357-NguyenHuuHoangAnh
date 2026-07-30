@@ -74,7 +74,7 @@ LUẬT:
   null — không lấy tên người tham chiếu, tên giảng viên hay tên công ty thay vào.
 - KHÔNG trả về email, số điện thoại, link, địa chỉ, số CCCD, tên trường dù chúng có
   xuất hiện. Chỉ 8 field trên.
-- `gpa` quy về thang 4. CV ghi thang 10 thì chia 2.5 và làm tròn 2 số.
+- `gpa` quy về thang 4. GIỮ NGUYÊN số thập phân chính xác như CV ghi (ví dụ 2.99, 3.42), TUYỆT ĐỐI không tự ý làm tròn 2.99 thành 3.0. Chỉ khi CV ghi thang 10 mới chia 2.5.
 - `ky_nang` là tên công nghệ/kỹ năng cụ thể, tối đa 10 mục.
 - `co_github` = true nếu CV có nhắc tới GitHub/GitLab/portfolio code, KỂ CẢ khi
   đường link đã bị thay bằng [LINK]. Đây chỉ là cờ true/false — TUYỆT ĐỐI không

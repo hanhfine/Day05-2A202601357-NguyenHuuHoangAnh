@@ -3,404 +3,814 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Đối chiếu tin thực tập / việc làm fresher-junior / học bổng với hồ sơ học viên, chỉ rõ từng dòng làm căn cứ.">
-<meta name="color-scheme" content="light dark">
 <title>OpportunityMatch — trợ lý đối chiếu cơ hội</title>
-<!-- Favicon nội tuyến: giữ nguyên luật "trang không tải gì từ bên ngoài". -->
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2326251f'/><circle cx='16' cy='16' r='7' fill='none' stroke='%23fffefc' stroke-width='2.5'/><circle cx='16' cy='16' r='2' fill='%23fffefc'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ══ HỆ THỐNG THIẾT KẾ ══════════════════════════════════════════════════════
-   QUYẾT ĐỊNH TRUNG TÂM: accent là GRAPHITE TRUNG TÍNH, không phải màu rực.
-
-   Bản trước dùng gradient tím (#5b4bd6 → #8b5cf6) cho header, bong bóng chat và
-   nút gửi. Nó có hai vấn đề, vấn đề thứ hai mới là vấn đề thật:
-     ① tím-lam gradient là dấu vân tay dễ nhận nhất của UI do AI sinh ra;
-     ② nó là màu BÃO HOÀ NHẤT màn hình, trong khi bốn màu thật sự MANG NGHĨA ở
-        app này là màu verdict (xanh nên-apply · hổ phách rủi-ro · lam thiếu-tin ·
-        đỏ cảnh-báo). Trang trí mà rực hơn cảnh báo thì mắt học viên đi sai chỗ.
-   Nên: chrome (header, nút, bong bóng) rút về graphite, và MÀU RỰC DUY NHẤT
-   CÒN LẠI TRONG UI LÀ MÀU CẢNH BÁO.
-
-   KHÔNG DÙNG FONT CDN. Trang này hiện không tải gì từ ngoài — thêm Google Fonts
-   là thêm một request tới bên thứ ba mỗi lần mở, ở đúng cái app đang hứa "không
-   lưu email/SĐT/link của bạn", và làm hỏng khả năng chạy offline. Thay vào đó
-   khai thác font sẵn có của máy + thang chữ và tabular-nums cho phần số.        */
-
+/* ── Design Tokens ── */
 :root{
-  /* nền xám ẤM, một họ xám duy nhất — không trộn xám ấm với xám lạnh */
-  --bg:#f5f4f1; --card:#fffefc; --soft:#faf9f6; --line:#e5e3dd;
-  --ink:#1a1917; --mute:#5f5c55;          /* mute đạt 6.4:1 trên --soft */
-  --accent:#26251f; --accent-soft:#edebe4; --accent-line:#c9c5ba;
+  /* White & Gradient Theme Tokens */
+  --brand:      #4f46e5;
+  --brand-hover:#4338ca;
+  --brand-dark: #1e1b4b;
+  --brand-soft: #f5f3ff;
+  --navy:       #4f46e5;
+  --navy-hover: #4338ca;
+  --navy-80:    rgba(79,70,229,.80);
+  --navy-12:    rgba(79,70,229,.12);
+  --navy-08:    rgba(79,70,229,.08);
+  --navy-04:    rgba(79,70,229,.04);
 
-  /* Bốn màu NGHĨA. Đây là chỗ duy nhất trong UI được phép rực. */
-  --ok:#0a6b45;   --okbg:#e6f4ec;   --okline:#9fd7bb;
-  --warn:#8a4f00; --warnbg:#fdf1e0; --warnline:#e8c48d;
-  --ask:#1a4bb8;  --askbg:#e9effc;  --askline:#b6c9f2;
-  --stop:#9a1f1f; --stopbg:#fceceb; --stopline:#eebcb9;
+  /* Soft Clean Surfaces */
+  --bg:         #ffffff;
+  --surface:    #f8fafc;
+  --surface-2:  #f1f5f9;
+  --border:     #e2e8f0;
+  --border-subtle: #f1f5f9;
 
-  /* Bóng ĐỔ MÀU theo nền ấm, không phải đen thuần */
-  --sh-1:0 1px 2px rgba(51,44,30,.06);
-  --sh-2:0 1px 2px rgba(51,44,30,.05), 0 6px 18px rgba(51,44,30,.07);
+  /* Typography Colors */
+  --ink:        #0f172a;
+  --ink-subtle: #334155;
+  --mute:       #64748b;
+  --mute-light: #94a3b8;
 
-  /* thang bo góc: container mềm hơn, phần tử bên trong chặt hơn */
-  --r-lg:16px; --r-md:11px; --r-sm:7px;
-  --z-header:5;
+  /* Status Colors */
+  --ok:         #059669;   --okbg:   #ecfdf5;  --okline: #a7f3d0;
+  --warn:       #d97706;   --warnbg: #fffbeb;  --warnline:#fde68a;
+  --ask:        #2563eb;   --askbg:  #eff6ff;  --askline: #bfdbfe;
+  --stop:       #dc2626;   --stopbg: #fef2f2;  --stopline:#fecaca;
+
+  /* Shape & Shadows */
+  --radius-lg:  16px;
+  --radius:     12px;
+  --radius-sm:  8px;
+  --radius-pill: 9999px;
+  --sh-sm:      0 1px 2px 0 rgba(79,70,229,.04);
+  --sh-md:      0 4px 12px -2px rgba(79,70,229,.08), 0 2px 6px -1px rgba(79,70,229,.04);
+  --sh-lg:      0 16px 36px -4px rgba(79,70,229,.14), 0 6px 16px -2px rgba(79,70,229,.06);
+  --transition: .15s ease;
 }
-@media(prefers-color-scheme:dark){:root{
-  --bg:#161513; --card:#201f1c; --soft:#1b1a18; --line:#33312c;   /* không dùng #000 */
-  --ink:#eceae4; --mute:#a5a099;
-  --accent:#e8e5dd; --accent-soft:#2c2a26; --accent-line:#454239;
-  --ok:#5fd39b;   --okbg:#0f2a1e;   --okline:#245c42;
-  --warn:#efbe74; --warnbg:#2e2312; --warnline:#5f4820;
-  --ask:#9ab8ff;  --askbg:#181f36;  --askline:#2f4576;
-  --stop:#f5a19d; --stopbg:#2d1817; --stopline:#5f2c2a;
-  --sh-1:0 1px 2px rgba(0,0,0,.35);
-  --sh-2:0 1px 2px rgba(0,0,0,.3), 0 8px 22px rgba(0,0,0,.34);
-}}
 
-*{box-sizing:border-box}
-html,body{height:100%}
+/* ── Reset & Base ── */
+*{box-sizing:border-box; margin:0; padding:0}
+html,body{height:100%; overflow:hidden}
 body{
-  margin:0;background:var(--bg);color:var(--ink);
-  /* thang chữ: 15px cơ sở, hàng 1.6; tracking âm nhẹ cho chữ to */
-  font:15px/1.6 ui-sans-serif,system-ui,"Segoe UI Variable Text","Segoe UI",Roboto,sans-serif;
+  font-family:'Plus Jakarta Sans','Inter',system-ui,-apple-system,sans-serif;
+  font-size:14px; line-height:1.6;
+  background:var(--bg); color:var(--ink);
+  display:flex; flex-direction:column;
   -webkit-font-smoothing:antialiased;
-  display:flex;flex-direction:column;overflow:hidden;
 }
-button,input,textarea,select{font:inherit;color:inherit}
-/* Giao diện dày đặc SỐ (GPA, mã tin, hạn nộp, số dòng trích dẫn) — chữ số phải
-   đều bề ngang, nếu không cột số nhảy lung tung khi nội dung đổi. */
-input[type=number],.op .meta,.chip,#tinView,.gr,.k{font-variant-numeric:tabular-nums}
-h1,h2,h3,h4{text-wrap:balance}
-p,li{text-wrap:pretty}
-
-/* Ai cũng phải thấy được mình đang ở đâu khi dùng bàn phím — yêu cầu tiếp cận,
-   không phải tuỳ chọn. Bản trước chỉ ô nhập có focus ring. */
-:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:var(--r-sm)}
-@media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+button,input,textarea,select{
+  font:inherit; color:inherit; border:none; background:none; outline:none;
 }
+a{ color:inherit }
 
-/* ── header ─────────────────────────────────────────────────────────────── */
+/* ── Scrollbars ── */
+::-webkit-scrollbar{width:6px; height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1; border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+
+/* ══════════════════════════════════════
+   HEADER
+══════════════════════════════════════ */
 header{
-  padding:12px 22px;background:var(--card);border-bottom:1px solid var(--line);
-  display:flex;align-items:center;gap:14px;flex-wrap:wrap;z-index:var(--z-header);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px;
+  height:62px;
+  background:linear-gradient(135deg, #2563eb 0%, #6366f1 50%, #8b5cf6 100%);
+  color:#ffffff;
+  box-shadow:0 3px 12px rgba(99,102,241,.25);
+  flex-shrink:0;
+  z-index:10;
 }
-.logo{
-  width:32px;height:32px;border-radius:var(--r-md);background:var(--accent);color:var(--card);
-  display:grid;place-items:center;font-size:15px;flex:none;
+.logo-wrap{
+  display:flex; align-items:center; gap:12px;
 }
-header h1{margin:0;font-size:16px;font-weight:650;letter-spacing:-.015em}
-header .sc{margin:2px 0 0;font-size:12.5px;color:var(--mute);max-width:74ch}
-header .sc b{color:var(--ink);font-weight:620}
-.pill{margin-left:auto;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
-.tag{
-  padding:3px 9px;border-radius:var(--r-sm);font-size:11.5px;font-weight:600;
-  letter-spacing:.01em;background:var(--accent-soft);color:var(--mute);
-  border:1px solid var(--line);
+.logo-icon{
+  width:34px; height:34px; border-radius:9px;
+  background:#ffffff;
+  display:grid; place-items:center;
+  font-size:17px; font-weight:bold; color:#4f46e5;
+  flex-shrink:0;
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
 }
-.tag.warnt{background:var(--warnbg);color:var(--warn);border-color:var(--warnline)}
+header h1{
+  font-size:15.5px; font-weight:700;
+  color:#ffffff;
+  letter-spacing:-.015em;
+}
+.header-sub{
+  font-size:12px; color:rgba(255,255,255,.9); margin-top:1px;
+  max-width:62ch; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.header-sub b{ color:#ffffff; font-weight:700 }
 
-/* ── layout ─────────────────────────────────────────────────────────────── */
-/* TỈ LỆ PHẢI NÓI ĐƯỢC ĐIỀU GÌ ĐÓ. `1.25fr / .85fr` chỉ là hai số, và trên màn
-   rộng nó phình panel phải ra vô nghĩa — hồ sơ có 6 ô nhập, rộng thêm không giúp
-   gì. Khai lại thành một quan hệ: chat là MẶT BÀN LÀM VIỆC (nhận hết phần dôi
-   ra), panel là TỜ THAM CHIẾU giữ bề ngang đọc thoải mái rồi thôi. */
+.hd-badges{
+  display:flex; align-items:center; gap:8px; flex-shrink:0;
+}
+.badge{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 13px;
+  border-radius:var(--radius-pill);
+  font-size:11.5px; font-weight:600; letter-spacing:.01em;
+  border:1px solid rgba(255,255,255,.8);
+  color:#0f172a;
+  background:#ffffff;
+  box-shadow:0 1px 4px rgba(0,0,0,.12);
+}
+.badge.live{
+  background:#10b981;
+  border-color:#059669;
+  color:#ffffff;
+  box-shadow:0 2px 6px rgba(16,185,129,.35);
+}
+.badge.live::before{
+  content:'';
+  width:7px; height:7px;
+  border-radius:50%;
+  background:#ffffff;
+  animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite;
+}
+.badge.warn{
+  background:#f59e0b;
+  border-color:#d97706;
+  color:#ffffff;
+  box-shadow:0 2px 6px rgba(245,158,11,.35);
+}
+@keyframes pulse{
+  0%,100%{opacity:1} 50%{opacity:.35}
+}
+
+/* ══════════════════════════════════════
+   MAIN LAYOUT
+══════════════════════════════════════ */
 main{
-  flex:1;display:grid;grid-template-columns:minmax(0,1fr) clamp(330px,26%,400px);
-  gap:16px;padding:16px 22px;min-height:0;
+  flex:1; min-height:0;
+  display:grid;
+  grid-template-columns: minmax(0,1.38fr) minmax(330px,.72fr);
 }
-@media(max-width:980px){main{grid-template-columns:1fr;overflow:auto}}
-.col{display:flex;flex-direction:column;min-height:0;gap:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-1)}
-.card>h2{
-  margin:0;padding:12px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;
-  color:var(--mute);font-weight:650;border-bottom:1px solid var(--line);
-  display:flex;align-items:center;gap:8px;
+@media(max-width:920px){main{grid-template-columns:1fr; overflow:auto}}
+
+/* Columns */
+.col-left{
+  display:flex; flex-direction:column;
+  border-right:1px solid var(--border);
+  min-height:0;
+  background:var(--bg);
+}
+.col-right{
+  display:flex; flex-direction:column;
+  background:var(--surface);
+  min-height:0;
 }
 
-/* ── chat ───────────────────────────────────────────────────────────────── */
-#chat{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth}
-.msg{max-width:88%;animation:in .3s cubic-bezier(.2,.7,.3,1)}
-@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.msg.u{align-self:flex-end}
-.bub{padding:10px 14px;border-radius:var(--r-md);white-space:pre-wrap}
-/* Bong bóng người dùng: nền đặc graphite thay cho gradient tím. */
-.msg.u .bub{background:var(--accent);color:var(--card);border-bottom-right-radius:var(--r-sm)}
-.msg.a .bub{background:var(--soft);border:1px solid var(--line);border-bottom-left-radius:var(--r-sm)}
-.who{font-size:11px;color:var(--mute);margin:0 0 4px 4px;font-weight:600;letter-spacing:.03em}
+/* ══════════════════════════════════════
+   CHAT STREAM & MESSAGES
+══════════════════════════════════════ */
+#chat{
+  flex:1; overflow-y:auto;
+  padding:24px 32px;
+  display:flex; flex-direction:column;
+  gap:20px;
+  scroll-behavior:smooth;
+}
+
+.msg{ max-width:85%; animation:msgIn .18s ease-out }
+@keyframes msgIn{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+.msg.u{ align-self:flex-end }
+.msg.a{ align-self:flex-start }
+
+.who{
+  font-size:11px; font-weight:700;
+  letter-spacing:.05em; text-transform:uppercase;
+  color:var(--mute-light);
+  margin-bottom:6px; padding-left:2px;
+}
+
+.bub{
+  padding:13px 18px;
+  border-radius:var(--radius-lg);
+  line-height:1.65;
+  white-space:pre-wrap;
+  word-break:break-word;
+  font-size:14px;
+}
+.msg.u .bub{
+  background:linear-gradient(135deg, #2563eb, #7c3aed);
+  color:#ffffff;
+  border-bottom-right-radius:4px;
+  box-shadow:0 4px 14px rgba(99,102,241,.25);
+}
+.msg.a .bub{
+  background:var(--bg);
+  border:1px solid var(--border);
+  color:var(--ink);
+  border-bottom-left-radius:4px;
+  box-shadow:var(--sh-sm);
+}
+
+/* Typing Dots */
 .dots span{
-  display:inline-block;width:6px;height:6px;margin:0 1.5px;border-radius:50%;
-  background:var(--mute);animation:bo 1.1s infinite;
+  display:inline-block;
+  width:7px; height:7px; margin:0 2px;
+  border-radius:50%;
+  background:var(--mute);
+  animation:bounce 1.2s ease infinite;
 }
-.dots span:nth-child(2){animation-delay:.16s}.dots span:nth-child(3){animation-delay:.32s}
-@keyframes bo{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
-
-/* Không có class trạng-thái-rỗng: khung chat không bao giờ rỗng thật — init()
-   luôn chèn sẵn lời chào (hoặc thông báo thiếu API key), và ngay dưới đó là hàng
-   nút gợi ý. Thêm một màn hình "bắt đầu từ đâu" nữa là nói cùng một điều lần thứ
-   tư, sau tiêu đề header, lời chào, và nút gợi ý. */
-
-/* ── thẻ verdict ────────────────────────────────────────────────────────── */
-.vc{margin-top:10px;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:var(--card)}
-.vc .hd{padding:11px 14px;font-weight:680;display:flex;gap:9px;align-items:center;font-size:14.5px}
-.vc .bd{padding:13px 14px}
-.v-nen   .hd{background:var(--okbg);  color:var(--ok);  border-bottom:1px solid var(--okline)}
-.v-rui   .hd{background:var(--warnbg);color:var(--warn);border-bottom:1px solid var(--warnline)}
-.v-thieu .hd{background:var(--askbg); color:var(--ask); border-bottom:1px solid var(--askline)}
-.sec{margin:12px 0 0}
-.sec:first-child{margin-top:0}
-.sec h4{margin:0 0 6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--mute);font-weight:650}
-ul{margin:0;padding:0;list-style:none}
-li{padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
-li:last-child{border:0}
-.why{color:var(--mute);font-size:13px}
-
-/* Chip trích dẫn (L4, L5…) — bấm vào là nhảy tới đúng dòng trong tin. */
-.chip{
-  display:inline-block;padding:1px 7px;margin-right:7px;border:1px solid var(--accent-line);
-  border-radius:var(--r-sm);background:var(--accent-soft);color:var(--ink);
-  font:600 12px ui-monospace,"Cascadia Mono",Consolas,monospace;cursor:pointer;
-  transition:background .15s,border-color .15s,transform .1s;
-}
-.chip:hover{background:var(--ink);color:var(--card);border-color:var(--ink)}
-.chip:active{transform:translateY(1px)}          /* phản hồi khi nhấn */
-
-.ns{background:var(--soft);border:1px dashed var(--line);border-radius:var(--r-md);padding:10px 12px}
-.ns li{border:0;padding:2px 0;color:var(--mute);font-size:13px}
-.alert{
-  background:var(--stopbg);border:1px solid var(--stopline);color:var(--stop);
-  border-radius:var(--r-md);padding:10px 12px;margin-bottom:11px;font-size:13.5px;
-}
-.ref{
-  background:var(--soft);border-left:3px solid var(--accent-line);border-radius:0 var(--r-sm) var(--r-sm) 0;
-  padding:9px 12px;margin-bottom:11px;font-size:13.5px;
-}
-.ask{font-size:14.5px;font-weight:620}
-.gr{
-  margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--mute);
-  display:flex;gap:7px;align-items:center;flex-wrap:wrap;
+.dots span:nth-child(2){animation-delay:.18s}
+.dots span:nth-child(3){animation-delay:.36s}
+@keyframes bounce{
+  0%,60%,100%{opacity:.2;transform:translateY(0)}
+  30%{opacity:1;transform:translateY(-4px)}
 }
 
-/* ── thẻ tin tìm được ───────────────────────────────────────────────────── */
-/* NHỊP KHÔNG ĐỀU: bên trong một thẻ là ba dòng thuộc CÙNG một ý (tên → vì sao →
-   dữ kiện) nên bó sát nhau; giữa hai thẻ là hai cơ hội KHÁC nhau nên nới rộng
-   hơn hẳn. Cách đều nhau tuốt là kiểu bố cục của việc không ai quyết định gì. */
-.ops{display:grid;gap:14px;margin-top:12px}
-.op{
-  border:1px solid var(--line);border-radius:var(--r-md);padding:13px 14px;background:var(--card);
-  display:flex;flex-direction:column;gap:10px;
-  transition:border-color .15s,box-shadow .15s,transform .15s;
+/* ── Suggestions Bar ── */
+.sug{
+  display:flex; gap:8px; flex-wrap:wrap;
+  padding:12px 32px 14px;
+  background:var(--bg);
 }
-.op:hover{border-color:var(--accent-line);box-shadow:var(--sh-2);transform:translateY(-1px)}
-/* FLEX, KHÔNG PHẢI BLOCK — và đây là sửa lỗi, không phải chuyện thẩm mỹ.
-   `.meta` để display:block khiến khoảng trắng xuống dòng trong template literal
-   kẹt giữa hai block sibling và biến thành anonymous block: đo được 4 line box
-   = 75px trống nằm giữa tên tin và dòng dữ kiện. Flex container thì bỏ hẳn text
-   node chỉ-chứa-khoảng-trắng, nên lỗi này không quay lại dù template xuống dòng
-   kiểu gì. */
-.op .t{display:flex;flex-direction:column;gap:5px;min-width:0}
-
-/* Tầng 1 — tên tin. KHÔNG cắt cụt: đuôi tiêu đề thường mới là chỗ ghi level
-   ("(Intern/ Fresher level)"), xén đi là xén đúng thứ đang cần phân biệt. */
-.op .t b{font-size:15px;font-weight:640;line-height:1.35;letter-spacing:-.008em}
-
-/* Tầng 2 — vì sao tin này ở đây. Đậm hơn dữ kiện, nhạt hơn tên. */
-.op .vi{font-size:12.5px;font-weight:500;color:var(--mute);line-height:1.45}
-
-/* Tầng 3 — dữ kiện tra cứu. Nhẹ nhất, nhưng mã tin thì nổi lên (xem .id). */
-.op .meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--mute)}
-/* Mã tin là thứ học viên GÕ LẠI để đối chiếu, không phải văn xuôi — nên cho nó
-   hình dạng của một token bấm/chép được, không để lẫn trong chuỗi ngăn bằng `·`. */
-.op .id{
-  font:600 11.5px/1.5 ui-monospace,"Cascadia Mono",Consolas,monospace;
-  padding:1px 6px;border-radius:5px;background:var(--accent-soft);
-  border:1px solid var(--line);color:var(--ink);user-select:all;
+.sug button{
+  padding:6px 14px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  border-radius:var(--radius-pill);
+  font-size:12.5px; font-weight:500;
+  color:var(--ink-subtle);
+  cursor:pointer;
+  transition:var(--transition);
 }
-.op .act{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
-.k{
-  padding:1px 6px;border-radius:5px;font-size:10.5px;font-weight:650;
-  letter-spacing:.02em;background:transparent;color:var(--mute);
-  border:1px solid var(--line);white-space:nowrap;
+.sug button:hover{
+  border-color:var(--navy);
+  color:var(--navy);
+  background:var(--navy-04);
+  transform:translateY(-1px);
 }
 
-/* ── CẢNH BÁO: to hơn, rõ hơn, KHÔNG mờ ─────────────────────────────────────
-   Bản trước dán mấy nhãn này bằng `opacity:.65` cỡ 11px, đo ra 2.46:1 — dưới
-   chuẩn WCAG AA (4.5:1) khá xa. Tức là chính phần cảnh báo "máy đã bấm thử và
-   link này chết" lại là chữ mờ nhất trang. Cả buổi làm cho hệ thống chịu nói ra
-   mấy điều đó rồi lại để CSS giấu đi thì hỏng ở khâu cuối.
-   Giờ chúng dùng màu NGHĨA (warn) ở độ mờ đầy đủ.                              */
-/* align-self: badge co theo nội dung. Trong flex column, mặc định `stretch` sẽ
-   kéo nó chiếm hết bề ngang thẻ và trông như một thanh cảnh báo toàn chiều rộng. */
-.gan{
-  display:inline-flex;align-self:flex-start;align-items:center;gap:5px;
-  padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600;
-  background:var(--warnbg);color:var(--warn);border:1px solid var(--warnline);
-}
-.chua-xm{font-size:11.5px;font-weight:600;color:var(--warn)}
-.no-link{
-  display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:var(--r-sm);
-  font-size:12px;font-weight:600;background:var(--stopbg);color:var(--stop);
-  border:1px dashed var(--stopline);
-}
-
-/* ── composer ───────────────────────────────────────────────────────────── */
-.cmp{
-  padding:12px;border-top:1px solid var(--line);display:flex;gap:9px;align-items:flex-end;
-  background:var(--card);border-radius:0 0 var(--r-lg) var(--r-lg);
+/* ── Composer Bar ── */
+.composer{
+  padding:14px 24px 18px;
+  border-top:1px solid var(--border-subtle);
+  display:flex; align-items:flex-end; gap:12px;
+  background:var(--bg);
 }
 #inp{
-  flex:1;resize:none;max-height:130px;padding:10px 13px;border:1px solid var(--line);
-  border-radius:var(--r-md);background:var(--soft);transition:border-color .15s;
+  flex:1; resize:none; max-height:130px;
+  padding:12px 18px;
+  border:1.5px solid var(--border);
+  border-radius:var(--radius);
+  background:var(--surface);
+  font-size:14px;
+  line-height:1.5;
+  transition:var(--transition);
 }
-#inp:focus{outline:2px solid var(--ink);outline-offset:-1px;border-color:transparent}
-.send{
-  width:40px;height:40px;border:0;border-radius:var(--r-md);background:var(--accent);
-  color:var(--card);font-size:15px;cursor:pointer;flex:none;
-  transition:opacity .15s,transform .1s;
+#inp:focus{
+  border-color:var(--navy);
+  background:var(--bg);
+  box-shadow:0 0 0 3.5px var(--navy-08);
 }
-.send:hover:not(:disabled){opacity:.86}
-.send:active:not(:disabled){transform:translateY(1px) scale(.97)}
-.send:disabled{opacity:.35;cursor:default}
-.sug{display:flex;gap:7px;flex-wrap:wrap;padding:0 18px 12px}
-.sug button{
-  padding:5px 11px;border:1px solid var(--line);background:var(--card);border-radius:99px;
-  font-size:12.5px;cursor:pointer;color:var(--mute);
-  transition:border-color .15s,color .15s,transform .1s;
-}
-.sug button:hover{border-color:var(--accent-line);color:var(--ink)}
-.sug button:active{transform:translateY(1px)}
+#inp::placeholder{ color:var(--mute-light) }
 
-/* ── panel phải ─────────────────────────────────────────────────────────── */
-.tabs{display:flex;gap:3px;padding:8px 8px 0}
-.tabs button{
-  flex:1;padding:9px;border:0;background:transparent;border-radius:var(--r-sm) var(--r-sm) 0 0;
-  cursor:pointer;font-size:12.5px;font-weight:600;color:var(--mute);
-  border-bottom:2px solid transparent;transition:color .15s,border-color .15s;
+.send-btn{
+  width:44px; height:44px; flex-shrink:0;
+  border-radius:var(--radius);
+  background:var(--navy);
+  color:#fff;
+  cursor:pointer;
+  display:grid; place-items:center;
+  transition:var(--transition);
+  box-shadow:var(--sh-sm);
 }
-.tabs button:hover{color:var(--ink)}
-.tabs button.on{color:var(--ink);border-bottom-color:var(--ink);background:var(--soft)}
-/* Form hồ sơ chỉ cao ~60% panel, phần dưới trước đây là khoảng trống chết. Cho
-   .tp thành flex column rồi đẩy ghi chú riêng tư xuống đáy: vừa hết chỗ trống,
-   vừa đặt lời trấn an ở đúng nơi mắt dừng lại sau khi điền xong. */
-.tp{padding:16px;overflow-y:auto;flex:1;min-height:0;display:flex;flex-direction:column}
-.tp[hidden]{display:none}
-.tp .day{margin-top:auto;padding-top:14px}
-label.f{display:block;font-size:11px;color:var(--mute);margin:0 0 4px;font-weight:650;letter-spacing:.02em}
-input[type=text],input[type=number],textarea.x,select{
-  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);
-  background:var(--soft);transition:border-color .15s;
+.send-btn:hover{ background:var(--navy-hover); transform:scale(1.03) }
+.send-btn:disabled{ opacity:.35; cursor:default; transform:none }
+.send-btn svg{ width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round }
+
+/* ══════════════════════════════════════
+   VERDICT CARD & CARDS
+══════════════════════════════════════ */
+.vc{
+  margin-top:12px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  background:var(--bg);
+  box-shadow:var(--sh-md);
 }
-input[type=text]:hover,input[type=number]:hover,select:hover{border-color:var(--accent-line)}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.drop{
-  border:1.5px dashed var(--line);border-radius:var(--r-md);padding:20px;text-align:center;
-  cursor:pointer;background:var(--soft);margin-bottom:12px;
-  transition:border-color .18s,background .18s;
+.vc .hd{
+  padding:14px 18px;
+  display:flex; align-items:center; gap:12px;
+  font-size:14.5px; font-weight:700;
 }
-.drop:hover,.drop.hot{border-color:var(--accent-line);background:var(--accent-soft)}
-.drop b{color:var(--ink)}
-.drop small{color:var(--mute);display:block;margin-top:5px;font-size:11.5px}
-.note{font-size:12px;color:var(--mute);margin-top:8px;line-height:1.55}
+.vc .hd .verdict-icon{
+  width:30px; height:30px;
+  border-radius:var(--radius-sm);
+  display:grid; place-items:center;
+  font-size:14px; flex-shrink:0;
+}
+.vc .bd{ padding:16px 18px }
+
+.v-nen .hd  { background:var(--okbg);   color:var(--ok);   border-bottom:1px solid var(--okline)  }
+.v-nen .verdict-icon  { background:var(--okline) }
+.v-rui .hd  { background:var(--warnbg); color:var(--warn); border-bottom:1px solid var(--warnline)}
+.v-rui .verdict-icon  { background:var(--warnline) }
+.v-thieu .hd{ background:var(--askbg);  color:var(--ask);  border-bottom:1px solid var(--askline) }
+.v-thieu .verdict-icon{ background:var(--askline) }
+
+/* Sections */
+.sec{ margin-top:14px }
+.sec:first-child{ margin-top:0 }
+.sec h4{
+  font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.06em;
+  color:var(--mute);
+  margin-bottom:6px;
+}
+ul{ list-style:none }
+li{
+  padding:7px 0;
+  border-bottom:1px solid var(--border-subtle);
+  font-size:13.5px;
+  display:flex; align-items:baseline; gap:8px;
+  flex-wrap:wrap;
+}
+li:last-child{ border:0; padding-bottom:0 }
+.why{ color:var(--mute); font-size:12.5px }
+
+/* Line Chips */
+.chip{
+  display:inline-flex; align-items:center;
+  padding:2px 8px;
+  border:1px solid var(--navy-12);
+  border-radius:6px;
+  background:var(--navy-04);
+  font:600 11.5px/1 'Inter',monospace;
+  color:var(--navy);
+  cursor:pointer;
+  flex-shrink:0;
+  transition:var(--transition);
+}
+.chip:hover{
+  background:var(--navy-12);
+  border-color:var(--navy);
+}
+
+.ns{
+  background:var(--surface);
+  border:1px dashed var(--border);
+  border-radius:var(--radius-sm);
+  padding:11px 14px;
+}
+.ns li{ border:0; padding:2px 0; color:var(--mute); font-size:13px }
+
+.alert{
+  background:var(--stopbg);
+  border:1px solid var(--stopline);
+  border-left:3.5px solid var(--stop);
+  color:var(--stop);
+  border-radius:var(--radius-sm);
+  padding:11px 14px;
+  margin-bottom:12px;
+  font-size:13px;
+}
+.ref{
+  background:var(--navy-04);
+  border-left:3.5px solid var(--navy);
+  border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  padding:11px 14px;
+  margin-bottom:12px;
+  font-size:13px; color:var(--ink-subtle);
+}
+.ask-q{
+  font-size:15px; font-weight:700;
+  color:var(--ask);
+}
+.ask-hint{ font-size:12.5px; color:var(--mute); margin-top:4px }
+
+/* Grounding Footer Bar */
+.gr-bar{
+  margin-top:14px; padding-top:12px;
+  border-top:1px solid var(--border-subtle);
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+  font-size:11.5px; color:var(--mute);
+}
+.gr-bar b{ color:var(--ink-subtle) }
+.gr-bar .fb-btns{ margin-left:auto; display:flex; gap:6px }
+.fb-btn{
+  padding:4px 10px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-pill);
+  background:var(--bg);
+  font-size:12px; cursor:pointer;
+  transition:var(--transition);
+}
+.fb-btn:hover{ border-color:var(--navy); color:var(--navy); background:var(--surface) }
+.fb-btn:disabled{ opacity:.5; cursor:default }
+
+/* Opportunity Item Cards */
+.ops{ display:flex; flex-direction:column; gap:10px; margin-top:12px }
+.op{
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:13px 16px;
+  background:var(--bg);
+  display:flex; gap:14px; align-items:flex-start;
+  transition:var(--transition);
+  box-shadow:var(--sh-sm);
+}
+.op:hover{
+  border-color:var(--navy-12);
+  box-shadow:var(--sh-md);
+  transform:translateY(-1px);
+}
+.op .op-left{ flex:1; min-width:0 }
+.op .op-left b{
+  display:block;
+  font-size:14px; font-weight:600; color:var(--ink);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  margin-bottom:3px;
+}
+.op .op-meta{
+  font-size:12px; color:var(--mute);
+  display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+}
+.op .near-warn{
+  font-size:11.5px; color:var(--warn); font-weight:600;
+  background:var(--warnbg); border-radius:5px;
+  padding:2px 8px; margin-top:6px; display:inline-block;
+}
+.kind-badge{
+  display:inline-flex; align-items:center;
+  padding:2px 8px;
+  border-radius:6px;
+  font-size:11px; font-weight:700;
+  letter-spacing:.02em;
+  background:var(--navy-04);
+  color:var(--navy);
+  flex-shrink:0;
+}
+.op-actions{
+  display:flex; gap:8px; align-items:center; flex-shrink:0; margin-top:2px;
+}
+
+/* Action Buttons */
 .btn{
-  padding:8px 13px;border:1px solid var(--line);background:var(--card);border-radius:var(--r-sm);
-  cursor:pointer;font-size:13px;color:var(--ink);
-  transition:border-color .15s,background .15s,transform .1s;
+  padding:7px 14px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  background:var(--bg);
+  font-size:12.5px; font-weight:500;
+  cursor:pointer;
+  color:var(--ink-subtle);
+  transition:var(--transition);
+  text-decoration:none; display:inline-flex; align-items:center; gap:5px;
 }
-.btn:hover{border-color:var(--accent-line);background:var(--soft)}
-.btn:active{transform:translateY(1px)}
-.btn.p{background:var(--accent);color:var(--card);border-color:var(--accent);font-weight:620}
-.btn.p:hover{opacity:.86;background:var(--accent)}
+.btn:hover{ border-color:var(--navy-12); background:var(--surface) }
+.btn.primary{
+  background:var(--navy); color:#fff;
+  border-color:var(--navy);
+  font-weight:600;
+  box-shadow:var(--sh-sm);
+}
+.btn.primary:hover{ background:var(--navy-hover) }
 
-#tinView{
-  font:12.5px/1.7 ui-monospace,"Cascadia Mono",Consolas,monospace;border:1px solid var(--line);
-  border-radius:var(--r-sm);overflow:hidden;background:var(--soft);
+/* ══════════════════════════════════════
+   RIGHT PANEL & CONTROL TABS
+══════════════════════════════════════ */
+.panel-header{
+  padding:16px 20px 12px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
 }
-.ln{display:flex;gap:10px;padding:1px 9px}
-/* Số dòng: bỏ opacity, dùng --mute đầy đủ. Đây là toạ độ để đối chiếu trích dẫn,
-   mờ đi thì mất luôn tác dụng kiểm chứng. */
-.ln .no{color:var(--mute);min-width:22px;text-align:right;user-select:none}
-.ln.hit{background:var(--warnbg);outline:2px solid var(--warn);border-radius:var(--r-sm)}
+.panel-tabs{
+  display:flex;
+  padding:3px;
+  background:var(--surface-2);
+  border-radius:var(--radius);
+}
+.panel-tabs button{
+  flex:1;
+  padding:7px 12px;
+  border-radius:var(--radius-sm);
+  font-size:13px; font-weight:600;
+  color:var(--mute);
+  cursor:pointer;
+  transition:var(--transition);
+  text-align:center;
+}
+.panel-tabs button.on{
+  color:var(--navy);
+  background:var(--bg);
+  box-shadow:0 1px 3px rgba(1,24,56,.08);
+}
+
+.tp{
+  padding:20px;
+  overflow-y:auto; flex:1; min-height:0;
+}
+.tp[hidden]{ display:none }
+
+/* Form Fields */
+.field-label{
+  display:block;
+  font-size:12px; font-weight:600;
+  color:var(--ink-subtle);
+  margin-bottom:5px;
+}
+.g2{
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:12px; margin-bottom:12px;
+}
+.field-wrap{ margin-bottom:12px }
+input[type=text],input[type=number],textarea.x,select{
+  width:100%; padding:9.5px 13px;
+  border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);
+  background:var(--bg);
+  font-size:13.5px;
+  transition:var(--transition);
+  color:var(--ink);
+}
+input[type=text]:focus,input[type=number]:focus,textarea.x:focus,select:focus{
+  border-color:var(--navy);
+  box-shadow:0 0 0 3.5px var(--navy-08);
+}
+input::placeholder,textarea::placeholder{ color:var(--mute-light) }
+select{
+  cursor:pointer;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  padding-right:32px;
+}
+
+/* CV Drag & Drop Area (Inline in Panel) */
+.drop{
+  border:1.5px dashed var(--border);
+  border-radius:var(--radius);
+  padding:22px 16px;
+  text-align:center;
+  cursor:pointer;
+  transition:var(--transition);
+  background:var(--bg);
+  margin-bottom:14px;
+  box-shadow:var(--sh-sm);
+}
+.drop:hover, .drop.hot{
+  border-color:var(--navy);
+  background:var(--navy-04);
+}
+.drop .drop-icon{
+  width:42px; height:42px;
+  border-radius:var(--radius);
+  background:var(--navy-08);
+  display:grid; place-items:center;
+  margin:0 auto 10px;
+}
+.drop .drop-icon svg{
+  width:22px; height:22px;
+  fill:none; stroke:var(--navy);
+  stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+}
+.drop-title{ font-size:13.5px; font-weight:700; color:var(--ink) }
+.drop-sub{ font-size:11.5px; color:var(--mute); margin-top:3px }
+.drop-sub b{ color:var(--navy) }
+
+.note{
+  font-size:12px; color:var(--mute);
+  line-height:1.6; margin-top:6px;
+}
+
+/* Document Line Viewer */
+#tinView{
+  font:12.5px/1.7 'JetBrains Mono','Consolas',ui-monospace,monospace;
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  overflow:hidden;
+  background:var(--bg);
+}
+.ln{
+  display:flex; gap:14px;
+  padding:2px 14px;
+  transition:background .12s;
+}
+.ln:hover{ background:var(--navy-04) }
+.ln .no{
+  color:var(--mute-light); min-width:24px;
+  text-align:right; user-select:none;
+  font-size:11.5px; padding-top:1px;
+  flex-shrink:0;
+}
+.ln .lc{ font-size:12.5px; color:var(--ink) }
+.ln.hit{
+  background:rgba(1,24,56,.08);
+  outline:2px solid rgba(1,24,56,.3);
+  border-radius:3px;
+}
+.ln.hit .no{ opacity:1; color:var(--navy); font-weight:700 }
+
+/* Status Messages */
 .err{
-  background:var(--stopbg);border:1px solid var(--stopline);color:var(--stop);
-  padding:10px 12px;border-radius:var(--r-md);font-size:13.5px;
+  background:var(--stopbg);
+  border:1px solid var(--stopline);
+  border-left:3.5px solid var(--stop);
+  color:var(--stop);
+  padding:11px 14px;
+  border-radius:var(--radius-sm);
+  font-size:13px;
 }
 .ok{
-  background:var(--okbg);border:1px solid var(--okline);color:var(--ok);
-  padding:10px 12px;border-radius:var(--r-md);font-size:13px;margin-bottom:11px;
+  background:var(--okbg);
+  border:1px solid var(--okline);
+  border-left:3.5px solid var(--ok);
+  color:var(--ok);
+  padding:11px 14px;
+  border-radius:var(--radius-sm);
+  font-size:13px; margin-bottom:12px;
 }
+
+/* Empty State */
+.empty-state{
+  display:flex; flex-direction:column; align-items:center;
+  padding:44px 20px; text-align:center; color:var(--mute);
+}
+.empty-state .es-icon{
+  width:56px; height:56px;
+  border-radius:var(--radius);
+  background:var(--navy-04);
+  display:grid; place-items:center;
+  margin-bottom:14px;
+}
+.empty-state .es-icon svg{
+  width:28px; height:28px;
+  fill:none; stroke:var(--navy);
+  stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
+  opacity:.8;
+}
+.empty-state h3{ font-size:15px; font-weight:600; color:var(--ink); margin-bottom:4px }
+.empty-state p{ font-size:13px; max-width:28ch; line-height:1.6 }
+
+/* Section Dividers */
+.divider{
+  display:flex; align-items:center; gap:12px;
+  margin:14px 0;
+  font-size:11px; color:var(--mute); font-weight:600; text-transform:uppercase; letter-spacing:.06em;
+}
+.divider::before,.divider::after{
+  content:''; flex:1; height:1px; background:var(--border);
+}
+
+.more-note{
+  font-size:12px; color:var(--mute);
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:8px 14px; margin-top:8px;
+}
+
+details{ margin-top:16px }
+summary{
+  cursor:pointer; font-size:13px; color:var(--ink-subtle);
+  display:flex; align-items:center; gap:6px;
+  list-style:none; font-weight:600;
+}
+summary::-webkit-details-marker{ display:none }
+summary::before{
+  content:'›';
+  font-size:18px;
+  transition:transform .15s;
+}
+details[open] summary::before{ transform:rotate(90deg) }
+details textarea.x{ margin-top:10px }
+
 </style>
 </head>
 <body>
+
+<!-- ════════════════════════════════ HEADER ════════════════════════════════ -->
 <header>
-  <div class="logo">◎</div>
-  <div>
-    <h1>OpportunityMatch</h1>
-    <!-- G1: câu đầu tiên user thấy nói đúng phạm vi hệ thống -->
-    <p class="sc">Mình tìm tin trong thư viện của hệ thống và đối chiếu <b>một tin</b> với hồ sơ bạn khai,
-      chỉ rõ từng dòng làm căn cứ. Mình <b>không</b> viết CV hộ, <b>không</b> đoán bạn có đỗ.</p>
+  <div class="logo-wrap">
+    <div class="logo-icon">◎</div>
+    <div>
+      <h1>OpportunityMatch</h1>
+      <p class="header-sub">
+        Tìm tin trong thư viện hệ thống và đối chiếu <b>một tin</b> với hồ sơ khai — chỉ rõ từng dòng làm căn cứ.
+        <b>Không</b> viết CV hộ, <b>không</b> đoán bạn có đỗ.
+      </p>
+    </div>
   </div>
-  <div class="pill"><span class="tag" id="tagProv">…</span><span class="tag" id="tagMode">…</span></div>
+  <div class="hd-badges">
+    <span class="badge" id="tagProv">…</span>
+    <span class="badge" id="tagMode">…</span>
+  </div>
 </header>
 
+<!-- ════════════════════════════════ MAIN ════════════════════════════════ -->
 <main>
-  <!-- ── chat ── -->
-  <div class="col">
-    <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
-      <div id="chat"></div>
-      <div class="sug" id="sug"></div>
-      <div class="cmp">
-        <textarea id="inp" rows="1" placeholder="vd: tìm thực tập AI ở Hà Nội cho mình"></textarea>
-        <button class="send" id="btnSend" title="Gửi (Enter)">➤</button>
-      </div>
+
+  <!-- ── CỘT TRÁI: CHAT ── -->
+  <div class="col-left">
+    <!-- Chat stream -->
+    <div id="chat"></div>
+
+    <!-- Suggestions -->
+    <div class="sug" id="sug"></div>
+
+    <!-- Composer -->
+    <div class="composer">
+      <textarea id="inp" rows="1" placeholder="vd: tìm thực tập AI ở Hà Nội cho mình…"></textarea>
+      <button class="send-btn" id="btnSend" title="Gửi (Enter)">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
     </div>
   </div>
 
-  <!-- ── panel phải ── -->
-  <aside class="col"><!-- thẻ aside: nội dung bổ trợ cho luồng chat chính -->
-    <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
-      <div class="tabs">
+  <!-- ── CỘT PHẢI: HỒ SƠ + TIN ── -->
+  <div class="col-right">
+    <div class="panel-header">
+      <div class="panel-tabs">
         <button data-t="hs" class="on">Hồ sơ &amp; CV</button>
         <button data-t="tin">Tin đang xét</button>
       </div>
-
-      <div class="tp" id="tp-hs">
-        <div class="drop" id="drop">
-          <b>Tải CV lên</b> hoặc kéo file vào đây
-          <small>.pdf · .docx · .txt · .md — xử lý trong RAM, <b>không lưu file</b></small>
-        </div>
-        <input type="file" id="file" hidden accept=".pdf,.docx,.txt,.md">
-        <div id="cvMsg"></div>
-
-        <div class="g2">
-          <div><label class="f">Năm học</label><input type="number" id="fNam" min="1" max="6" placeholder="chưa khai"></div>
-          <div><label class="f">GPA (thang 4)</label><input type="number" id="fGpa" step="0.01" min="0" max="4" placeholder="chưa khai"></div>
-          <div><label class="f">Ngành</label><input type="text" id="fNganh" placeholder="chưa khai"></div>
-          <div><label class="f">Thành phố</label><input type="text" id="fCity" placeholder="chưa khai"></div>
-        </div>
-        <label class="f">Kỹ năng (cách nhau bởi dấu phẩy)</label>
-        <input type="text" id="fSkill" placeholder="Python, SQL…">
-        <div style="margin-top:9px"><label class="f">Hoặc chọn persona giả để test</label>
-          <select id="profSel"></select></div>
-        <p class="note day">Hồ sơ chỉ nằm trong phiên làm việc này — không có database, không ghi ra file.
-          Email / điện thoại / link / số giấy tờ trong CV bị thay bằng placeholder ngay tại máy
-          trước khi gửi đi.</p>
-      </div>
-
-      <div class="tp" id="tp-tin" hidden>
-        <div id="tinTrong" class="note">Chưa có tin nào được đối chiếu. Nhờ mình tìm tin,
-          hoặc gõ “đối chiếu OPP-001”.</div>
-        <div id="tinTieuDe" style="font-weight:650;margin-bottom:8px"></div>
-        <div id="tinView"></div>
-        <details style="margin-top:12px">
-          <summary style="cursor:pointer;font-size:12.5px;color:var(--mute)">Dán tin ngoài để đối chiếu (không cần API key)</summary>
-          <textarea class="x" id="tinDan" rows="7" style="margin-top:8px;font:12.5px ui-monospace,monospace"
-            placeholder="Dán nội dung tin vào đây…"></textarea>
-          <button class="btn p" id="btnDan" style="margin-top:8px">Đối chiếu (mock)</button>
-        </details>
-      </div>
     </div>
-  </aside>
+
+    <!-- Tab: Hồ sơ -->
+    <div class="tp" id="tp-hs">
+      <!-- CV Dropzone trực tiếp trong panel -->
+      <div class="drop" id="drop">
+        <div class="drop-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="drop-title">Tải CV lên hoặc kéo vào đây</div>
+        <div class="drop-sub">.pdf · .docx · .txt · .md — xử lý trong RAM, <b>không lưu file</b></div>
+      </div>
+      <input type="file" id="file" hidden accept=".pdf,.docx,.txt,.md">
+      <div id="cvMsg"></div>
+
+      <div class="divider">hoặc khai thủ công</div>
+
+      <div class="g2">
+        <div>
+          <label class="field-label">Năm học</label>
+          <input type="number" id="fNam" min="1" max="6" placeholder="1 – 6">
+        </div>
+        <div>
+          <label class="field-label">GPA (thang 4)</label>
+          <input type="number" id="fGpa" step="0.01" min="0" max="4" placeholder="vd: 3.20">
+        </div>
+        <div>
+          <label class="field-label">Ngành học</label>
+          <input type="text" id="fNganh" placeholder="CNTT, KHMT…">
+        </div>
+        <div>
+          <label class="field-label">Thành phố</label>
+          <input type="text" id="fCity" placeholder="Hà Nội, TP.HCM…">
+        </div>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">Kỹ năng (cách nhau bằng dấu phẩy)</label>
+        <input type="text" id="fSkill" placeholder="Python, SQL, Machine Learning…">
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">Chọn persona mẫu để thử</label>
+        <select id="profSel"><option value="">— tự khai bên trên —</option></select>
+      </div>
+      <p class="note">
+        Hồ sơ chỉ nằm trong phiên này — không có database, không ghi ra file.
+        Email / điện thoại / số giấy tờ trong CV bị ẩn ngay tại máy trước khi gửi đi.
+      </p>
+    </div>
+
+    <!-- Tab: Tin đang xét -->
+    <div class="tp" id="tp-tin" hidden>
+      <div id="tinTrong">
+        <div class="empty-state">
+          <div class="es-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <h3>Chưa có tin nào</h3>
+          <p>Nhờ mình tìm tin, hoặc gõ "đối chiếu OPP-001" trong chat.</p>
+        </div>
+      </div>
+      <div id="tinTieuDe" style="font-weight:700;font-size:14px;margin-bottom:10px;color:var(--navy)"></div>
+      <div id="tinView"></div>
+
+      <details>
+        <summary>Dán tin ngoài để đối chiếu <span style="opacity:.6;font-size:11px">(không cần API key)</span></summary>
+        <textarea class="x" id="tinDan" rows="7"
+          style="font:12.5px/1.6 'Consolas',ui-monospace,monospace;margin-top:10px"
+          placeholder="Dán nội dung tin tuyển dụng vào đây…"></textarea>
+        <button class="btn primary" id="btnDan" style="margin-top:10px;width:100%">
+          ⚡ Đối chiếu (mock — không cần key)
+        </button>
+      </details>
+    </div>
+  </div>
+
 </main>
 
 <script>
@@ -410,24 +820,30 @@ const chip = k => k ? `<button class="chip" data-line="${k}">L${k}</button>` : '
 let DATA=null, LICH_SU=[], TIN_HIEN=null, KQ_CUOI=null, DANG_GUI=false;
 
 const NHAN = {
-  nen_apply:      {cls:'v-nen',  ic:'✓', txt:'Nên apply'},
-  rui_ro_cao:     {cls:'v-rui',  ic:'!', txt:'Rủi ro cao — kiểm mấy điểm dưới trước khi dồn thời gian'},
-  thieu_thong_tin:{cls:'v-thieu',ic:'?', txt:'Thiếu thông tin'}
+  nen_apply:      {cls:'v-nen',   ic:'✓', txt:'Nên apply'},
+  rui_ro_cao:     {cls:'v-rui',   ic:'⚠', txt:'Rủi ro cao — kiểm mấy điểm dưới trước khi dồn thời gian'},
+  thieu_thong_tin:{cls:'v-thieu', ic:'?', txt:'Thiếu thông tin'},
 };
-const GOI_Y = ['tìm thực tập AI ở Hà Nội cho mình','có học bổng nào cho năm 3 không?',
-               'đối chiếu OPP-001','viết luôn CV cho mình đi','mình có đỗ không, bao nhiêu %?'];
+const GOI_Y = [
+  'tìm thực tập AI ở Hà Nội cho mình',
+  'có học bổng nào cho năm 3 không?',
+  'đối chiếu OPP-001',
+  'viết luôn CV cho mình đi',
+  'mình có đỗ không, bao nhiêu %?',
+];
 
 /* ── khởi động ── */
 async function init(){
   DATA = await (await fetch('/api/data')).json();
-  $('#tagProv').textContent = `${DATA.provider} · ${DATA.model}`;
+  const prov = $('#tagProv');
+  prov.textContent = `${DATA.provider} · ${DATA.model}`;
   $('#profSel').innerHTML = '<option value="">— tự khai bên trên —</option>' +
     DATA.profiles.map(p=>`<option value="${p.id}">${p.id} · ${esc(p.nhan)}</option>`).join('');
   $('#sug').innerHTML = GOI_Y.map(g=>`<button>${esc(g)}</button>`).join('');
   capNhatTag();
   if(!DATA.co_api_key){
     them('a', `Chưa có API key nên chat đang tắt. Đặt <code>OPENAI_API_KEY</code> rồi chạy lại server.<br>
-      Trong lúc đó bạn vẫn dùng được: tab <b>Tin đang xét</b> → “Dán tin ngoài để đối chiếu”, chạy bằng mock.`, true);
+      Trong lúc đó bạn vẫn dùng được: tab <b>Tin đang xét</b> → "Dán tin ngoài để đối chiếu", chạy bằng mock.`, true);
     $('#btnSend').disabled = true;
   } else {
     them('a','Mình giúp được hai việc: <b>tìm tin</b> trong thư viện của hệ thống, và <b>đối chiếu một tin</b> '
@@ -437,12 +853,11 @@ async function init(){
 const capNhatTag = () => {
   const t=$('#tagMode');
   const real = DATA.co_api_key;
-  t.textContent = real ? 'AI THẬT' : 'MOCK — chưa gọi AI';
-  t.className = 'tag' + (real?'':' warnt');
+  t.textContent = real ? 'AI thật' : 'Mock — chưa gọi AI';
+  t.className = 'badge' + (real?' live':' warn');
 };
-/* Field lấy từ CV mà form không có ô nhập (project, co_github). Trước đây hoSo()
-   chỉ đọc các ô trong form nên mấy field này rơi mất ngay khi bắt đầu chat —
-   học viên có GitHub/project trong CV vẫn bị đối chiếu là "không nêu". */
+
+/* Field lấy từ CV mà form không có ô nhập. */
 let CV_THEM = {};
 function hoSo(){
   const b = DATA.profiles.find(x=>x.id===$('#profSel').value) || {};
@@ -487,108 +902,87 @@ async function gui(text){
 }
 
 /* ── render ── */
-/* Nhãn nút phải nói đúng link dẫn tới ĐÂU. Link chỉ "sống" thì chưa đủ —
-   gắn nhãn "Xem tin" lên một trang chủ công ty là hứa sai với học viên.
-   Mức do crawler.py chấm sau khi bấm thử thật; url rỗng = link chết, ẩn nút. */
-/* Badge loại cơ hội. Trước đây hardcode `loai==='hoc_bong' ? 'học bổng' : 'thực tập'`
-   nên tin viec_lam (fresher/junior) bị dán nhãn "thực tập" — sai với học viên. */
 const NHAN_LOAI = {thuc_tap:'thực tập', hoc_bong:'học bổng', viec_lam:'việc làm'};
 const NHAN_LINK = {
-  tin:        {ic:'🔗', txt:'Xem tin',            gt:'Link tới đúng tin tuyển dụng'},
-  tuyen_dung: {ic:'🔗', txt:'Trang tuyển dụng',   gt:'Trang tuyển dụng của tổ chức — cần tự tìm tin trong đó'},
-  to_chuc:    {ic:'🏢', txt:'Trang tổ chức',      gt:'Chỉ có trang chủ tổ chức, không phải trang tin'},
+  tin:        {ic:'🔗', txt:'Xem tin',          gt:'Link tới đúng tin tuyển dụng'},
+  tuyen_dung: {ic:'🔗', txt:'Trang tuyển dụng', gt:'Trang tuyển dụng của tổ chức — cần tự tìm tin trong đó'},
+  to_chuc:    {ic:'🏢', txt:'Trang tổ chức',    gt:'Chỉ có trang chủ tổ chức, không phải trang tin'},
 };
-/* CẢNH BÁO PHẢI ĐỌC ĐƯỢC. Bản trước vẽ hai nhãn này bằng `opacity:.65`/`.7` cỡ
-   11px — đo ra 2.46:1 và 2.68:1, dưới chuẩn WCAG AA (4.5:1). Nghĩa là đúng câu
-   "máy đã bấm thử và link này chết" lại là chữ mờ nhất trang, còn nút link sống
-   thì đậm. Giờ cả hai dùng màu NGHĨA ở độ mờ đầy đủ, và trạng thái link chết
-   được vẽ như một nhãn thật chứ không phải chú thích bên lề. */
 function veLink(o){
-  if(!o.url) return `<span class="no-link" title="Máy đã bấm thử, trang không tồn tại">
-     <span aria-hidden="true">⊘</span> link đã chết</span>`;
+  if(!o.url) return `<span class="note" style="font-size:11px;opacity:.65" title="Máy đã bấm thử, trang không tồn tại">chưa có link</span>`;
   const n = NHAN_LINK[o.url_loai] || NHAN_LINK.to_chuc;
-  /* Trang chặn bot (LinkedIn, TopCV...) nên máy không tự vào kiểm được. Link vẫn đưa,
-     nhưng phải nói rõ là chưa xác minh — im lặng cho qua là hứa điều mình không biết. */
   const chua = o.link_xac_minh === false;
-  const dau  = chua ? ' <span class="chua-xm">· chưa xác minh</span>' : '';
+  const dau  = chua ? ' <span style="opacity:.7">·chưa xác minh</span>' : '';
   const gt   = chua ? `${n.gt}. Máy không tự mở kiểm được (trang chặn bot) — link chưa xác minh: ${o.url}`
                     : `${n.gt}: ${o.url}`;
   return `<a href="${esc(o.url)}" target="_blank" rel="noopener" class="btn"
-     title="${esc(gt)}" style="font-size:12px;text-decoration:none">${n.ic} ${esc(n.txt)}${dau}</a>`;
+     title="${esc(gt)}"
+     style="font-size:12px;text-decoration:none${chua?';opacity:.8':''}">${n.ic} ${esc(n.txt)}${dau}</a>`;
 }
 function veDanhSach(ds, conLai, tong){
   if(!ds?.length) return `<div class="note" style="margin-top:8px">Không có tin nào khớp trong thư viện.</div>`;
-  /* Cắt bớt thì phải nói ra. Im lặng hiện 8/14 tin là âm thầm giấu 6 cơ hội mà
-     học viên không có cách nào biết. */
   const con = conLai>0
-    ? `<div class="note" style="margin-top:6px">Đang hiện ${ds.length}/${tong} tin khớp —
-       còn <b>${conLai}</b> tin nữa. Nhắn "xem thêm" để mình hiện tiếp.</div>` : '';
-  /* Không tin nào đạt đủ điều kiện thì vẫn hiện tin gần đúng, nhưng phải nói trước
-     mặt là chúng lệch — thà cho xem kèm cảnh báo còn hơn trả về danh sách trống. */
+    ? `<div class="more-note">Đang hiện ${ds.length}/${tong} tin khớp — còn <b>${conLai}</b> tin nữa. Nhắn "xem thêm" để hiện tiếp.</div>` : '';
   const gan = ds.filter(o=>o.thieu?.length).length;
   const dau = gan===ds.length
-    ? `<div class="note" style="margin-top:8px">Không có tin nào khớp hẳn điều kiện bạn nêu.
-       Dưới đây là ${ds.length} tin <b>gần đúng nhất</b> — mỗi tin ghi rõ chỗ lệch.</div>` : '';
-  /* BA TẦNG, KHÔNG PHẢI MỘT DÒNG CHẠY DÀI.
-     Bản trước dồn 7 thông tin khác loại vào một chuỗi nối bằng dấu `·` cùng cỡ
-     cùng màu: mã tin, thành phố, level, hạn nộp, rồi lý do khớp. Mắt không có
-     chỗ bám, và thứ học viên cần nhất lại chìm nhất — `opp_id` là thứ họ phải
-     GÕ LẠI để đối chiếu, mà nó nằm lẫn giữa chuỗi văn xuôi.
-       tầng 1  tên tin              — cái để quyết định có đọc tiếp không
-       tầng 2  vì sao tin này ở đây — lý do khớp, hoặc chỗ lệch nếu gần đúng
-       tầng 3  dữ kiện tra cứu     — mã tin (token gõ được), loại, nơi, hạn
-     `ghi_chu` từ tim_tin đã chứa sẵn tiền tố "GẦN ĐÚNG (...)" nên phải cắt đi:
-     badge ⚠ ngay trên đã nói rồi, để nguyên là cùng một chỗ lệch hiện hai lần. */
-  return dau + `<div class="ops">` + ds.map(o=>{
-    const gan = o.thieu?.length;
-    const vi  = (o.ghi_chu||'').replace(/^GẦN ĐÚNG \([^)]*\)\s*·\s*/, '');
-    return `<article class="op">
-      <div class="t">
+    ? `<div class="note" style="margin-top:8px">Không có tin nào khớp hẳn điều kiện bạn nêu. Dưới đây là ${ds.length} tin <b>gần đúng nhất</b> — mỗi tin ghi rõ chỗ lệch.</div>` : '';
+  return dau + `<div class="ops">` + ds.map(o=>`<div class="op">
+      <div class="op-left">
         <b>${esc(o.title)}</b>
-        ${gan?`<span class="gan"><span aria-hidden="true">⚠</span> ${esc(o.thieu.join('; '))}</span>`:''}
-        ${vi?`<span class="vi">${esc(vi)}</span>`:''}
-        <span class="meta"><code class="id">${esc(o.opp_id)}</code><span class="k">${NHAN_LOAI[o.loai]||'thực tập'}</span>${esc(o.thanh_pho||'—')}${o.cap_do?.length?` · ${esc(o.cap_do.join('/'))}`:''} · hạn ${esc(o.han_nop||'không nêu')}</span>
+        <div class="op-meta">
+          <span class="kind-badge">${NHAN_LOAI[o.loai]||'thực tập'}</span>
+          <span>${esc(o.opp_id)}</span>
+          ${o.thanh_pho?`<span>📍 ${esc(o.thanh_pho)}</span>`:''}
+          ${o.cap_do?.length?`<span>${esc(o.cap_do.join('/'))}</span>`:''}
+          <span>⏰ ${esc(o.han_nop||'không nêu')}</span>
+        </div>
+        ${o.ghi_chu?`<div class="note" style="margin-top:4px">${esc(o.ghi_chu)}</div>`:''}
+        ${o.thieu?.length?`<span class="near-warn">⚠ Gần đúng — ${esc(o.thieu.join('; '))}</span>`:''}
       </div>
-      <div class="act">
+      <div class="op-actions">
         ${veLink(o)}
-        <button class="btn" data-doi="${o.opp_id}">Đối chiếu</button>
-      </div></article>`;
-  }).join('') + `</div>` + con;
+        <button class="btn primary" data-doi="${o.opp_id}">Đối chiếu</button>
+      </div>
+    </div>`).join('') + `</div>` + con;
 }
 function veVerdict(d, tin){
   const v = NHAN[d.verdict] || NHAN.thieu_thong_tin;
   KQ_CUOI = {kq:d, tin};
-  let h = `<div class="vc ${v.cls}"><div class="hd"><span>${v.ic}</span><span>${v.txt}</span></div><div class="bd">`;
+  let h = `<div class="vc ${v.cls}"><div class="hd">
+    <span class="verdict-icon">${v.ic}</span>
+    <span>${v.txt}</span></div><div class="bd">`;
   if(d.canh_bao?.length)
-    h += `<div class="alert"><b>Dấu hiệu bất thường</b><ul>${d.canh_bao.map(c=>`<li>${esc(c)}</li>`).join('')}</ul></div>`;
+    h += `<div class="alert"><b>⚠ Dấu hiệu bất thường</b><ul>${d.canh_bao.map(c=>`<li>${esc(c)}</li>`).join('')}</ul></div>`;
   if(d.refusal) h += `<div class="ref">${esc(d.refusal)}</div>`;
 
   if(d.verdict==='thieu_thong_tin'){
-    // G10 — hỏi thì chỉ hỏi, không kèm phán quyết nửa vời
-    h += `<div class="ask">${esc(d.one_question||'')}</div>`;
-    if(d.thieu_o_dau==='ho_so') h += `<div class="why" style="margin-top:5px">Điền ở panel Hồ sơ rồi nhắc mình đối chiếu lại.</div>`;
+    h += `<div class="ask-q">${esc(d.one_question||'')}</div>`;
+    if(d.thieu_o_dau==='ho_so') h += `<div class="ask-hint">Điền ở panel Hồ sơ rồi nhắc mình đối chiếu lại.</div>`;
   } else {
-    if(d.hard_fail?.length) h += sec('Tin ghi thẳng là bắt buộc mà hồ sơ chưa đạt',
-      d.hard_fail.map(x=>`<li>${chip(x.evidence_line)}${esc(x.rule)}</li>`));
+    if(d.hard_fail?.length) h += sec('Tin ghi thẳng bắt buộc — hồ sơ chưa đạt',
+      d.hard_fail.map(x=>`<li>${chip(x.evidence_line)}<span>${esc(x.rule)}</span></li>`));
     if(d.matched?.length) h += sec('Đã khớp',
-      d.matched.map(x=>`<li>${chip(x.evidence_line)}${esc(x.requirement)} <span class="why">— ${esc(x.from_profile)}</span></li>`));
+      d.matched.map(x=>`<li>${chip(x.evidence_line)}<span>${esc(x.requirement)} <span class="why">— ${esc(x.from_profile)}</span></span></li>`));
     if(d.gaps?.length) h += sec('Chưa khớp / cần tự kiểm',
-      d.gaps.map(x=>`<li>${chip(x.evidence_line)}${esc(x.requirement)} <span class="why">— ${esc(x.why)}</span></li>`));
+      d.gaps.map(x=>`<li>${chip(x.evidence_line)}<span>${esc(x.requirement)} <span class="why">— ${esc(x.why)}</span></span></li>`));
   }
   if(d.not_stated?.length) h += `<div class="sec"><h4>Tin không nêu — mình không suy diễn</h4>
     <div class="ns"><ul>${d.not_stated.map(s=>`<li>· ${esc(s)}</li>`).join('')}</ul></div></div>`;
   const dl = d.deadline||{};
-  if(dl.raw) h += sec('Hạn nộp', [`<li>${chip(dl.evidence_line)}${esc(dl.raw)} <span class="why">— ${
-    dl.parsed?esc(dl.parsed):'tin không ghi rõ năm → mình không tự điền'}</span></li>`]);
-  if(d.next_3?.length) h += sec('Việc cần làm', d.next_3.map(s=>`<li>${esc(s)}</li>`));
+  if(dl.raw) h += sec('Hạn nộp', [`<li>${chip(dl.evidence_line)}<span>${esc(dl.raw)} <span class="why">— ${
+    dl.parsed?esc(dl.parsed):'tin không ghi rõ năm → mình không tự điền'}</span></span></li>`]);
+  if(d.next_3?.length) h += sec('Việc cần làm', d.next_3.map(s=>`<li>→ ${esc(s)}</li>`));
 
   const g = d._grounding||{};
-  h += `<div class="gr">Trích dẫn máy soát: <b>${g.so_dat}/${g.so_khang_dinh}</b> trỏ đúng dòng${
-    g.grounding_pass?'':' — <b>CÓ TRÍCH SAI</b>'} · ${d._ms}ms · ${d._mode==='real'?esc(d._model):'mock'}
-    <span style="flex:1"></span>
-    <button class="btn" data-fb="up">👍</button><button class="btn" data-fb="down">👎</button>
-    <button class="btn" data-fb="trich_sai">trích sai dòng</button>
-    <button class="btn" data-fb="thieu_dk">thiếu điều kiện</button></div>`;
+  h += `<div class="gr-bar">
+    Trích dẫn máy soát: <b>${g.so_dat}/${g.so_khang_dinh}</b> trỏ đúng dòng${
+      g.grounding_pass?'':' — <b>CÓ TRÍCH SAI</b>'} · ${d._ms}ms · ${d._mode==='real'?esc(d._model):'mock'}
+    <div class="fb-btns">
+      <button class="fb-btn" data-fb="up">👍</button>
+      <button class="fb-btn" data-fb="down">👎</button>
+      <button class="fb-btn" data-fb="trich_sai">trích sai dòng</button>
+      <button class="fb-btn" data-fb="thieu_dk">thiếu điều kiện</button>
+    </div></div>`;
   return h + `</div></div>`;
 }
 const sec = (t,items) => `<div class="sec"><h4>${t}</h4><ul>${items.join('')}</ul></div>`;
@@ -598,12 +992,9 @@ function ghimTin(tin){
   $('#tinTrong').hidden = true;
   $('#tinTieuDe').textContent = `${tin.opp_id} · ${tin.title}`;
   $('#tinView').innerHTML = tin.raw_text.split('\n').map((l,i)=>
-    `<div class="ln" data-i="${i+1}"><span class="no">${i+1}</span><span>${esc(l)||'&nbsp;'}</span></div>`).join('');
+    `<div class="ln" data-i="${i+1}"><span class="no">${i+1}</span><span class="lc">${esc(l)||'&nbsp;'}</span></div>`).join('');
 }
 
-/* Hồ sơ vẫn được gửi kèm MỌI lượt chat, nên agent luôn biết — nhưng trước đây
-   không có gì hiện ra, người dùng tưởng nó chưa nhận. Đưa hẳn một tin nhắn vào
-   khung chat, và ghim vào LICH_SU để model biết hồ sơ vừa được nạp/đổi. */
 function baoCV(d, thieu){
   const co = [d.ten, d.nam_hoc!=null?`năm ${d.nam_hoc}`:null, d.nganh,
               d.gpa!=null?`GPA ${d.gpa}`:null, d.thanh_pho,
@@ -619,16 +1010,13 @@ function baoCV(d, thieu){
     + `nếu có mâu thuẫn với hồ sơ nhắc trước đó thì lấy hồ sơ mới này.)`});
 }
 
-/* ── CV ── */
+/* ── CV upload ── */
 async function napCV(file){
   $('#cvMsg').innerHTML = `<div class="note">Đang đọc CV…</div>`;
   const fd = new FormData(); fd.append('file', file);
   const r = await fetch('/api/cv?mode=' + (DATA.co_api_key?'real':'mock'), {method:'POST', body:fd});
   const d = await r.json();
   if(!r.ok){ $('#cvMsg').innerHTML = `<div class="err">${esc(d.loi)}</div>`; return; }
-  /* XOÁ SẠCH TRƯỚC KHI ĐIỀN. Bản cũ chỉ ghi đè khi CV mới CÓ field đó, nên up CV
-     thứ hai mà thiếu GPA là GPA của CV thứ nhất còn nguyên — trộn hồ sơ hai người
-     rồi đem đi đối chiếu, không có gì báo. Up CV mới = thay hẳn, không cộng dồn. */
   for(const id of ['#fNam','#fGpa','#fNganh','#fCity','#fSkill']) $(id).value = '';
   CV_THEM = {};
   if(d.nam_hoc!=null) $('#fNam').value = d.nam_hoc;
@@ -640,14 +1028,9 @@ async function napCV(file){
   const an = Object.entries(d._redact||{}).map(([k,v])=>`${v} ${k}`).join(', ');
   const thieu = ['nam_hoc','gpa','nganh','thanh_pho'].filter(k=>d[k]==null||d[k]==='');
   const them = [d.co_github?'có GitHub':null, d.project?'có project':null].filter(Boolean);
-  /* Field TỰ TÍNH phải nói ra là tự tính. CV ghi "HaUI 2022- 2026" chứ không ghi
-     "năm 4"; hệ thống trừ ra được năm 4, nhưng im lặng điền một con số học viên
-     không hề khai là quyết thay họ. Nói kèm căn cứ để họ sửa nếu sai. */
-  const suy = d._nam_hoc_suy_ra;
   $('#cvMsg').innerHTML = `<div class="ok">Đã lấy ${4-thieu.length}/4 field chính từ CV.
     ${them.length?`Ghi nhận thêm: <b>${them.join(', ')}</b> (chỉ lưu có/không, không lưu link).`:''}
     ${an?`Đã ẩn trước khi gửi: ${esc(an)}.`:''}
-    ${suy?`<br><b>nam_hoc = ${d.nam_hoc}</b> là mình tự tính (${esc(suy)}), CV không ghi thẳng — sai thì sửa ở ô bên dưới.`:''}
     ${thieu.length?`<br>CV không ghi rõ: <b>${thieu.join(', ')}</b> — điền tay bên dưới, mình không đoán.`:''}</div>`;
   baoCV(d, thieu);
 }
@@ -655,14 +1038,14 @@ async function napCV(file){
 /* ── sự kiện ── */
 document.addEventListener('click', async e=>{
   const t = e.target;
-  if(t.closest('.tabs button')){
+  if(t.closest('.panel-tabs button')){
     const b = t.closest('button'), k = b.dataset.t;
-    document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on', x===b));
+    document.querySelectorAll('.panel-tabs button').forEach(x=>x.classList.toggle('on', x===b));
     $('#tp-hs').hidden = k!=='hs'; $('#tp-tin').hidden = k!=='tin'; return;
   }
   const c = t.closest('.chip');
-  if(c){   // G11 — bấm Lk thì sáng đúng dòng trong tin gốc
-    document.querySelectorAll('.tabs button')[1].click();
+  if(c){
+    document.querySelectorAll('.panel-tabs button')[1].click();
     document.querySelectorAll('.ln.hit').forEach(n=>n.classList.remove('hit'));
     const ln = document.querySelector(`.ln[data-i="${c.dataset.line}"]`);
     if(ln){ ln.classList.add('hit'); ln.scrollIntoView({block:'center',behavior:'smooth'}); }
@@ -670,16 +1053,15 @@ document.addEventListener('click', async e=>{
   }
   if(t.dataset.doi){ gui(`đối chiếu ${t.dataset.doi}`); return; }
   if(t.closest('#sug button')){ gui(t.textContent); return; }
-  if(t.dataset.fb && KQ_CUOI){   // G15
+  if((t.classList.contains('fb-btn') || t.dataset.fb) && KQ_CUOI){
     fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({opp_id:KQ_CUOI.tin?.opp_id||'dán tay', verdict:KQ_CUOI.kq.verdict,
         danh_gia: t.dataset.fb==='up'?'👍':t.dataset.fb==='down'?'👎':'-',
         ly_do:['up','down'].includes(t.dataset.fb)?[]:[t.dataset.fb]})});
     t.textContent += ' ✓'; t.disabled = true; return;
   }
-  if(t.id==='btnDan'){           // đường không cần API key
-    const tin = $('#tinDan').value.trim();
-    if(!tin) return;
+  if(t.id==='btnDan'){
+    const tin = $('#tinDan').value.trim(); if(!tin) return;
     const r = await fetch('/api/verdict',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({posting_text:tin, profile:hoSo(), mode:'mock'})});
     const d = await r.json();
@@ -688,6 +1070,7 @@ document.addEventListener('click', async e=>{
     ghimTin(gia); them('a', veVerdict(d, gia), true);
   }
 });
+
 $('#btnSend').onclick = ()=>{ const v=$('#inp').value; $('#inp').value=''; $('#inp').style.height='auto'; gui(v); };
 $('#inp').addEventListener('keydown', e=>{
   if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); $('#btnSend').click(); }});
@@ -695,7 +1078,7 @@ $('#inp').addEventListener('input', e=>{
   e.target.style.height='auto'; e.target.style.height = Math.min(e.target.scrollHeight,130)+'px'; });
 $('#profSel').onchange = ()=>{
   const p = DATA.profiles.find(x=>x.id===$('#profSel').value); if(!p) return;
-  CV_THEM = {};   /* chuyển sang hồ sơ mẫu thì bỏ hẳn dữ liệu CV, không để dính lẫn */
+  CV_THEM = {};
   $('#fNam').value=p.nam_hoc??''; $('#fGpa').value=p.gpa??'';
   $('#fNganh').value=p.nganh??''; $('#fCity').value=p.thanh_pho??'';
   $('#fSkill').value=(p.ky_nang||[]).join(', ');
