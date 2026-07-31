@@ -1018,7 +1018,10 @@ def main():
                         help="In ra màn hình, không ghi file")
     parser.add_argument("--gioi-han", type=int, default=300,
                         help="Số tin thật tối đa (mặc định 300)")
-    parser.add_argument("--trang", type=int, default=3,
+    # `--so-trang` là tên cờ của bản phân trang song song (commit 56d806c) mà bản này
+    # thay thế. Giữ làm bí danh vì đó là thứ DUY NHẤT bản kia có mà bản này không —
+    # bỏ đi thì lệnh của ai đang chạy theo tên cũ gãy im lặng, đổi lấy đúng 0 lợi ích.
+    parser.add_argument("--trang", "--so-trang", type=int, default=3, dest="trang",
                         help="Số trang đọc mỗi query (mặc định 3). MỖI TRANG TỐN 1 SEARCH: "
                              "tổng = số query × số trang. Free tier 100 search/tháng.")
     parser.add_argument("--ngan-sach", type=int, default=0,
