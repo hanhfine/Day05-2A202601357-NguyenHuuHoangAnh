@@ -415,14 +415,14 @@ def _serpapi(params: dict) -> dict:
         return json.loads(resp.read())
 
 
-def crawl_google_jobs(gioi_han: int = 50) -> list[dict]:
+def crawl_google_jobs(gioi_han: int = 50, so_trang: int = 3) -> list[dict]:
     """Dùng SerpAPI để tìm Google Jobs."""
     if not SERPAPI_KEY:
         print("  ✗ Chưa có SERPAPI_KEY. Đặt vào .env rồi chạy lại.")
         print("    Đăng ký miễn phí tại: https://serpapi.com/ (100 search/tháng)")
         return []
 
-    print(f"\n[Google Jobs / SerpAPI] Đang crawl ({len(QUERIES)} queries)...")
+    print(f"\n[Google Jobs / SerpAPI] Đang crawl ({len(QUERIES)} queries × tối đa {so_trang} trang)...")
     ket_qua = []
     seen_titles = set()
 
@@ -430,85 +430,96 @@ def crawl_google_jobs(gioi_han: int = 50) -> list[dict]:
         if len(ket_qua) >= gioi_han:
             break
 
-        params = {
-            "engine": "google_jobs",
-            "q": query,
-            "hl": "vi",
-            "gl": "vn",
-            "api_key": SERPAPI_KEY,
-            "chips": "date_posted:month",  # chỉ tin trong 1 tháng gần đây
-        }
+        next_token = None
+        for trang in range(1, max(1, so_trang) + 1):
+            params = {
+                "engine": "google_jobs",
+                "q": query,
+                "hl": "vi",
+                "gl": "vn",
+                "api_key": SERPAPI_KEY,
+                "chips": "date_posted:month",  # chỉ tin trong 1 tháng gần đây
+            }
+            if next_token:
+                params["next_page_token"] = next_token
 
-        try:
-            results = _serpapi(params)
-        except Exception as e:
-            print(f"  ✗ query '{query}': {type(e).__name__}: {str(e)[:80]}")
-            continue
-
-        # SerpAPI báo lỗi trong JSON (hết quota, key sai) chứ không phải HTTP 4xx.
-        if results.get("error"):
-            print(f"  ✗ query '{query}': SerpAPI báo lỗi — {results['error']}")
-            if "run out" in results["error"].lower() or "quota" in results["error"].lower():
-                print("    → Hết quota tháng. Dừng crawl, giữ nguyên tin đã lấy được.")
+            try:
+                results = _serpapi(params)
+            except Exception as e:
+                print(f"  ✗ query '{query}' trang {trang}: {type(e).__name__}: {str(e)[:80]}")
                 break
-            continue
 
-        jobs = results.get("jobs_results", [])
-        if not jobs:
-            print(f"  query '{query}': 0 kết quả")
-            continue
+            # SerpAPI báo lỗi trong JSON (hết quota, key sai) chứ không phải HTTP 4xx.
+            if results.get("error"):
+                print(f"  ✗ query '{query}' trang {trang}: SerpAPI báo lỗi — {results['error']}")
+                if "run out" in results["error"].lower() or "quota" in results["error"].lower():
+                    print("    → Hết quota tháng. Dừng crawl, giữ nguyên tin đã lấy được.")
+                    return ket_qua
+                break
 
-        them = 0
-        for j in jobs:
+            jobs = results.get("jobs_results", [])
+            if not jobs:
+                if trang == 1:
+                    print(f"  query '{query}': 0 kết quả")
+                break
+
+            them = 0
+            for j in jobs:
+                if len(ket_qua) >= gioi_han:
+                    break
+
+                title = _sach(j.get("title", ""))
+                company = _sach(j.get("company_name", "Không rõ"))
+                location = _sach(j.get("location", ""))
+                # KHÔNG _sach() ở đây: nó gộp mọi khoảng trắng kể cả xuống dòng, mà xuống
+                # dòng chính là ranh giới ý trong mô tả — _tach_dong() cần giữ để cắt dòng.
+                description = j.get("description") or ""
+                highlights = j.get("job_highlights", [])   # list [{title, items}]
+                extensions = j.get("extensions", [])        # ["Full-time", "Work from home"...]
+                detected = j.get("detected_extensions", {})
+                ngay_dang = _sach(detected.get("posted_at", ""))   # NGÀY ĐĂNG, không phải hạn nộp
+
+                if not title:
+                    continue
+
+                key = _kd(title + company)
+                if key in seen_titles:
+                    continue
+                seen_titles.add(key)
+
+                if not _lien_quan_ai(title, description):
+                    continue
+
+                # SerpAPI trả apply_options[0].link hoặc share_link.
+                # apply_options mới thật sự trỏ vào ĐÚNG tin → mức "tin";
+                # share_link chỉ là trang kết quả Google → để máy tự xếp mức.
+                apply_opts = j.get("apply_options") or []
+                url = _sach(apply_opts[0].get("link") if apply_opts else None)
+                url_loai = "tin" if url else ""
+                if not url:
+                    url = _sach(j.get("share_link", ""))
+                raw_text = _to_raw_text(
+                    title, company, highlights, extensions, location,
+                    mo_ta=description, ngay_dang=ngay_dang
+                )
+                ket_qua.append({
+                    "title": title,
+                    "company": company,
+                    "url": url,
+                    "url_loai": url_loai,
+                    "raw_text": raw_text,
+                    "nguon": "google_jobs",
+                })
+                them += 1
+
+            print(f"  '{query[:40]}' trang {trang}: {len(jobs)} jobs → thêm {them} tin (tổng {len(ket_qua)})")
             if len(ket_qua) >= gioi_han:
                 break
 
-            title = _sach(j.get("title", ""))
-            company = _sach(j.get("company_name", "Không rõ"))
-            location = _sach(j.get("location", ""))
-            # KHÔNG _sach() ở đây: nó gộp mọi khoảng trắng kể cả xuống dòng, mà xuống
-            # dòng chính là ranh giới ý trong mô tả — _tach_dong() cần giữ để cắt dòng.
-            description = j.get("description") or ""
-            highlights = j.get("job_highlights", [])   # list [{title, items}]
-            extensions = j.get("extensions", [])        # ["Full-time", "Work from home"...]
-            detected = j.get("detected_extensions", {})
-            ngay_dang = _sach(detected.get("posted_at", ""))   # NGÀY ĐĂNG, không phải hạn nộp
-
-            if not title:
-                continue
-
-            key = _kd(title + company)
-            if key in seen_titles:
-                continue
-            seen_titles.add(key)
-
-            if not _lien_quan_ai(title, description):
-                continue
-
-            # SerpAPI trả apply_options[0].link hoặc share_link.
-            # apply_options mới thật sự trỏ vào ĐÚNG tin → mức "tin";
-            # share_link chỉ là trang kết quả Google → để máy tự xếp mức.
-            apply_opts = j.get("apply_options") or []
-            url = _sach(apply_opts[0].get("link") if apply_opts else None)
-            url_loai = "tin" if url else ""
-            if not url:
-                url = _sach(j.get("share_link", ""))
-            raw_text = _to_raw_text(
-                title, company, highlights, extensions, location,
-                mo_ta=description, ngay_dang=ngay_dang
-            )
-            ket_qua.append({
-                "title": title,
-                "company": company,
-                "url": url,
-                "url_loai": url_loai,
-                "raw_text": raw_text,
-                "nguon": "google_jobs",
-            })
-            them += 1
-
-        print(f"  '{query[:40]}': {len(jobs)} jobs → thêm {them} tin (tổng {len(ket_qua)})")
-        time.sleep(0.5)  # SerpAPI không cần delay nhiều như crawl trực tiếp
+            next_token = results.get("serpapi_pagination", {}).get("next_page_token")
+            if not next_token:
+                break
+            time.sleep(0.5)  # SerpAPI không cần delay nhiều như crawl trực tiếp
 
     return ket_qua
 
@@ -767,6 +778,8 @@ def main():
                         help="In ra màn hình, không ghi file")
     parser.add_argument("--gioi-han", type=int, default=50,
                         help="Số tin thật tối đa (mặc định 50)")
+    parser.add_argument("--so-trang", type=int, default=3,
+                        help="Số trang Google Jobs tối đa mỗi query (mặc định 3)")
     parser.add_argument("--mock", action="store_true",
                         help="Dùng data mẫu thay vì gọi API (không cần SERPAPI_KEY)")
     parser.add_argument("--bo-qua-kiem-url", action="store_true",
@@ -788,8 +801,8 @@ def main():
             print("  Đăng ký miễn phí (100 search/tháng): https://serpapi.com/\n")
         tin_moi = crawl_mock()
     else:
-        print(f"Giới hạn: {args.gioi_han} tin thật | API: SerpAPI Google Jobs")
-        tin_moi = crawl_google_jobs(args.gioi_han)
+        print(f"Giới hạn: {args.gioi_han} tin thật | {args.so_trang} trang/query | API: SerpAPI Google Jobs")
+        tin_moi = crawl_google_jobs(args.gioi_han, so_trang=args.so_trang)
 
     tin_moi = loai_trung(tin_moi)[: args.gioi_han]
 
