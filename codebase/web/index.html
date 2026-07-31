@@ -76,25 +76,6 @@ ul{list-style:none}
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 .hd-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex:none}
-.badge{
-  display:inline-flex; align-items:center; gap:7px;
-  padding:6px 12px; border-radius:100px;
-  font-size:12px; font-weight:500; white-space:nowrap;
-  border:1px solid var(--line); color:var(--ink2); background:var(--surface);
-}
-.badge.live{background:var(--jade-soft);border-color:var(--jade-line);color:var(--jade)}
-.badge.warn{background:var(--ochre-soft);border-color:var(--ochre-line);color:var(--ochre)}
-.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
-.badge.live .dot{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.privacy{
-  display:flex; align-items:center; gap:8px;
-  font-size:12.5px; color:var(--ink2);
-  background:var(--jade-soft); border:1px solid var(--jade-line);
-  padding:6px 12px; border-radius:100px; white-space:nowrap;
-}
-.privacy b{color:var(--jade);font-weight:600}
-.privacy .dot{background:var(--jade)}
 .pane-toggle{
   display:flex;align-items:center;gap:7px;
   border:1px solid var(--line); border-radius:100px;
@@ -338,6 +319,15 @@ ul{list-style:none}
 .more-note{font-size:13px;color:var(--ink2);background:var(--paper);
   border:1px solid var(--line);border-radius:6px;padding:10px 14px;margin-top:4px}
 
+/* Ngoài phạm vi thư viện — dùng hoàng thổ, KHÔNG dùng đỏ. Đây không phải lỗi của
+   học viên cũng không phải hỏng hệ thống, chỉ là giới hạn của nguồn tin. Tô đỏ là
+   đổ lên người hỏi một cảm giác sai. */
+.ngoai-pv{margin-top:14px;background:var(--ochre-soft);border:1px solid var(--ochre-line);
+  border-left:3px solid var(--ochre);border-radius:0 8px 8px 0;padding:16px 18px}
+.ngoai-pv .eyebrow{display:block;color:var(--ochre);margin-bottom:6px}
+.ngoai-pv p{font-size:14px;color:var(--ink2);line-height:1.55}
+.ngoai-pv b{color:var(--ink)}
+
 /* thanh trích dẫn + phản hồi */
 .gr-bar{
   display:flex;gap:10px;align-items:center;flex-wrap:wrap;
@@ -413,7 +403,6 @@ details[open] summary::before{transform:rotate(90deg)}
 /* ══════════════════════════ RESPONSIVE ══════════════════════════════ */
 @media(max-width:1180px){
   .tagline{display:none}
-  .privacy{display:none}
 }
 @media(max-width:1000px){
   html,body{overflow:auto}
@@ -438,9 +427,6 @@ details[open] summary::before{transform:rotate(90deg)}
   <div class="wordmark">Opportunity<span>Match</span></div>
   <div class="tagline">Mọi kết luận đều kèm dòng dẫn chứng</div>
   <div class="hd-right">
-    <span class="badge" id="tagProv">…</span>
-    <span class="badge" id="tagMode"><i class="dot"></i>…</span>
-    <div class="privacy"><i class="dot"></i>Hồ sơ <b>chỉ nằm trong phiên này</b> · không lưu file</div>
     <button class="pane-toggle" id="btnPane" title="Mở/đóng khung tin đang xét">Tin đang xét</button>
   </div>
 </header>
@@ -511,8 +497,9 @@ details[open] summary::before{transform:rotate(90deg)}
 
         <section id="welcome">
           <h1 class="h1">Bạn đủ điều kiện tới đâu?</h1>
-          <p class="sub">Chọn một việc để bắt đầu. Mỗi câu trả lời sẽ chỉ ra chính xác dòng nào
-            trong tin tuyển và dòng nào trong hồ sơ bạn được dùng làm căn cứ.</p>
+          <p class="sub">Mỗi câu trả lời chỉ ra chính xác dòng nào trong tin tuyển và dòng nào
+            trong hồ sơ bạn được dùng làm căn cứ. Thư viện chỉ có tin <b>CNTT · dữ liệu · AI</b>.
+            Mình không viết CV hộ, không đoán bạn có đỗ.</p>
 
           <div class="doors">
             <button class="door" data-door="tim">
@@ -602,11 +589,9 @@ const GOI_Y = [
 /* ── khởi động ─────────────────────────────────────────────────── */
 async function init(){
   DATA = await (await fetch('/api/data')).json();
-  $('#tagProv').textContent = `${DATA.provider} · ${DATA.model}`;
   $('#profSel').innerHTML = '<option value="">— tự khai bên trên —</option>' +
     DATA.profiles.map(p=>`<option value="${p.id}">${p.id} · ${esc(p.nhan)}</option>`).join('');
   $('#sug').innerHTML = GOI_Y.map(g=>`<button class="chip-s">${esc(g)}</button>`).join('');
-  capNhatTag();
   demHoSo();
   if(!DATA.co_api_key){
     them('a', `Chưa có API key nên chat đang tắt. Đặt <code>OPENAI_API_KEY</code> rồi chạy lại server.<br>
@@ -614,12 +599,6 @@ async function init(){
     $('#btnSend').disabled = true;
   }
 }
-function capNhatTag(){
-  const t=$('#tagMode'), real=DATA.co_api_key;
-  t.innerHTML = `<i class="dot"></i>${real?'AI thật':'Mock — chưa gọi AI'}`;
-  t.className = 'badge' + (real?' live':' warn');
-}
-
 /* ── hồ sơ ─────────────────────────────────────────────────────── */
 /* Field lấy từ CV mà thẻ hồ sơ không có ô nhập (tên, có GitHub hay không). */
 let CV_THEM = {};
@@ -674,7 +653,7 @@ async function gui(text){
     LICH_SU = d.lich_su;
     let extra = '';
     for(const ev of d.events||[]){
-      if(ev.loai==='tim_tin') extra += veDanhSach(ev.data, ev.con_chua_hien, ev.tong);
+      if(ev.loai==='tim_tin') extra += veDanhSach(ev.data, ev.con_chua_hien, ev.tong, ev.ngoai_pham_vi);
       if(ev.loai==='doi_chieu'){ ghimTin(ev.data.tin); extra += veVerdict(ev.data.ket_qua, ev.data.tin); }
       if(ev.loai==='loi') extra += `<div class="err">${esc(ev.data)}</div>`;
     }
@@ -713,14 +692,30 @@ function veWhy(o){
   if(!v.length) return '';
   return `<div class="why"><span class="eyebrow">Vì sao tin này hiện ra</span>${v.join(' · ')}</div>`;
 }
-function veDanhSach(ds, conLai, tong){
+function veDanhSach(ds, conLai, tong, ngoai){
+  /* Ngành ngoài phạm vi: biển báo do UI tự dựng từ cờ máy trả về, không chờ model
+     chịu nói. Và KHÔNG được gắn nhãn "gần đúng" cho danh sách bên dưới — tin CNTT
+     không phải bản gần giống của tin marketing, nói thế là để học viên tưởng mình
+     gõ sai từ khoá rồi ngồi thử lại một thứ thư viện không có. */
+  if(ngoai) return `<div class="ngoai-pv">
+      <span class="eyebrow">Ngoài phạm vi thư viện</span>
+      <p>Hệ thống <b>không có tin ngành ${esc(ngoai)}</b>. Toàn bộ ${tong||ds?.length||0} tin
+      trong thư viện là <b>CNTT · dữ liệu · AI</b> — đây là giới hạn của nguồn tin,
+      không phải bạn gõ sai từ khoá.</p>
+      <p class="note" style="margin-top:8px">Mấy tin dưới đây là thứ thư viện đang có,
+      để bạn xem qua nếu muốn — <b>không phải</b> tin ngành ${esc(ngoai)} gần đúng.</p>
+    </div>` + (ds?.length ? `<div class="ops">` + ds.map(veOpp).join('') + `</div>` : '');
+
   if(!ds?.length) return `<div class="more-note">Không có tin nào khớp trong thư viện.</div>`;
   const gan = ds.filter(o=>o.thieu?.length).length;
   const dau = gan===ds.length
     ? `<div class="more-note">Không có tin nào khớp hẳn điều kiện bạn nêu. Dưới đây là ${ds.length} tin <b>gần đúng nhất</b> — mỗi tin ghi rõ chỗ lệch.</div>` : '';
   const con = conLai>0
     ? `<div class="more-note">Đang hiện ${ds.length}/${tong} tin khớp — còn <b>${conLai}</b> tin nữa. Nhắn “xem thêm” để hiện tiếp.</div>` : '';
-  return dau + `<div class="ops">` + ds.map(o=>`<article class="opp">
+  return dau + `<div class="ops">` + ds.map(veOpp).join('') + `</div>` + con;
+}
+function veOpp(o){
+  return `<article class="opp">
       <div class="opp-top">
         <span class="id">${esc(o.opp_id)}</span>
         <span class="kind">${NHAN_LOAI[o.loai]||'thực tập'}</span>
@@ -736,7 +731,7 @@ function veDanhSach(ds, conLai, tong){
         <button class="btn" data-doi="${esc(o.opp_id)}">Đối chiếu với hồ sơ</button>
         ${veLink(o)}
       </div>
-    </article>`).join('') + `</div>` + con;
+    </article>`;
 }
 
 /* ── vẽ bảng đối chiếu ─────────────────────────────────────────── */

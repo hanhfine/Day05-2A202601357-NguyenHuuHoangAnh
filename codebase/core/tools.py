@@ -95,6 +95,86 @@ _LINH_VUC_TERMS: dict[str, list[str]] = {
                  "marketing", "sale", "kinh doanh", "hr ", "tuyen dung"],
 }
 
+# Ngành NẰM NGOÀI thư viện. Corpus chỉ có tin CNTT/dữ liệu/AI — crawler chặn ở
+# `_lien_quan_ai`, nên không có tin marketing/kế toán/y nào lọt vào, và sẽ không
+# bao giờ có chừng nào chưa thêm nguồn khác.
+#
+# VÌ SAO PHẢI DÒ RIÊNG, KHÔNG ĐỂ XẾP HẠNG TỰ LO: `xep_hang` không bao giờ loại tin,
+# nó chỉ dán `thieu`. Học viên hỏi "thực tập marketing" thì MỌI tin đều nhận
+# `thieu=["không nhắc tới marketing"]`, `dat` rỗng, và hệ thống đáp đúng câu dành cho
+# trường hợp khác hẳn: "không có tin nào khớp hẳn, dưới đây là tin GẦN ĐÚNG nhất".
+# Tin Backend Engineer KHÔNG phải là tin marketing gần đúng — nó là ngành khác. Nói
+# "gần đúng" ở đây là để học viên tưởng thư viện có mảng marketing mà họ chưa tìm ra
+# từ khoá đúng, rồi ngồi thử lại. Sự thật là thư viện không có, và phải nói ra.
+#
+# Dò bằng danh sách ngành cụ thể chứ không suy từ "khớp 0 tin": "Rust", "Kubernetes"
+# cũng khớp 0 tin nhưng chúng THUỘC phạm vi — thư viện chỉ tình cờ chưa có. Hai
+# trường hợp đó phải nói hai câu khác nhau.
+_NGOAI_LINH_VUC: dict[str, list[str]] = {
+    "marketing / truyền thông": ["marketing", "truyen thong", "content", "seo",
+                                 "quang cao", "pr", "social media", "brand"],
+    "kinh doanh / bán hàng": ["sale", "sales", "ban hang", "kinh doanh", "telesale",
+                              "cham soc khach hang", "customer service"],
+    "nhân sự": ["nhan su", "hr", "human resource", "tuyen dung", "recruitment",
+                "talent acquisition", "c&b"],
+    "kế toán / tài chính": ["ke toan", "accounting", "kiem toan", "audit", "tai chinh",
+                            "finance", "thue", "tax", "ngan quy"],
+    "thiết kế đồ hoạ": ["thiet ke do hoa", "graphic design", "photoshop", "illustrator",
+                        "ui ux designer", "dung phim", "video editor"],
+    "y tế": ["y te", "dieu duong", "bac si", "duoc si", "nha khoa", "benh vien"],
+    "giáo dục / gia sư": ["gia su", "giao vien", "giang day", "tro giang", "day hoc"],
+    "xây dựng / cơ khí": ["xay dung", "kien truc", "co khi", "dien lanh", "cong trinh",
+                          "civil engineer", "mechanical"],
+    "logistics / xuất nhập khẩu": ["logistics", "xuat nhap khau", "chuoi cung ung",
+                                   "supply chain", "kho van", "hai quan"],
+    "nhà hàng / khách sạn / du lịch": ["nha hang", "khach san", "du lich", "barista",
+                                       "phuc vu", "bep", "tour"],
+    "luật": ["luat", "phap che", "legal", "phap ly"],
+}
+
+
+# Tín hiệu THUỘC phạm vi. Có một từ ở đây thì câu hỏi là về IT, chấm hết — kể cả khi
+# nó cũng chứa một từ trong `_NGOAI_LINH_VUC`.
+#
+# CÁI NÀY BẮT BUỘC PHẢI CÓ, không phải cho chắc: "tuyển dụng" nằm trong nhóm nhân sự
+# (vì "thực tập tuyển dụng" đúng là việc HR thật), nhưng nó cũng là từ chung của mọi
+# câu tìm việc tiếng Việt. Không có quyền phủ quyết này thì "tuyển dụng IT",
+# "tuyển dụng lập trình viên", "tuyển dụng backend" đều bị báo là ngành nhân sự ngoài
+# phạm vi — chặn đúng nhóm học viên mà hệ thống sinh ra để phục vụ. Tương tự
+# "sales engineer phần mềm" (kinh doanh) và "content developer" (marketing).
+_TRONG_PHAM_VI = [
+    "it", "cntt", "cong nghe thong tin", "phan mem", "software", "lap trinh",
+    "developer", "dev", "engineer", "ky su phan mem", "backend", "frontend",
+    "fullstack", "full-stack", "full stack", "web", "mobile", "app",
+    "ai", "machine learning", "deep learning", "data", "du lieu", "database",
+    "nlp", "computer vision", "mlops", "devops", "cloud", "python", "java",
+    "javascript", "sql", "react", "nodejs", "golang", "tester", "qa", "qc",
+    "khoa hoc may tinh", "khoa hoc du lieu", "tri tue nhan tao", "he thong",
+    "mang", "security", "an toan thong tin", "embedded", "nhung",
+]
+
+
+def linh_vuc_ngoai_pham_vi(tu_khoa: str | None) -> str | None:
+    """Từ khoá học viên gõ có nêu một ngành thư viện KHÔNG phục vụ không → tên ngành.
+
+    Trả None nếu từ khoá thuộc phạm vi, hoặc không nêu ngành nào rõ ràng.
+
+    Nhắc một từ IT nào đó là đủ để KHÔNG bị coi là ngoài phạm vi — xem `_TRONG_PHAM_VI`.
+    Lệch về phía cho qua là cố ý: báo nhầm "không phục vụ ngành này" cho người đang hỏi
+    đúng ngành mình phục vụ thì họ đóng tab và không quay lại, còn bỏ sót một câu hỏi
+    marketing thì hệ quả tệ nhất là họ thấy danh sách tin IT và tự hiểu.
+    """
+    if not tu_khoa:
+        return None
+    van = _kd(tu_khoa)
+    if any(_khop_tu(k, van) for k in _TRONG_PHAM_VI):
+        return None
+    for ten, tu in _NGOAI_LINH_VUC.items():
+        if any(_khop_tu(k, van) for k in tu):
+            return ten
+    return None
+
+
 # Từ đệm tiếng Việt — tách ra từ kỹ năng kiểu "Docker cơ bản" thì "co", "ban" khớp
 # lung tung, phải bỏ. Chỉ dùng cho việc tách kỹ năng thành mảnh nhỏ để dò.
 _DEM = {"co", "ban", "va", "cac", "cho", "tu", "voi", "tren", "duoc", "biet", "hieu",
@@ -384,7 +464,25 @@ def dispatch(ten: str, args: dict, profile: dict, mode: str) -> tuple[dict, dict
         kq_model = {"so_tin_hien": len(ds), "so_tin_dat_du_dieu_kien": len(dat),
                     "so_tin_gan_dung_dang_hien": so_gan,
                     "con_chua_hien": con, "danh_sach": ds}
-        if not dat:
+
+        # Ngành ngoài phạm vi phải chặn TRƯỚC nhánh "gần đúng" bên dưới, vì hai chuyện
+        # này nghe giống nhau mà bản chất khác hẳn: "gần đúng" nghĩa là thư viện CÓ mảng
+        # đó nhưng tin lệch vài điều kiện, còn đây là thư viện KHÔNG CÓ mảng đó. Gộp
+        # chung thì học viên hỏi thực tập marketing sẽ nhận một list tin Backend gắn nhãn
+        # "gần đúng" — hiểu nhầm là mình gõ sai từ khoá, rồi thử lại mấy lượt cho một
+        # thứ không tồn tại trong corpus.
+        ngoai = linh_vuc_ngoai_pham_vi(a.get("tu_khoa"))
+        if ngoai:
+            kq_model["ngoai_pham_vi"] = ngoai
+            kq_model["nhac"] = (
+                f"THƯ VIỆN KHÔNG CÓ TIN NGÀNH {ngoai.upper()}. Toàn bộ tin trong hệ thống "
+                f"là CNTT / dữ liệu / AI — đây là giới hạn của nguồn tin, không phải học "
+                f"viên gõ sai từ khoá. Nói thẳng ngay câu đầu là hệ thống không phục vụ "
+                f"ngành này và không có tin nào để đối chiếu. TUYỆT ĐỐI không gọi mấy tin "
+                f"dưới đây là 'gần đúng' — chúng là ngành khác hẳn, không phải bản gần "
+                f"giống của thứ học viên hỏi. Được phép nói thêm rằng thư viện đang có "
+                f"tin CNTT/dữ liệu/AI nếu họ muốn xem, nhưng phải để họ tự chọn.")
+        elif not dat:
             kq_model["nhac"] = (
                 "KHÔNG có tin nào đạt đủ điều kiện học viên nêu. Danh sách dưới đây là "
                 "tin GẦN ĐÚNG nhất — mỗi tin có field `thieu` ghi rõ nó lệch chỗ nào. "
@@ -397,8 +495,12 @@ def dispatch(ten: str, args: dict, profile: dict, mode: str) -> tuple[dict, dict
         elif con:
             kq_model["nhac"] = (f"Còn {con} tin đạt đủ điều kiện nữa chưa hiện. Nói rõ cho "
                                 f"học viên biết và mời họ xin xem thêm nếu muốn.")
+        # `ngoai_pham_vi` đi kèm event để UI tự dựng biển báo, KHÔNG phụ thuộc vào việc
+        # model có chịu nói ra hay không. Cùng một luật ở hai chỗ: model được nhắc, còn
+        # giao diện thì cứ hiện — đúng cách checker.py soát trích dẫn thay vì tin model.
         return kq_model, {"loai": "tim_tin", "data": ds, "con_chua_hien": con,
-                          "tong": len(dat), "so_gan_dung": so_gan}
+                          "tong": len(dat), "so_gan_dung": so_gan,
+                          "ngoai_pham_vi": ngoai}
     if ten == "doi_chieu":
         r = doi_chieu(args.get("opp_id", ""), profile, mode)
         if "loi" in r:
