@@ -75,6 +75,24 @@ DONG_NGHIA = {
     "data": ["data", "du lieu", "phan tich du lieu", "analytics", "analyst"],
     "cv": ["computer vision", "thi giac may tinh", "opencv", "xu ly anh"],
     "mlops": ["mlops", "devops", "ci/cd", "kubernetes", "docker"],
+    "software": ["software engineer", "software developer", "ky su phan mem",
+                 "lap trinh vien", "developer", "frontend", "backend", "fullstack",
+                 "full-stack", "full stack", "web developer", "mobile developer",
+                 "ios developer", "android developer", "react", "nodejs", "java developer",
+                 "net developer", "flutter developer"],
+    "phan mem": ["phan mem", "software", "lap trinh", "developer", "backend",
+                 "frontend", "fullstack", "ky su phan mem"],
+    "lap trinh": ["lap trinh", "developer", "software", "phan mem", "code",
+                  "backend", "frontend", "fullstack", "ky su"],
+}
+
+# Từ khoá nhận diện lĩnh vực để hỗ trợ loại trừ (linh_vuc_tru).
+# Chỉ dùng khi học viên NÓI RÕ "không muốn AI" hay "chỉ phần mềm thuần" — không tự suy.
+_LINH_VUC_TERMS: dict[str, list[str]] = {
+    "ai": ["machine learning", "deep learning", "llm", "nlp", "computer vision",
+           "data scientist", "tri tue nhan tao", "artificial intelligence"],
+    "business": ["business analyst", "business development", "ke toan", "nhan su",
+                 "marketing", "sale", "kinh doanh", "hr ", "tuyen dung"],
 }
 
 # Từ đệm tiếng Việt — tách ra từ kỹ năng kiểu "Docker cơ bản" thì "co", "ban" khớp
@@ -134,7 +152,7 @@ LV_SINH_VIEN = {"intern", "fresher", "junior"}
 
 def xep_hang(tu_khoa: str | None = None, thanh_pho: str | None = None,
              loai: str | None = None, nam_hoc: int | None = None,
-             cap_do: str | None = None,
+             cap_do: str | None = None, linh_vuc_tru: list[str] | None = None,
              gom_fixture: bool = False, profile: dict | None = None) -> list[dict]:
     """Toàn bộ tin, đã xếp hạng, CHƯA cắt bớt. Mỗi tin kèm `thieu` = các điều kiện
     người dùng nêu mà tin KHÔNG đạt.
@@ -200,6 +218,12 @@ def xep_hang(tu_khoa: str | None = None, thanh_pho: str | None = None,
         if tk and diem_tk == 0:
             thieu.append(f"không nhắc tới {tu_khoa}")
 
+        # Học viên nói rõ "không AI" / "không business" thì phải đánh dấu lệch ngay.
+        # Vẫn không loại hẳn khỏi danh sách — chỉ đẩy xuống và nói rõ vì sao lệch.
+        for lv in (linh_vuc_tru or []):
+            if any(_khop_tu(term, van) for term in _LINH_VUC_TERMS.get(lv, [])):
+                thieu.append(f"thuộc lĩnh vực {lv} mà bạn muốn loại")
+
         # điểm từ hồ sơ — CHỈ xếp hạng, KHÔNG BAO GIỜ loại tin. Hồ sơ không khớp
         # kỹ năng nào thì tin tụt xuống dưới, chứ không được biến mất: học viên
         # phải còn thấy nó để tự quyết, y như luật không lọc theo năm học/GPA.
@@ -252,7 +276,7 @@ def xep_hang(tu_khoa: str | None = None, thanh_pho: str | None = None,
 
 def tim_tin(tu_khoa: str | None = None, thanh_pho: str | None = None,
             loai: str | None = None, nam_hoc: int | None = None,
-            cap_do: str | None = None,
+            cap_do: str | None = None, linh_vuc_tru: list[str] | None = None,
             gioi_han: int = MAC_DINH_TIN, gom_fixture: bool = False,
             profile: dict | None = None) -> list[dict]:
     """Tìm tin trong corpus local. Không gọi mạng, không crawl.
@@ -268,8 +292,8 @@ def tim_tin(tu_khoa: str | None = None, thanh_pho: str | None = None,
     truyền được: hồ sơ chỉ dùng để XẾP HẠNG, không bao giờ dùng để loại tin.
     """
     return xep_hang(tu_khoa=tu_khoa, thanh_pho=thanh_pho, loai=loai, nam_hoc=nam_hoc,
-                    cap_do=cap_do, gom_fixture=gom_fixture,
-                    profile=profile)[:max(1, min(gioi_han, TRAN_TIN))]
+                    cap_do=cap_do, linh_vuc_tru=linh_vuc_tru,
+                    gom_fixture=gom_fixture, profile=profile)[:max(1, min(gioi_han, TRAN_TIN))]
 
 
 def doi_chieu(opp_id: str, profile: dict, mode: str = "real") -> dict:
@@ -306,6 +330,9 @@ TOOLS = [
             "cap_do": {"type": "string", "enum": ["intern", "fresher", "junior"],
                        "description": "level học viên muốn. Bỏ trống nếu họ không nói rõ. "
                                       "Một tin có thể nhận nhiều level cùng lúc."},
+            "linh_vuc_tru": {"type": "array",
+                              "items": {"type": "string", "enum": ["ai", "business"]},
+                              "description": "Lĩnh vực học viên nói rõ là không muốn. Ví dụ ['ai'] khi họ nói 'chỉ phần mềm, không AI'."},
             "nam_hoc": {"type": "integer", "description": "năm học của học viên, nếu đã biết"},
             "gioi_han": {"type": "integer",
                          "description": f"số tin trả về, mặc định {MAC_DINH_TIN}, "
@@ -328,6 +355,11 @@ def dispatch(ten: str, args: dict, profile: dict, mode: str) -> tuple[dict, dict
     if ten == "tim_tin":
         a = {k: v for k, v in args.items()
              if k in ("tu_khoa", "thanh_pho", "loai", "nam_hoc", "cap_do")}
+        lv_tru = args.get("linh_vuc_tru")
+        if isinstance(lv_tru, list):
+            lv_tru = [x for x in lv_tru if x in _LINH_VUC_TERMS]
+        else:
+            lv_tru = None
         # Model hay quên truyền nam_hoc dù hồ sơ đã khai. Thiếu nó thì mọi tin bị ghi
         # "chưa biết năm học của bạn" — nói sai với học viên vừa khai xong năm học.
         # Lấy thẳng từ hồ sơ; vẫn chỉ dùng để ghi chú + xếp hạng, không loại tin.
@@ -337,9 +369,14 @@ def dispatch(ten: str, args: dict, profile: dict, mode: str) -> tuple[dict, dict
         gh = MAC_DINH_TIN if not isinstance(gh, int) else max(1, min(gh, TRAN_TIN))
         # Hồ sơ do server bơm vào, model KHÔNG tự truyền được — nó chỉ đổi thứ tự,
         # không đổi tập tin trả về.
-        tat_ca = xep_hang(**a, profile=profile)
-        dat = [x for x in tat_ca if not x["thieu"]]
-        ds = tat_ca[:gh]          # đã sắp: tin đạt đủ trước, gần đúng sau
+        tat_ca = xep_hang(**a, linh_vuc_tru=lv_tru, profile=profile)
+        if lv_tru:
+            hop_lv = [x for x in tat_ca
+                      if not any(t.startswith("thuộc lĩnh vực ") for t in x["thieu"])]
+        else:
+            hop_lv = tat_ca
+        dat = [x for x in hop_lv if not x["thieu"]]
+        ds = (hop_lv or tat_ca)[:gh]          # ưu tiên đúng lĩnh vực trước, hết mới fallback
         so_gan = sum(1 for x in ds if x["thieu"])
         con = max(0, len(dat) - (len(ds) - so_gan))
         # Nói thẳng còn bao nhiêu tin bị cắt, và tin nào chỉ là gần đúng. Im lặng cắt

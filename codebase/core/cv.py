@@ -64,16 +64,20 @@ KY_NANG = ["Python", "SQL", "Excel", "pandas", "PyTorch", "TensorFlow", "Docker"
 SYSTEM = """Bạn rút thông tin từ một CV đã được ẩn thông tin liên hệ.
 
 Trả về DUY NHẤT JSON:
-{"ten": str|null, "nam_hoc": int|null, "nganh": str|null, "gpa": number|null,
- "thanh_pho": str|null, "ky_nang": [str], "project": str|null, "co_github": true|false}
+{"la_cv": true|false, "ten": str|null, "nam_hoc": int|null, "nganh": str|null,
+ "gpa": number|null, "thanh_pho": str|null, "ky_nang": [str],
+ "project": str|null, "co_github": true|false}
 
 LUẬT:
+- `la_cv` = true nếu văn bản có cấu trúc CV/resume (có học vấn, kinh nghiệm, kỹ năng,
+  dự án hoặc tên ứng viên). false nếu là văn bản lạ, ảnh OCR rác, bài viết, tin nhắn,
+  hoặc nội dung rõ ràng không phải CV.
 - CV không ghi rõ field nào thì để null / mảng rỗng. TUYỆT ĐỐI không suy đoán.
   Không có GPA thì là null — đừng ước lượng từ học lực.
 - `ten` là họ tên của ứng viên, chép đúng như CV ghi. CV không ghi tên rõ ràng thì
   null — không lấy tên người tham chiếu, tên giảng viên hay tên công ty thay vào.
 - KHÔNG trả về email, số điện thoại, link, địa chỉ, số CCCD, tên trường dù chúng có
-  xuất hiện. Chỉ 8 field trên.
+  xuất hiện. Chỉ 9 field trên.
 - `gpa` quy về thang 4. GIỮ NGUYÊN số thập phân chính xác như CV ghi (ví dụ 2.99, 3.42), TUYỆT ĐỐI không tự ý làm tròn 2.99 thành 3.0. Chỉ khi CV ghi thang 10 mới chia 2.5.
 - `ky_nang` là tên công nghệ/kỹ năng cụ thể, tối đa 10 mục.
 - `co_github` = true nếu CV có nhắc tới GitHub/GitLab/portfolio code, KỂ CẢ khi
@@ -95,6 +99,8 @@ def redact(text: str) -> tuple[str, dict]:
 def doc_file(ten: str, du_lieu: bytes) -> str:
     """Lấy text từ file upload. KHÔNG lưu file. Hỗ trợ .txt/.md/.pdf/.docx."""
     thap = ten.lower()
+    if not any(thap.endswith(ext) for ext in (".pdf", ".docx", ".txt", ".md")):
+        raise ValueError("Định dạng không hỗ trợ. Vui lòng upload .pdf, .docx, .txt hoặc .md.")
     if thap.endswith(".pdf"):
         try:
             import io
@@ -202,6 +208,12 @@ def trich_ho_so(text: str, mode: str = "real") -> dict:
             o = llm.json_call(SYSTEM, sach[:12000], nhan="cv")
         except Exception:                          # noqa: BLE001 — hỏng thì vẫn còn mock
             o = _mock(sach)
+        else:
+            if not o.get("la_cv", True):
+                raise ValueError(
+                    "Nội dung không nhận ra là CV. "
+                    "Vui lòng upload file CV (.pdf, .docx, .txt) hoặc dán text CV vào ô bên dưới."
+                )
     else:
         o = _mock(sach)
 
