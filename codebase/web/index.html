@@ -62,28 +62,31 @@ ul{list-style:none}
 /* ══════════════════════════════════════ TOPBAR ══════════════════════ */
 .topbar{
   display:flex; align-items:center; gap:16px; flex:none;
-  padding:14px 24px; background:var(--surface);
-  border-bottom:1px solid var(--line);
+  padding:14px 24px; background:rgb(1, 24, 56);
+  border-bottom:1px solid rgba(255,255,255,.1);
 }
 .wordmark{
   font-family:"Bricolage Grotesque","Be Vietnam Pro",sans-serif;
   font-weight:700; font-size:19px; letter-spacing:-.02em; white-space:nowrap;
+  color:#FFFFFF;
 }
 .wordmark span{color:var(--jade)}
 .tagline{
-  font-size:13px; color:var(--ink3);
-  border-left:1px solid var(--line); padding-left:16px;
+  font-size:13px; color:rgba(255,255,255,.55);
+  border-left:1px solid rgba(255,255,255,.18); padding-left:16px;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 .hd-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex:none}
 .pane-toggle{
   display:flex;align-items:center;gap:7px;
-  border:1px solid var(--line); border-radius:100px;
-  padding:6px 13px; font-size:12.5px; color:var(--ink2);
-  transition:border-color .15s,color .15s;
+  border:1.5px solid var(--jade); border-radius:100px;
+  padding:6px 14px; font-size:12.5px; font-weight:600; color:var(--jade);
+  background:#fff;
+  transition:border-color .15s,background .15s,color .15s,box-shadow .15s;
+  box-shadow:0 1px 4px rgba(14,124,90,.15);
 }
-.pane-toggle:hover{border-color:var(--jade);color:var(--jade)}
-.pane-toggle.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.pane-toggle:hover{background:var(--jade);color:#fff;box-shadow:0 2px 8px rgba(14,124,90,.35)}
+.pane-toggle.on{background:#F59E0B;border-color:#D97706;color:#fff;box-shadow:0 2px 8px rgba(245,158,11,.4)}
 
 /* ══════════════════════════════════════ SHELL ═══════════════════════ */
 .shell{
