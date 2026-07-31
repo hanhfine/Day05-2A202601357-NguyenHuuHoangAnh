@@ -1,5 +1,5 @@
 {
-  "_ghi_chu": "Hai lớp data. OPP-* (40 tin): fixture GIẢ tự sinh bằng gen_corpus.py (seed=42), tên tổ chức bịa, dùng cho smoke_test/eval — crawler không đụng vào. REAL-* (200 tin, crawl lúc 2026-07-31 09:27): 200 tin crawl thật từ Google Jobs (SerpAPI) Link của REAL-*: 106 bấm thử sống, 93 trang chặn bot nên chưa xác minh được (vẫn giữ link, UI ghi rõ), 0 chết thật đã xoá trắng. 199/200 link trỏ đúng tin, 1 chỉ tới trang tuyển dụng/trang chủ tổ chức. Không đoán link thay. Xem _url_status của từng tin.",
+  "_ghi_chu": "Hai lớp data. OPP-* (40 tin): fixture GIẢ tự sinh bằng gen_corpus.py (seed=42), tên tổ chức bịa, dùng cho smoke_test/eval — crawler không đụng vào, và `tim_tin` mặc định KHÔNG trả về chúng. REAL-* (200 tin): tin tuyển dụng thật crawl từ Google Jobs (SerpAPI), link đã được máy bấm thử — xem `_url_status` của từng tin. Sản phẩm CHỈ làm việc làm (thực tập / fresher / junior): học bổng bị `crawler.nhan_tin()` chặn ngay đầu nguồn, không tin REAL-* nào có kind=hoc_bong. 13 tin hoc_bong còn lại đều là fixture OPP-*, giữ vì golden_set.json tham chiếu.",
   "postings": [
     {
       "id": "OPP-001",
@@ -1201,8 +1201,11 @@
       "url_loai": "tin",
       "raw_text": "[INTERN/FRESHER SOFTWARE ENGINEER (JP) — SY Partners]\n1. Mô tả công việc\nTham gia trực tiếp vào quá trình phân tích, thiết kế, phát triển và bảo trì các hệ thống phần mềm phục vụ cho khách hàng Nhật Bản và nội bộ công ty SY Partners.\nLàm việc chặt chẽ với đội ngũ dự án để đảm bảo tiến độ, chất lượng và hiệu quả triển khai.\nThực hiện review mã nguồn, tối ưu hiệu suất hệ thống, góp phần nâng cao chất lượng sản phẩm theo tiêu chuẩn thị trường Nhật.\nChủ động nghiên cứu, cập nhật công nghệ mới và đề xuất các sáng kiến nhằm tối ưu quy trình phát triển.\nCác công việc khác theo yêu cầu của Ban giám đốc\n2. Yêu cầu công việc\nSinh viên năm cuối hoặc mới ra trường Chuyên ngành Công nghệ thông tin, Toán tin, Khoa học máy tính, Kỹ thuật phần mềm,…thuộc các trường khối kỹ thuật\nCó từ kiến thức và kinh nghiệm với một trong các ngôn ngữ: Java, C#, PHP, JavaScript, …\nTư duy logic tốt, tinh thần trách nhiệm cao, có khả năng làm việc độc lập và phối hợp nhóm hiệu quả trong môi trường tốc độ cao.\nƯu tiên:\nỨng viên đã làm dự án thực tế hoặc đồ án ở trường, đạt học bổng, tham gia nghiên cứu khoa học tại trường, đạt giải trong các cuộc thi học thuật, Olympic\nỨng viên đã từng làm việc trong môi trường Nhật Bản hoặc có mong muốn onsite/làm việc lâu dài tại Nhật Bản.\nUư tiên ứng viên trình độ tiếng Nhật JLPT N4 trở lên\n3. Chế độ phúc lợi\nMức lương: Thoả thuận\nPhúc lợi khác\nĐối với Fresher: Mức lương thỏa thuận\nĐối với Intern (Thực tập sinh) được hỗ trợ 3.000.000 VND/tháng+ phụ cấp ăn trưa 900k\nCơ hội trở thành nhân viên chính thức sau 2 tháng thực tập với mức lương hấp dẫn\nHỗ trợ thuê nhà cho nhân sự trẻ ngoại tỉnh\nLàm việc trực tiếp với khách hàng Nhật, tham gia nhiều giai đoạn toàn diện trong chuỗi phát triển phần mềm.\nĐược ưu tiên tuyển chọn cho chương trình Elite Dev- Nhân sự trẻ tài năng với các khóa học tiếng Nhật bài bản và cơ hội làm việc tại Nhật\nHỗ trợ và thưởng thi các chứng chỉ kỹ thuật và ngôn ngữ phục vụ công việc.\nChế độ phúc lợi đầy đủ: BHXH, BHYT, BHTN, nghỉ lễ/tết theo quy định nhà nước.\nLàm việc cùng đội ngũ kỹ sư tài năng, nhiệt huyết và lãnh đạo giàu kinh nghiệm cho thị trường Nhật.\nTham gia các hoạt động team building, du lịch, sinh nhật... thường xuyên với tiêu chuẩn 5 sao.\nMục lương: 3.000.000₫ một tháng\nĐịa điểm việc làm: Làm việc trực tiếp\nToàn thời gian, Bán thời gian và Thực tập\nĐịa điểm: Hà Nội.\nGoogle Jobs ghi tin đăng: 25 ngày trước. Tin không nêu ngày chốt hồ sơ.",
       "id": "REAL-062",
-      "kind": "hoc_bong",
-      "cap_do": [],
+      "kind": "thuc_tap",
+      "cap_do": [
+        "intern",
+        "fresher"
+      ],
       "_nguon": "google_jobs",
       "_crawled_at": "2026-07-31 09:20",
       "_url_status": "khong_kiem_duoc:HTTP403"

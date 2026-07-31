@@ -43,7 +43,9 @@ Việc này ngược đúng quy định trong README repo: *"không đưa vào b
 
 Đề tài "agent tìm học bổng và thực tập" **quá rộng để nộp nguyên**: "tìm" nghĩa là crawl → demo phụ thuộc mạng, không có nhãn vàng để đo, và quyết định AI trung tâm bị mờ. Rubric chấm chuỗi quyết định, không chấm độ hoành tráng. Nên cắt vào chỗ có **phán quyết kiểm chứng được**:
 
-> **Học viên khoá AI Thực Chiến đang cân nhắc một cơ hội thực tập/học bổng · chọn MỘT tin (tìm trong thư viện của hệ thống hoặc dán vào) cùng hồ sơ của mình (khai tay hoặc lấy từ CV) · AI phán quyết `Nên apply` / `Rủi ro cao` / `Thiếu thông tin` kèm trích dẫn từng dòng yêu cầu đã đối chiếu · nhận về một thẻ quyết định có deadline + 3 việc phải chuẩn bị.**
+> **Học viên khoá AI Thực Chiến đang cân nhắc một cơ hội việc làm (thực tập · fresher · junior) · chọn MỘT tin (tìm trong thư viện của hệ thống hoặc dán vào) cùng hồ sơ của mình (khai tay hoặc lấy từ CV) · AI phán quyết `Nên apply` / `Rủi ro cao` / `Thiếu thông tin` kèm trích dẫn từng dòng yêu cầu đã đối chiếu · nhận về một thẻ quyết định có deadline + 3 việc phải chuẩn bị.**
+
+**Đã bỏ vế học bổng khỏi lát cắt** *(sửa so với bản CP2)*. Lý do đo được, không phải đổi ý: crawl thật 90 query trong đó 7 query dành riêng cho học bổng, thu về **1 tin học bổng trên 200 tin** — và tin đó hoá ra là false positive (tin tuyển Software Engineer có chữ "đạt học bổng" ở phần ưu tiên ứng viên). Google Jobs index tin tuyển dụng, không index học bổng. Giữ vế đó trong lát cắt là hứa một mảng mà nguồn tin không cấp được, rồi để học viên hỏi "có học bổng nào không" và nhận về danh sách rỗng. Muốn làm học bổng thật thì phải thêm nguồn khác (VinIF, trang học bổng của trường) — việc đó nằm ngoài 1,5 ngày.
 
 Tự kiểm theo guide §1.1 câu 2 — bỏ AI đi việc này còn không? **Còn.** Hôm nay học viên tự đọc tin, tự đoán mình có đủ điều kiện, hỏi bạn, hoặc bỏ qua. Đây là job thật, không phải chỗ nhét AI.
 
@@ -51,12 +53,13 @@ Tự kiểm theo guide §1.1 câu 2 — bỏ AI đi việc này còn không? **C
 
 ### Non-goals (≥3, rubric R2 — 2 điểm)
 
-1. **Không crawl/tìm tin trên internet.** Chỉ search thư viện 40 tin giả local của hệ thống.
-2. Không viết CV / cover letter / essay hộ.
-3. Không dự đoán xác suất đỗ, không chấm điểm hồ sơ. `tim_tin` xếp hạng theo **mức khớp từ khoá user nhập**, không phán "tin nào tốt nhất cho bạn", và **không loại tin nào theo điều kiện**.
-4. **Không lưu hồ sơ/CV người dùng** — xử lý trong RAM, không DB, không ghi file.
-5. **Không kết luận "không đủ điều kiện".** Verdict xấu nhất được phép là "Rủi ro cao".
-6. Không đọc tin dạng PDF/ảnh — tin chỉ nhận text. (CV thì đọc được .pdf/.docx/.txt/.md.)
+1. **Không crawl/tìm tin lúc người dùng hỏi.** `tim_tin` chỉ đọc corpus local, không chạm internet trong luồng chạy. Corpus được nạp trước bằng `data/crawler.py` chạy offline (200 tin thật từ Google Jobs + 40 tin fixture) — *sửa so với bản CP2, khi đó corpus chỉ có 40 tin giả và non-goal này ghi là "không crawl". Đổi vì tin giả không cho học viên nộp hồ sơ vào đâu được; ranh giới thật nằm ở chỗ runtime không gọi mạng, không phải ở chỗ data từ đâu ra.*
+2. **Không làm học bổng.** Sản phẩm chỉ phục vụ việc làm: thực tập · fresher · junior. `crawler.nhan_tin()` chặn tin học bổng ngay đầu nguồn, `hoc_bong` đã bỏ khỏi enum `loai` trong tool schema nên model không khai được, và SYSTEM cấm hỏi lại "bạn muốn học bổng hay việc làm". *(13 tin `kind=hoc_bong` còn trong corpus đều là fixture `OPP-*` — dữ liệu test, `tim_tin` mặc định không trả về, giữ vì `golden_set.json` tham chiếu đích danh.)*
+3. Không viết CV / cover letter / essay hộ.
+4. Không dự đoán xác suất đỗ, không chấm điểm hồ sơ. `tim_tin` xếp hạng theo **mức khớp từ khoá user nhập**, không phán "tin nào tốt nhất cho bạn", và **không loại tin nào theo điều kiện**.
+5. **Không lưu hồ sơ/CV người dùng** — xử lý trong RAM, không DB, không ghi file.
+6. **Không kết luận "không đủ điều kiện".** Verdict xấu nhất được phép là "Rủi ro cao".
+7. Không đọc tin dạng PDF/ảnh — tin chỉ nhận text. (CV thì đọc được .pdf/.docx/.txt/.md.)
 
 Bản build **không được** vi phạm mấy dòng này. TA soát tại CP4. `smoke_test.py` có case canh non-goal #3 và #5.
 

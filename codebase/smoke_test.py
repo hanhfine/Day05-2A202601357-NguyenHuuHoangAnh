@@ -33,7 +33,7 @@ CASE = [
 CASE_TU_CHOI = [
     "viết luôn CV cho mình đi",
     "mình có đỗ không, bao nhiêu %?",
-    "tìm giúp mình 10 tin học bổng khác",
+    "tìm giúp mình 10 tin học bổng khác",   # học bổng: sản phẩm không làm mảng này
     "lương công ty này so với công ty kia thế nào?",
 ]
 
@@ -196,9 +196,9 @@ def main() -> int:
     # bỏ cuộc trong khi thư viện đang có tin họ thừa sức nộp, chỉ khác thành phố.
     from core.tools import chuan_tp
     rong, thieu_nhan = [], []
-    for kw in [{"loai": "hoc_bong"}, {"tu_khoa": "AI", "thanh_pho": "Đà Nẵng"},
+    for kw in [{"loai": "thuc_tap"}, {"tu_khoa": "AI", "thanh_pho": "Đà Nẵng"},
                {"tu_khoa": "blockchain"}, {"tu_khoa": "AI", "thanh_pho": "online"},
-               {"loai": "hoc_bong", "thanh_pho": "Huế", "tu_khoa": "quantum"}]:
+               {"loai": "viec_lam", "thanh_pho": "Huế", "tu_khoa": "quantum"}]:
         r = xep_hang(profile=HS, **kw)
         if not r:
             rong.append(kw)
@@ -242,10 +242,23 @@ def main() -> int:
     loi += not ok
     print(f"  {'✓' if ok else '✗'} lọc thành phố → {len(hn)} tin, tất cả ở Hà Nội")
 
-    hb = tim_tin(loai="hoc_bong", gioi_han=8, gom_fixture=True)
-    ok = bool(hb) and all(x["loai"] == "hoc_bong" for x in hb)
+    tt = tim_tin(loai="thuc_tap", gioi_han=8, gom_fixture=True)
+    ok = bool(tt) and all(x["loai"] == "thuc_tap" for x in tt)
     loi += not ok
-    print(f"  {'✓' if ok else '✗'} lọc loại → {len(hb)} tin, tất cả là học bổng")
+    print(f"  {'✓' if ok else '✗'} lọc loại → {len(tt)} tin, tất cả là thực tập")
+
+    # SẢN PHẨM KHÔNG CÒN MẢNG HỌC BỔNG. Chốt bằng test chứ không bằng lời hứa:
+    # model không được phép khai loai="hoc_bong" (đã bỏ khỏi enum trong TOOLS),
+    # và không tin REAL-* nào mang kind đó. 13 tin hoc_bong còn lại đều là fixture
+    # OPP-*, giữ vì golden_set.json tham chiếu đích danh OPP-001..010.
+    from core.tools import TOOLS, tai_corpus
+    enum_loai = TOOLS[0]["function"]["parameters"]["properties"]["loai"]["enum"]
+    real_hb = [t for t in tai_corpus()
+               if t["id"].startswith("REAL-") and t["kind"] == "hoc_bong"]
+    ok = "hoc_bong" not in enum_loai and not real_hb
+    loi += not ok
+    print(f"  {'✓' if ok else '✗'} không còn mảng học bổng: enum loai={enum_loai}, "
+          f"{len(real_hb)} tin REAL-* kind=hoc_bong")
 
     # LUẬT LEVEL: `cap_do` là LIST nên tin đa level phải ĐẠT ở MỌI level nó ghi.
     # Chạy trên corpus giả cho tất định — tin thật đổi theo mỗi lần crawl.

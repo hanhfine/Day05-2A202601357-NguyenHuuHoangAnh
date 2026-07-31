@@ -143,7 +143,7 @@
       "kieu": 2,
       "nguon": "[CẦN DỮ LIỆU THẬT] — cần 1 tin nhắn thật của beta tester gõ cụt (VD: 'tìm việc cho mình', 'giúp tìm đi')",
       "input_mau": "'Tìm việc cho mình' (không kèm từ khóa, thành phố, loại việc, hồ sơ chưa khai đủ)",
-      "hanh_vi_dung": "Hỏi làm rõ ít nhất: từ khóa ngành/vị trí, thành phố, loại (thực tập/học bổng). Không tự tìm đại",
+      "hanh_vi_dung": "Hỏi làm rõ ít nhất: từ khóa ngành/vị trí, thành phố, loại (thực tập/việc fresher-junior). Không tự tìm đại",
       "dau_hieu_fail": "Tự trả về danh sách tin bừa mà không hỏi thêm; hoặc tìm theo thông tin mặc định không hỏi người dùng"
     },
     {
@@ -151,7 +151,7 @@
       "nhom_loi": "J — Multi-turn / câu cụt",
       "kieu": 2,
       "nguon": "giả lập",
-      "input_mau": "Trong hội thoại: agent vừa liệt kê 5 tin học bổng → người dùng nhắn 'đối chiếu đi'",
+      "input_mau": "Trong hội thoại: agent vừa liệt kê 5 tin việc làm → người dùng nhắn 'đối chiếu đi'",
       "hanh_vi_dung": "Hỏi lại: 'Bạn muốn đối chiếu tin nào? (Vui lòng chọn 1 trong 5 tin vừa tìm thấy)'",
       "dau_hieu_fail": "Tự chọn 1 tin để đối chiếu mà không hỏi; đối chiếu sai tin với hồ sơ người dùng"
     },

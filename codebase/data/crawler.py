@@ -1,4 +1,4 @@
-"""Crawler tin thực tập/học bổng thật — dùng SerpAPI (Google Jobs).
+"""Crawler tin tuyển dụng thật (thực tập / fresher / junior) — SerpAPI Google Jobs.
 
 SerpAPI search Google Jobs → trả JSON sạch, không bị block, không cần Selenium.
 Free tier: 100 search/tháng. Mỗi lần chạy tốn len(QUERIES) search.
@@ -143,6 +143,44 @@ _HB = ["hoc bong", "scholarship", "hoc phi"]
 _TT = ["intern", "internship", "thuc tap"]
 
 
+def _la_hoc_bong(title: str) -> bool:
+    """Tin này là học bổng chứ không phải tin tuyển dụng. CHỈ nhận tiêu đề — xem dưới.
+
+    ĐỔI VAI: trước đây `_HB` dùng để DÁN NHÃN `kind="hoc_bong"`, giờ dùng để CHẶN.
+    Sản phẩm chỉ làm việc làm, nên học bổng không được vào corpus ngay từ đầu nguồn
+    — chứ không phải vào rồi mới bị giấu ở tầng hiển thị. Giấu ở tầng trên thì tin
+    vẫn nằm trong file, vẫn được `xep_hang` chấm điểm, và lần sau ai sửa filter hiển
+    thị là nó lại lòi ra.
+
+    CHỈ ĐỌC TIÊU ĐỀ. Bản đầu dò cả mô tả và lập tức xoá nhầm REAL-062
+    "INTERN/FRESHER SOFTWARE ENGINEER (JP)" — tin việc làm thật, chỉ vì phần ưu tiên
+    ghi "Ứng viên đã làm dự án thực tế hoặc đồ án ở trường, ĐẠT HỌC BỔNG, tham gia
+    nghiên cứu khoa học". "Đạt học bổng" ở đó là THÀNH TÍCH CỦA ỨNG VIÊN, không phải
+    thứ tin này trao. Rất nhiều tin tuyển dụng nhắc học bổng/học phí theo kiểu đó
+    (tiêu chí ưu tiên, phúc lợi hỗ trợ học phí).
+
+    Cùng bài học đã ghi ở `_LV_YEU`: nhắc thoáng một từ trong mô tả không làm tin đó
+    thuộc về từ ấy; nằm ở tiêu đề thì mới là tin về nó. Tin học bổng thật luôn ghi
+    "Học bổng ..." ngay tiêu đề.
+
+    Lệch về phía GIỮ là cố ý: bỏ sót một tin học bổng thì tệ nhất là corpus thừa một
+    tin lạc loại, còn xoá nhầm là học viên mất hẳn một cơ hội việc làm và không ai
+    biết nó từng có.
+    """
+    return any(_khop_tu(k, _kd(title)) for k in _HB)
+
+
+def nhan_tin(title: str, raw: str) -> bool:
+    """Tin có được nhận vào corpus không. MỘT cửa duy nhất cho mọi đường vào.
+
+    Ba chỗ cần kiểm tin (crawl mới, --gop lọc lại tin cũ, --phan-loai-lai) phải hỏi
+    CÙNG một hàm. Bản trước để mỗi chỗ tự gọi `_lien_quan_ai` riêng, nên thêm luật
+    mới là phải nhớ sửa cả ba — đúng cái đã làm ba tin rác sai lĩnh vực sống sót
+    trong corpus vì `--gop` quên gọi.
+    """
+    return _lien_quan_ai(title, raw) and not _la_hoc_bong(title)
+
+
 # Level KHÔNG loại trừ nhau: một tin ghi "Intern/Fresher level" thuộc cả hai.
 # Nên `cap_do` là LIST, không phải một giá trị — xếp REAL-014 vào đúng một ô là
 # tự tay bỏ mất nửa số học viên đáng thấy nó.
@@ -189,10 +227,9 @@ def _phan_loai(title: str, desc: str) -> tuple[str, list[str]]:
     """
     t, d = _kd(title), _kd(desc)
 
-    # Học bổng xét riêng và trước hết — nó không nằm trên thang level nào.
-    for van in (t, d):
-        if any(_khop_tu(k, van) for k in _HB):
-            return "hoc_bong", []
+    # Không còn nhánh "hoc_bong" ở đây. Học bổng bị `nhan_tin()` chặn từ đầu nguồn nên
+    # không tin nào tới được hàm này; giữ lại nhánh phân loại cho một `kind` mà corpus
+    # không bao giờ chứa chỉ tổ làm người đọc sau tưởng sản phẩm vẫn còn mảng đó.
 
     # Level: tiêu đề nêu thì lấy đúng nó và DỪNG, không xét mô tả nữa.
     # `_CAP_DO_TITLE` (senior) chỉ góp vào lượt đọc tiêu đề — xem chú thích ở dict đó.
@@ -487,14 +524,6 @@ QUERIES = [
     "senior machine learning engineer Vietnam",
 
     # ════════════════════════════════════════════════════════════
-    # HỌC BỔNG
-    # ════════════════════════════════════════════════════════════
-    "học bổng CNTT AI sinh viên Việt Nam 2026",
-    "học bổng kỹ thuật phần mềm sinh viên 2026",
-    "VinIF học bổng 2026",
-    "scholarship CNTT AI Vietnam 2026",
-
-    # ════════════════════════════════════════════════════════════
     # MỞ RỘNG — thêm để corpus lên ~200 tin.
     #
     # Query cũ bị chụm vào một nhóm hẹp (AI/data/web ở Hà Nội + TP.HCM), nên đào
@@ -543,11 +572,6 @@ QUERIES = [
     "VNG Zalo tuyển engineer intern fresher",
     "Samsung LG tuyển kỹ sư phần mềm Việt Nam",
     "ngân hàng tuyển IT data analyst Việt Nam",
-
-    # — học bổng, nới thêm vì 4 query cũ ra rất ít —
-    "học bổng du học thạc sĩ khoa học máy tính",
-    "học bổng nghiên cứu trí tuệ nhân tạo sinh viên",
-    "scholarship computer science students Vietnam",
 ]
 
 
@@ -587,7 +611,7 @@ def crawl_google_jobs(gioi_han: int = 50, so_trang: int = 3, ngan_sach: int = 0,
     Bản trước chạy ngược lại (xong hết trang của query 1 rồi mới sang query 2).
     Với danh sách query dài mà quota thì hữu hạn, cách đó tiêu sạch ngân sách vào
     mấy query đầu bảng rồi chết trước khi chạm tới nhóm cuối — mà nhóm cuối chính
-    là mấy query mở rộng (Đà Nẵng, embedded, học bổng) chứa tin KHÔNG query nào
+    là mấy query mở rộng (Đà Nẵng, embedded, ngân hàng) chứa tin KHÔNG query nào
     khác trả về. Quét rộng trước thì lúc hết ngân sách ta mất phần SÂU (trang 2, 3
     — vốn trùng lặp nhiều nhất), chứ không mất nguyên một mảng lĩnh vực.
     """
@@ -714,7 +738,7 @@ def _nap_jobs(jobs: list, ket_qua: list, seen_titles: set, gioi_han: int,
             continue
         seen_titles.add(key)
 
-        if not _lien_quan_ai(title, description):
+        if not nhan_tin(title, description):
             tk["sai_linh_vuc"] = tk.get("sai_linh_vuc", 0) + 1
             continue
 
@@ -818,21 +842,6 @@ MOCK_POSTINGS = [
         "nguon": "mock",
     },
     {
-        "title": "Học bổng VinIF cho sinh viên xuất sắc 2026",
-        "company": "Vingroup Innovation Foundation",
-        "url": "https://vinif.org",
-        "raw_text": (
-            "[Học bổng VinIF cho sinh viên xuất sắc 2026 — Vingroup Innovation Foundation]\n"
-            "VinIF cấp học bổng toàn phần cho sinh viên đại học xuất sắc nghiên cứu AI/CNTT.\n"
-            "Đối tượng: sinh viên năm 2, 3, 4 ngành CNTT, Khoa học dữ liệu, Điện tử.\n"
-            "Điều kiện: GPA từ 3.5/4.0, không có môn thi lại.\n"
-            "Giá trị: 40.000.000 VNĐ/năm + cơ hội thực tập tại VinAI.\n"
-            "Yêu cầu hồ sơ: bảng điểm, thư giới thiệu của giảng viên, bài luận 1000 từ.\n"
-            "Hạn nộp: 01/09/2026."
-        ),
-        "nguon": "mock",
-    },
-    {
         "title": "Thực tập sinh NLP Engineer",
         "company": "Coc Coc",
         "url": "https://careers.coccoc.com",
@@ -902,21 +911,6 @@ MOCK_POSTINGS = [
         ),
         "nguon": "mock",
     },
-    {
-        "title": "Học bổng Samsung Innovation Campus 2026",
-        "company": "Samsung Electronics Vietnam",
-        "url": "https://www.samsung.com/vn",
-        "raw_text": (
-            "[Học bổng Samsung Innovation Campus 2026 — Samsung Electronics Vietnam]\n"
-            "Samsung cấp học bổng kèm khóa đào tạo AI cho sinh viên xuất sắc.\n"
-            "Đối tượng: sinh viên năm 2, 3 ngành CNTT, Điện tử, Khoa học dữ liệu.\n"
-            "Điều kiện: GPA từ 3.2/4.0.\n"
-            "Giá trị: 20.000.000 VNĐ + khóa đào tạo AI 3 tháng + cơ hội tuyển dụng.\n"
-            "Hồ sơ: CV + bảng điểm.\n"
-            "Hạn nộp: 28/08/2026."
-        ),
-        "nguon": "mock",
-    },
 ]
 
 
@@ -980,7 +974,7 @@ def phan_loai_lai(preview: bool = False) -> None:
 
     loai_bo, moi = [], []
     for t in real:
-        if not _lien_quan_ai(t["title"], t["raw_text"]):
+        if not nhan_tin(t["title"], t["raw_text"]):
             loai_bo.append(t)
             continue
         cu = (t["kind"], tuple(t.get("cap_do") or []))
@@ -1013,7 +1007,7 @@ def phan_loai_lai(preview: bool = False) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Crawler tin thực tập/học bổng thật")
+    parser = argparse.ArgumentParser(description="Crawler tin tuyển dụng thật")
     parser.add_argument("--preview", action="store_true",
                         help="In ra màn hình, không ghi file")
     parser.add_argument("--gioi-han", type=int, default=300,
@@ -1066,7 +1060,7 @@ def main():
         # "Supply Chain Analyst") được giữ nguyên: cùng một corpus mà tin cũ theo
         # luật cũ, tin mới theo luật mới. Sửa filter mà tin cũ không bị soi lại thì
         # sửa cũng bằng thừa.
-        bo = [t for t in cu_real if not _lien_quan_ai(t["title"], t["raw_text"])]
+        bo = [t for t in cu_real if not nhan_tin(t["title"], t["raw_text"])]
         if bo:
             print(f"\n[Gộp] LOẠI {len(bo)} tin cũ không qua được luật lĩnh vực hiện tại:")
             for t in bo:
@@ -1196,8 +1190,7 @@ def main():
     print(f"\n✓ Đã ghi {corpus_path}")
     print(f"  Tổng: {len(out['postings'])} tin ({len(giu)} OPP-* + {len(tin_moi)} REAL-*)")
     tt = sum(1 for t in out["postings"] if t["kind"] == "thuc_tap")
-    hb = sum(1 for t in out["postings"] if t["kind"] == "hoc_bong")
-    print(f"  Thực tập: {tt} · Học bổng: {hb}")
+    print(f"  Thực tập: {tt} · Việc fresher/junior: {len(out['postings']) - tt}")
 
 
 if __name__ == "__main__":

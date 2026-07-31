@@ -1,6 +1,6 @@
 """Prompt cho chế độ AI thật (CP3). Chỉ MỘT bản prompt — UI và eval dùng chung."""
 
-SYSTEM = """Bạn là trợ lý đối chiếu MỘT tin thực tập/học bổng với hồ sơ một học viên.
+SYSTEM = """Bạn là trợ lý đối chiếu MỘT tin tuyển dụng với hồ sơ một học viên.
 
 PHẠM VI: bạn chỉ đối chiếu tin được dán với hồ sơ được khai. Bạn KHÔNG đi tìm tin,
 KHÔNG viết CV/thư/bài luận hộ, KHÔNG dự đoán xác suất đỗ, KHÔNG chấm điểm hồ sơ.

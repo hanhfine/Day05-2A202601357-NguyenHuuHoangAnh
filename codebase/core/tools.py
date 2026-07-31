@@ -390,8 +390,8 @@ def doi_chieu(opp_id: str, profile: dict, mode: str = "real") -> dict:
 TOOLS = [
     {"type": "function", "function": {
         "name": "tim_tin",
-        "description": "Tìm tin thực tập / việc làm fresher-junior / học bổng trong "
-                       "thư viện tin của hệ thống. "
+        "description": "Tìm tin thực tập / việc làm fresher-junior trong "
+                       "thư viện tin của hệ thống. Thư viện KHÔNG có học bổng. "
                        "Hệ thống TỰ xếp hạng theo hồ sơ học viên (kỹ năng, ngành, năm học) — "
                        "bạn không cần và không thể truyền hồ sơ vào. "
                        "Trả về `con_chua_hien` = số tin khớp còn lại chưa hiện: nếu > 0 phải "
@@ -404,8 +404,13 @@ TOOLS = [
                                        "Bỏ trống nếu họ chỉ nói 'tìm tin hợp với em' — "
                                        "khi đó hệ thống xếp hạng thuần theo hồ sơ."},
             "thanh_pho": {"type": "string", "description": "Hà Nội / TP.HCM / Đà Nẵng / online"},
-            "loai": {"type": "string", "enum": ["thuc_tap", "hoc_bong", "viec_lam"],
-                     "description": "thuc_tap = thực tập · hoc_bong = học bổng · "
+            # `hoc_bong` ĐÃ BỎ khỏi enum: sản phẩm chỉ làm việc làm. Bỏ ở đây là chặn từ
+            # gốc — model không khai được giá trị đó thì không có đường nào gợi ý học
+            # bổng cho học viên. `xep_hang` vẫn hiểu kind="hoc_bong" vì 13 tin fixture
+            # OPP-* còn dùng nó để test luật phân loại; fixture không bao giờ tới tay
+            # người dùng (`gom_fixture=False` mặc định).
+            "loai": {"type": "string", "enum": ["thuc_tap", "viec_lam"],
+                     "description": "thuc_tap = thực tập · "
                                     "viec_lam = việc làm fresher/junior"},
             "cap_do": {"type": "string", "enum": ["intern", "fresher", "junior"],
                        "description": "level học viên muốn. Bỏ trống nếu họ không nói rõ. "

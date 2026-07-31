@@ -505,7 +505,7 @@ details[open] summary::before{transform:rotate(90deg)}
             <button class="door" data-door="tim">
               <span class="num">A</span>
               <h3>Tìm cơ hội phù hợp</h3>
-              <p>Lọc thực tập, việc fresher/junior, học bổng trong thư viện theo hồ sơ bên trái.</p>
+              <p>Lọc tin thực tập và việc fresher/junior trong thư viện theo hồ sơ bên trái.</p>
             </button>
             <button class="door" data-door="doi">
               <span class="num">B</span>
@@ -580,7 +580,7 @@ const NHAN = {
 };
 const GOI_Y = [
   'tìm thực tập AI ở Hà Nội cho mình',
-  'có học bổng nào cho năm 3 không?',
+  'việc fresher cho sinh viên năm cuối?',
   'đối chiếu OPP-001',
   'viết luôn CV cho mình đi',
   'mình có đỗ không, bao nhiêu %?',
@@ -663,7 +663,7 @@ async function gui(text){
 }
 
 /* ── vẽ danh sách tin ──────────────────────────────────────────── */
-const NHAN_LOAI = {thuc_tap:'thực tập', hoc_bong:'học bổng', viec_lam:'việc làm'};
+const NHAN_LOAI = {thuc_tap:'thực tập', viec_lam:'việc làm'};
 const NHAN_LINK = {
   tin:        {txt:'Xem tin',          gt:'Link tới đúng tin tuyển dụng'},
   tuyen_dung: {txt:'Trang tuyển dụng', gt:'Trang tuyển dụng của tổ chức — cần tự tìm tin trong đó'},

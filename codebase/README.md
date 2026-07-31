@@ -1,6 +1,6 @@
 # codebase — OpportunityMatch AI
 
-Chat tìm tin thực tập/học bổng trong thư viện của hệ thống, rồi đối chiếu **MỘT** tin với
+Chat tìm tin việc làm (thực tập · fresher · junior) trong thư viện của hệ thống, rồi đối chiếu **MỘT** tin với
 hồ sơ học viên (khai tay hoặc lấy từ CV) → phán quyết `Nên apply` / `Rủi ro cao` /
 `Thiếu thông tin` kèm **trích dẫn số dòng** trong tin.
 
@@ -139,7 +139,7 @@ Ghi ra để không ai tưởng mock là AI, và để chọn failure đau nhấ
 - Chỉ đối chiếu 4 loại yêu cầu: **năm học · GPA · địa điểm · kỹ năng theo từ khoá**.
   Ngoài 4 loại đó rơi vào gap *"chưa đối chiếu tự động được — bạn tự kiểm"*.
 - Chỉ bắt phủ định dạng mở đầu `Không yêu cầu ...`.
-- Không hiểu điều kiện dạng "chưa từng nhận học bổng của Viện" dù hồ sơ có field đó.
+- Không hiểu điều kiện dạng "chưa từng tham gia chương trình tuyển dụng của công ty".
 
 ## File
 
