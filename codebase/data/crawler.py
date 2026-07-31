@@ -13,6 +13,14 @@ Chạy:
     python data/crawler.py --gioi-han 40            # số tin thật tối đa
     python data/crawler.py --mock                   # dùng data mẫu, không gọi API
     python data/crawler.py --bo-qua-kiem-url        # không bấm thử link (offline)
+    python data/crawler.py --gop --gioi-han 200 --ngan-sach 150
+                                                    # gộp thêm vào tin REAL-* đã có
+                                                    # cho đủ 200, tiêu tối đa 150 search
+
+Quota thì hữu hạn (free tier), nên hai cờ này đi cùng nhau:
+    --gop        không crawl lại tin đã có trong corpus, chỉ crawl phần còn thiếu
+    --ngan-sach  trần CỨNG số search; đặt bằng số search còn lại trong tháng
+Xem còn bao nhiêu search: https://serpapi.com/account.json?api_key=...
 
 Corpus có HAI lớp và script này CHỈ sở hữu lớp REAL-*:
     OPP-*   fixture giả, do data/gen_corpus.py sinh — dùng cho smoke_test/eval
@@ -87,6 +95,29 @@ def _khop_tu(tu: str, van: str) -> bool:
     return re.search(rf"(?<![a-z0-9]){re.escape(tu.strip())}(?![a-z0-9])", van) is not None
 
 
+# Từ khoá lĩnh vực MẠNH: nhắc ở đâu trong tin cũng đủ để nhận, vì gần như không
+# có nghĩa nào khác ngoài IT/data/AI.
+_LV_MANH = [
+    "machine learning", "deep learning", "computer vision", "mlops", "nlp", "llm",
+    "python", "java", "javascript", "sql", "backend", "frontend", "fullstack",
+    "developer", "software engineer", "lap trinh", "phan mem",
+    "cntt", "cong nghe thong tin", "khoa hoc may tinh", "khoa hoc du lieu",
+    "ky thuat may tinh", "tri tue nhan tao", "hoc may", "du lieu", "analytics",
+]
+
+# Từ khoá lĩnh vực YẾU: CHỈ tính khi nằm ở TIÊU ĐỀ.
+#
+# "ai" hai chữ cái là thứ yếu nhất, và ranh giới từ cũng không cứu được:
+#   · "phần mềm thiết kế (AI, Photoshop, Canva)" → AI ở đây là Adobe Illustrator,
+#     đã kéo một tin thực tập NHÂN SỰ vào corpus;
+#   · "supporting the adoption of AI in transfer pricing" → tin THUẾ;
+#   · "có kỹ năng sử dụng các công nghệ AI" → tin QUẢN LÝ THIẾT KẾ.
+# Cả ba chỉ nhắc thoáng AI trong phần mô tả. Còn "data" thì dính "data entry",
+# "supply chain analyst". Nhắc thoáng trong mô tả không làm tin đó thành tin IT;
+# nằm ở tiêu đề thì mới là tin về nó.
+_LV_YEU = ["ai", "data"]
+
+
 def _lien_quan_ai(title: str, desc: str) -> bool:
     """Tin có thuộc lĩnh vực hệ thống phục vụ (IT/data/AI) không.
 
@@ -101,13 +132,11 @@ def _lien_quan_ai(title: str, desc: str) -> bool:
     Cũng bỏ "software": nó khớp "Design software" trong tin Design Engineer /
     Detailing Engineer — mấy tin cơ khí-xây dựng, không phải IT.
     """
-    txt = _kd(title + " " + desc)
-    return any(_khop_tu(k, txt) for k in [
-        "ai", "machine learning", "data", "python", "nlp", "llm",
-        "deep learning", "computer vision", "mlops", "analytics",
-        "backend", "cntt", "cong nghe thong tin",
-        "khoa hoc may tinh", "ky thuat may tinh", "lap trinh", "developer",
-    ])
+    t, d = _kd(title), _kd(title + " " + desc)
+    if any(_khop_tu(k, d) for k in _LV_MANH):
+        return True
+    # Từ YẾU chỉ được tính khi nằm ở TIÊU ĐỀ — xem chú thích ở _LV_YEU.
+    return any(_khop_tu(k, t) for k in _LV_YEU)
 
 
 _HB = ["hoc bong", "scholarship", "hoc phi"]
@@ -385,24 +414,140 @@ def _to_raw_text(title: str, company: str, highlights: list, extensions: list,
 
 # ── SerpAPI Google Jobs ───────────────────────────────────────────────────────
 
-# Mỗi query = 1 search SerpAPI. Free tier 100 search/tháng → 12 query là ~8 lần
-# chạy/tháng. Thêm query nữa thì tính lại ngân sách trước, đừng thêm bừa.
+# Mỗi query = 1 search SerpAPI. Free tier 100 search/tháng.
+# ~60 query × 1 trang = ~60 search/lần chạy (vừa đủ free tier, dùng --trang 1).
+# Muốn lấy thêm trang 2: --trang 2 (hết ~120 search, trả phí nếu vượt 100).
 QUERIES = [
-    # intern (nhánh gốc)
+    # ════════════════════════════════════════════════════════════
+    # INTERN / THỰC TẬP SINH
+    # ════════════════════════════════════════════════════════════
     "thực tập sinh AI intern Hà Nội",
     "thực tập sinh data analyst intern Hà Nội",
     "thực tập sinh machine learning intern TP HCM",
     "thực tập sinh NLP AI intern",
-    "intern AI fresher data science Vietnam",
-    "học bổng CNTT sinh viên 2026",
-    # fresher / junior — học viên năm cuối và mới ra trường không tìm được gì ở
-    # nhánh intern, mà đó đúng là lúc họ cần tin nhất.
+    "thực tập sinh computer vision intern Việt Nam",
+    "thực tập sinh software engineer intern Hà Nội",
+    "thực tập sinh backend developer intern Việt Nam",
+    "thực tập sinh frontend developer intern Việt Nam",
+    "thực tập sinh DevOps cloud intern Việt Nam",
+    "thực tập sinh data engineer intern Hà Nội",
+    "thực tập sinh mobile developer intern Việt Nam",
+    "thực tập sinh QA tester intern Việt Nam",
+    "AI intern machine learning internship Vietnam",
+    "machine learning intern Vietnam",
+    "data science intern Vietnam",
+    "software engineer intern Vietnam",
+
+    # ════════════════════════════════════════════════════════════
+    # FRESHER / ENTRY LEVEL (0–1 năm kinh nghiệm)
+    # ════════════════════════════════════════════════════════════
     "fresher AI engineer Hà Nội",
+    "fresher machine learning engineer Việt Nam",
     "fresher data analyst Việt Nam",
+    "fresher data scientist Việt Nam",
+    "fresher python developer Việt Nam",
+    "fresher backend developer Việt Nam",
+    "fresher frontend developer Việt Nam",
+    "fresher fullstack developer Việt Nam",
+    "fresher software engineer Đà Nẵng",
+    "fresher DevOps cloud engineer Việt Nam",
+    "fresher mobile developer iOS Android Việt Nam",
+    "AI engineer entry level Vietnam fresher",
+    "junior python developer Vietnam",
+
+    # ════════════════════════════════════════════════════════════
+    # JUNIOR (1–3 năm kinh nghiệm)
+    # ════════════════════════════════════════════════════════════
+    "junior AI engineer Hà Nội",
     "junior machine learning engineer Hà Nội",
     "junior data engineer TP HCM",
-    "fresher python developer Việt Nam",
-    "junior AI engineer TP HCM",
+    "junior data analyst TP HCM",
+    "junior backend developer Việt Nam",
+    "junior frontend developer React Việt Nam",
+    "junior fullstack developer Việt Nam",
+    "junior DevOps cloud engineer Việt Nam",
+    "junior mobile developer iOS Android Việt Nam",
+    "junior software engineer Đà Nẵng",
+    "junior QA automation engineer Việt Nam",
+
+    # ════════════════════════════════════════════════════════════
+    # MIDDLE / SENIOR (3+ năm)
+    # ════════════════════════════════════════════════════════════
+    "AI engineer middle senior Hà Nội",
+    "machine learning engineer senior Việt Nam",
+    "senior data scientist Việt Nam",
+    "senior backend engineer Python Java Việt Nam",
+    "senior frontend engineer React Việt Nam",
+    "senior fullstack engineer Việt Nam",
+    "middle senior DevOps cloud engineer Việt Nam",
+    "lead AI engineer Việt Nam",
+    "senior data engineer Việt Nam",
+    "senior software engineer Hà Nội TP HCM",
+    "middle senior mobile engineer iOS Android Việt Nam",
+    "senior machine learning engineer Vietnam",
+
+    # ════════════════════════════════════════════════════════════
+    # HỌC BỔNG
+    # ════════════════════════════════════════════════════════════
+    "học bổng CNTT AI sinh viên Việt Nam 2026",
+    "học bổng kỹ thuật phần mềm sinh viên 2026",
+    "VinIF học bổng 2026",
+    "scholarship CNTT AI Vietnam 2026",
+
+    # ════════════════════════════════════════════════════════════
+    # MỞ RỘNG — thêm để corpus lên ~200 tin.
+    #
+    # Query cũ bị chụm vào một nhóm hẹp (AI/data/web ở Hà Nội + TP.HCM), nên đào
+    # sâu thêm trang chỉ trả về đúng mấy tin đã thấy. Muốn NHIỀU tin thì phải nới
+    # theo hai trục Google Jobs thật sự phân biệt được: NGĂN XẾP công nghệ và
+    # THÀNH PHỐ. Nới theo level thì không ăn thua — "junior X" và "fresher X" trả
+    # về gần như cùng một tập.
+    #
+    # Vẫn nằm trong lĩnh vực hệ thống phục vụ (IT/data/AI): mọi tin về sau còn
+    # phải qua `_lien_quan_ai`, nên query lạc ngành chỉ tốn quota chứ không làm
+    # bẩn được corpus.
+    # ════════════════════════════════════════════════════════════
+    # — ngăn xếp chưa có query nào chạm tới —
+    "tuyển dụng lập trình viên Java Spring Boot Việt Nam",
+    "tuyển dụng lập trình viên .NET C# Việt Nam",
+    "tuyển dụng lập trình viên PHP Laravel Việt Nam",
+    "tuyển dụng lập trình viên Golang Việt Nam",
+    "tuyển dụng lập trình viên NodeJS Việt Nam",
+    "tuyển dụng lập trình viên React Vue Angular Việt Nam",
+    "tuyển dụng lập trình viên Flutter React Native Việt Nam",
+    "tuyển dụng lập trình nhúng embedded C++ Việt Nam",
+    "tuyển dụng kỹ sư dữ liệu data warehouse ETL Việt Nam",
+    "tuyển dụng business intelligence Power BI Tableau Việt Nam",
+    "tuyển dụng kỹ sư an toàn thông tin security Việt Nam",
+    "tuyển dụng lập trình game Unity Unreal Việt Nam",
+    "tuyển dụng blockchain web3 developer Việt Nam",
+    "tuyển dụng kiểm thử phần mềm QA QC automation Việt Nam",
+    "tuyển dụng system admin SRE linux Việt Nam",
+    "tuyển dụng AI engineer LLM generative AI Việt Nam",
+    "tuyển dụng prompt engineer AI product Việt Nam",
+    "tuyển dụng data analyst business analyst IT Việt Nam",
+
+    # — thành phố ngoài Hà Nội / TP.HCM —
+    "tuyển dụng IT lập trình viên Đà Nẵng",
+    "thực tập sinh CNTT Đà Nẵng",
+    "tuyển dụng IT lập trình viên Cần Thơ",
+    "tuyển dụng IT lập trình viên Huế",
+    "tuyển dụng IT lập trình viên Bình Dương Đồng Nai",
+    "tuyển dụng IT lập trình viên Hải Phòng",
+    "tuyển dụng IT phần mềm Nha Trang Quy Nhơn",
+    "việc làm IT remote làm việc từ xa Việt Nam",
+
+    # — công ty lớn hay tuyển sinh viên, tin thường không lên đầu query chung —
+    "FPT Software tuyển thực tập sinh fresher",
+    "Viettel VNPT tuyển kỹ sư phần mềm AI",
+    "VNG Zalo tuyển engineer intern fresher",
+    "Samsung LG tuyển kỹ sư phần mềm Việt Nam",
+    "ngân hàng tuyển IT data analyst Việt Nam",
+
+    # — học bổng, nới thêm vì 4 query cũ ra rất ít —
+    "học bổng du học thạc sĩ khoa học máy tính",
+    "học bổng nghiên cứu trí tuệ nhân tạo sinh viên",
+    "scholarship computer science students Vietnam",
 ]
 
 
@@ -415,102 +560,187 @@ def _serpapi(params: dict) -> dict:
         return json.loads(resp.read())
 
 
-def crawl_google_jobs(gioi_han: int = 50) -> list[dict]:
-    """Dùng SerpAPI để tìm Google Jobs."""
+def _token_trang_sau(results: dict) -> str | None:
+    """Token trang kế tiếp, chấp nhận vài chỗ SerpAPI từng đặt nó.
+
+    Đọc nhiều khoá vì hình dạng response của engine google_jobs đã đổi qua các
+    đời API (khi thì `serpapi_pagination.next_page_token`, khi thì ở gốc). Dò cả
+    hai rồi mới chịu dừng — đoán sai một khoá là mất hết trang 2 trở đi mà không
+    có lỗi nào báo, chỉ thấy ít tin hơn mong đợi.
+    """
+    for o in (results.get("serpapi_pagination"), results.get("pagination"), results):
+        if isinstance(o, dict) and o.get("next_page_token"):
+            return o["next_page_token"]
+    return None
+
+
+def crawl_google_jobs(gioi_han: int = 50, so_trang: int = 3, ngan_sach: int = 0,
+                      da_co: set | None = None) -> list[dict]:
+    """Dùng SerpAPI để tìm Google Jobs.
+
+    `so_trang` = số trang đọc MỖI query. MỖI TRANG LÀ MỘT SEARCH tính vào quota.
+    `ngan_sach` = trần cứng số search được phép gọi (0 = không chặn, chỉ chịu trần
+    len(QUERIES) × so_trang). `da_co` = khoá của tin đã nằm sẵn trong corpus, để
+    chế độ --gop không đếm lại tin cũ thành tin mới.
+
+    QUÉT RỘNG TRƯỚC, ĐÀO SÂU SAU — vòng lặp ngoài là TRANG, vòng trong là QUERY.
+    Bản trước chạy ngược lại (xong hết trang của query 1 rồi mới sang query 2).
+    Với danh sách query dài mà quota thì hữu hạn, cách đó tiêu sạch ngân sách vào
+    mấy query đầu bảng rồi chết trước khi chạm tới nhóm cuối — mà nhóm cuối chính
+    là mấy query mở rộng (Đà Nẵng, embedded, học bổng) chứa tin KHÔNG query nào
+    khác trả về. Quét rộng trước thì lúc hết ngân sách ta mất phần SÂU (trang 2, 3
+    — vốn trùng lặp nhiều nhất), chứ không mất nguyên một mảng lĩnh vực.
+    """
     if not SERPAPI_KEY:
         print("  ✗ Chưa có SERPAPI_KEY. Đặt vào .env rồi chạy lại.")
         print("    Đăng ký miễn phí tại: https://serpapi.com/ (100 search/tháng)")
         return []
 
-    print(f"\n[Google Jobs / SerpAPI] Đang crawl ({len(QUERIES)} queries)...")
-    ket_qua = []
-    seen_titles = set()
+    tran = len(QUERIES) * so_trang
+    if ngan_sach:
+        tran = min(tran, ngan_sach)
+    print(f"\n[Google Jobs / SerpAPI] {len(QUERIES)} query × tối đa {so_trang} trang")
+    print(f"  Ngân sách: tối đa {tran} search"
+          + (f" (trần --ngan-sach {ngan_sach})" if ngan_sach else "")
+          + f". Mục tiêu {gioi_han} tin. Dừng sớm nếu đủ tin hoặc hết trang.")
 
-    for query in QUERIES:
+    ket_qua: list[dict] = []
+    seen_titles: set = set(da_co or ())
+    thong_ke = {"trung": 0, "sai_linh_vuc": 0, "khong_tieu_de": 0}
+    da_goi = 0
+    het_quota = False
+    token: dict[str, str | None] = {q: None for q in QUERIES}   # None = chưa đọc trang nào
+    con_trang = list(QUERIES)                                   # query vẫn còn trang để đọc
+
+    for trang in range(1, so_trang + 1):
+        if not con_trang or het_quota or len(ket_qua) >= gioi_han:
+            break
+        print(f"\n  ── Lượt {trang}: đọc trang {trang} của {len(con_trang)} query ──")
+        ke_tiep = []
+
+        for query in con_trang:
+            if het_quota or len(ket_qua) >= gioi_han or da_goi >= tran:
+                break
+
+            params = {
+                "engine": "google_jobs",
+                "q": query,
+                "hl": "vi",
+                "gl": "vn",
+                "api_key": SERPAPI_KEY,
+                "chips": "date_posted:month",  # chỉ tin trong 1 tháng gần đây
+            }
+            if token[query]:
+                params["next_page_token"] = token[query]
+
+            try:
+                results = _serpapi(params)
+                da_goi += 1
+            except Exception as e:
+                print(f"  ✗ '{query[:34]}' trang {trang}: {type(e).__name__}: {str(e)[:60]}")
+                continue
+
+            # SerpAPI báo lỗi trong JSON (hết quota, key sai) chứ không phải HTTP 4xx.
+            if results.get("error"):
+                loi = results["error"]
+                # "hasn't returned any results" = query này không có tin, KHÔNG phải
+                # lỗi hệ thống. Gộp nó vào nhánh hết-quota là tự dừng cả lượt crawl
+                # chỉ vì một query rỗng.
+                if "run out" in loi.lower() or "quota" in loi.lower():
+                    print(f"  ✗ HẾT QUOTA sau {da_goi} search: {loi[:70]}")
+                    print("    → Dừng crawl, giữ nguyên tin đã lấy được.")
+                    het_quota = True
+                    break
+                print(f"  · '{query[:34]}' trang {trang}: {loi[:60]}")
+                continue
+
+            jobs = results.get("jobs_results", [])
+            if not jobs:
+                continue
+
+            them = _nap_jobs(jobs, ket_qua, seen_titles, gioi_han, thong_ke)
+            print(f"  '{query[:34]}' t{trang}: {len(jobs)} jobs → +{them} "
+                  f"(tổng {len(ket_qua)}/{gioi_han}, search {da_goi}/{tran})")
+
+            tk = _token_trang_sau(results)
+            if tk:
+                token[query] = tk
+                ke_tiep.append(query)       # còn trang → cho vào lượt sau
+            time.sleep(0.5)   # SerpAPI không cần delay nhiều như crawl trực tiếp
+
+        con_trang = ke_tiep
+
+    # In luôn chỗ hao hụt. Không có bảng này thì "crawl 170 search ra 200 tin" là
+    # con số mù: không biết nên thêm query (nếu rụng vì TRÙNG) hay nên sửa filter
+    # (nếu rụng vì SAI LĨNH VỰC), nên lần chỉnh sau chỉ còn nước đoán.
+    print(f"\n  → đã gọi {da_goi} search · giữ {len(ket_qua)} tin")
+    print(f"    hao hụt: {thong_ke['trung']} trùng · "
+          f"{thong_ke['sai_linh_vuc']} sai lĩnh vực · "
+          f"{thong_ke['khong_tieu_de']} thiếu tiêu đề")
+    return ket_qua
+
+
+def _nap_jobs(jobs: list, ket_qua: list, seen_titles: set, gioi_han: int,
+              thong_ke: dict | None = None) -> int:
+    """Lọc + nạp một trang kết quả vào `ket_qua`. Trả số tin thêm được.
+
+    Tách khỏi crawl_google_jobs() để vòng lặp phân trang gọi lại được — `seen_titles`
+    dùng chung nên tin trùng giữa các TRANG và giữa các QUERY đều bị loại một lần.
+    """
+    tk = thong_ke if thong_ke is not None else {}
+    them = 0
+    for j in jobs:
         if len(ket_qua) >= gioi_han:
             break
 
-        params = {
-            "engine": "google_jobs",
-            "q": query,
-            "hl": "vi",
-            "gl": "vn",
-            "api_key": SERPAPI_KEY,
-            "chips": "date_posted:month",  # chỉ tin trong 1 tháng gần đây
-        }
+        title = _sach(j.get("title", ""))
+        company = _sach(j.get("company_name", "Không rõ"))
+        location = _sach(j.get("location", ""))
+        # KHÔNG _sach() ở đây: nó gộp mọi khoảng trắng kể cả xuống dòng, mà xuống
+        # dòng chính là ranh giới ý trong mô tả — _tach_dong() cần giữ để cắt dòng.
+        description = j.get("description") or ""
+        highlights = j.get("job_highlights", [])   # list [{title, items}]
+        extensions = j.get("extensions", [])        # ["Full-time", "Work from home"...]
+        detected = j.get("detected_extensions", {})
+        ngay_dang = _sach(detected.get("posted_at", ""))   # NGÀY ĐĂNG, không phải hạn nộp
 
-        try:
-            results = _serpapi(params)
-        except Exception as e:
-            print(f"  ✗ query '{query}': {type(e).__name__}: {str(e)[:80]}")
+        if not title:
+            tk["khong_tieu_de"] = tk.get("khong_tieu_de", 0) + 1
             continue
 
-        # SerpAPI báo lỗi trong JSON (hết quota, key sai) chứ không phải HTTP 4xx.
-        if results.get("error"):
-            print(f"  ✗ query '{query}': SerpAPI báo lỗi — {results['error']}")
-            if "run out" in results["error"].lower() or "quota" in results["error"].lower():
-                print("    → Hết quota tháng. Dừng crawl, giữ nguyên tin đã lấy được.")
-                break
+        key = _kd(title + company)
+        if key in seen_titles:
+            tk["trung"] = tk.get("trung", 0) + 1
+            continue
+        seen_titles.add(key)
+
+        if not _lien_quan_ai(title, description):
+            tk["sai_linh_vuc"] = tk.get("sai_linh_vuc", 0) + 1
             continue
 
-        jobs = results.get("jobs_results", [])
-        if not jobs:
-            print(f"  query '{query}': 0 kết quả")
-            continue
+        # SerpAPI trả apply_options[0].link hoặc share_link.
+        # apply_options mới thật sự trỏ vào ĐÚNG tin → mức "tin";
+        # share_link chỉ là trang kết quả Google → để máy tự xếp mức.
+        apply_opts = j.get("apply_options") or []
+        url = _sach(apply_opts[0].get("link") if apply_opts else None)
+        url_loai = "tin" if url else ""
+        if not url:
+            url = _sach(j.get("share_link", ""))
+        raw_text = _to_raw_text(
+            title, company, highlights, extensions, location,
+            mo_ta=description, ngay_dang=ngay_dang
+        )
+        ket_qua.append({
+            "title": title,
+            "company": company,
+            "url": url,
+            "url_loai": url_loai,
+            "raw_text": raw_text,
+            "nguon": "google_jobs",
+        })
+        them += 1
 
-        them = 0
-        for j in jobs:
-            if len(ket_qua) >= gioi_han:
-                break
-
-            title = _sach(j.get("title", ""))
-            company = _sach(j.get("company_name", "Không rõ"))
-            location = _sach(j.get("location", ""))
-            # KHÔNG _sach() ở đây: nó gộp mọi khoảng trắng kể cả xuống dòng, mà xuống
-            # dòng chính là ranh giới ý trong mô tả — _tach_dong() cần giữ để cắt dòng.
-            description = j.get("description") or ""
-            highlights = j.get("job_highlights", [])   # list [{title, items}]
-            extensions = j.get("extensions", [])        # ["Full-time", "Work from home"...]
-            detected = j.get("detected_extensions", {})
-            ngay_dang = _sach(detected.get("posted_at", ""))   # NGÀY ĐĂNG, không phải hạn nộp
-
-            if not title:
-                continue
-
-            key = _kd(title + company)
-            if key in seen_titles:
-                continue
-            seen_titles.add(key)
-
-            if not _lien_quan_ai(title, description):
-                continue
-
-            # SerpAPI trả apply_options[0].link hoặc share_link.
-            # apply_options mới thật sự trỏ vào ĐÚNG tin → mức "tin";
-            # share_link chỉ là trang kết quả Google → để máy tự xếp mức.
-            apply_opts = j.get("apply_options") or []
-            url = _sach(apply_opts[0].get("link") if apply_opts else None)
-            url_loai = "tin" if url else ""
-            if not url:
-                url = _sach(j.get("share_link", ""))
-            raw_text = _to_raw_text(
-                title, company, highlights, extensions, location,
-                mo_ta=description, ngay_dang=ngay_dang
-            )
-            ket_qua.append({
-                "title": title,
-                "company": company,
-                "url": url,
-                "url_loai": url_loai,
-                "raw_text": raw_text,
-                "nguon": "google_jobs",
-            })
-            them += 1
-
-        print(f"  '{query[:40]}': {len(jobs)} jobs → thêm {them} tin (tổng {len(ket_qua)})")
-        time.sleep(0.5)  # SerpAPI không cần delay nhiều như crawl trực tiếp
-
-    return ket_qua
+    return them
 
 
 # ── mock data (không cần API key, để test flow) ───────────────────────────────
@@ -699,11 +929,32 @@ def crawl_mock() -> list[dict]:
 
 # ── gộp và ghi corpus ─────────────────────────────────────────────────────────
 
+def _khoa_tin(t: dict) -> str:
+    """Khoá nhận dạng một tin: tiêu đề + tổ chức, đã bỏ dấu.
+
+    PHẢI ĐỌC ĐƯỢC CẢ HAI HÌNH DẠNG. Tin vừa crawl còn field `company`, nhưng tin
+    đã nằm trong corpus thì KHÔNG — main() gọi `t.pop("company")` trước khi ghi.
+    Chế độ --gop so tin mới với tin cũ, nên khoá phải khớp nhau ở cả hai phía;
+    chỉ đọc `t["company"]` thì mọi tin cũ có khoá kết thúc bằng rỗng và không tin
+    trùng nào bị bắt — corpus sẽ có hai bản của cùng một tin, ID khác nhau.
+
+    Tin cũ vẫn giữ tổ chức ở dòng đầu raw_text, dạng "[tiêu đề — tổ chức]" do
+    `_to_raw_text` sinh ra, nên moi ngược lại được. Tách bằng rsplit vì tiêu đề
+    tuyển dụng có thể tự chứa dấu gạch; phần sau dấu gạch CUỐI mới là tổ chức.
+    """
+    cty = t.get("company")
+    if cty is None:
+        dong_dau = (t.get("raw_text") or "").split("\n", 1)[0].strip()
+        if dong_dau.startswith("[") and dong_dau.endswith("]") and " — " in dong_dau:
+            cty = dong_dau[1:-1].rsplit(" — ", 1)[1]
+    return _kd(t.get("title", "") + (cty or ""))
+
+
 def loai_trung(tin_list: list[dict]) -> list[dict]:
     seen = set()
     out = []
     for t in tin_list:
-        key = _kd(t["title"] + t.get("company", ""))
+        key = _khoa_tin(t)
         if key not in seen:
             seen.add(key)
             out.append(t)
@@ -765,8 +1016,17 @@ def main():
     parser = argparse.ArgumentParser(description="Crawler tin thực tập/học bổng thật")
     parser.add_argument("--preview", action="store_true",
                         help="In ra màn hình, không ghi file")
-    parser.add_argument("--gioi-han", type=int, default=50,
-                        help="Số tin thật tối đa (mặc định 50)")
+    parser.add_argument("--gioi-han", type=int, default=300,
+                        help="Số tin thật tối đa (mặc định 300)")
+    parser.add_argument("--trang", type=int, default=3,
+                        help="Số trang đọc mỗi query (mặc định 3). MỖI TRANG TỐN 1 SEARCH: "
+                             "tổng = số query × số trang. Free tier 100 search/tháng.")
+    parser.add_argument("--ngan-sach", type=int, default=0,
+                        help="Trần CỨNG số search SerpAPI được gọi (0 = không chặn). "
+                             "Đặt bằng số search còn lại trong tháng để không vỡ quota.")
+    parser.add_argument("--gop", action="store_true",
+                        help="GỘP tin mới vào tin REAL-* sẵn có thay vì thay sạch. "
+                             "Tin trùng (cùng tiêu đề + tổ chức) chỉ giữ bản cũ.")
     parser.add_argument("--mock", action="store_true",
                         help="Dùng data mẫu thay vì gọi API (không cần SERPAPI_KEY)")
     parser.add_argument("--bo-qua-kiem-url", action="store_true",
@@ -781,24 +1041,81 @@ def main():
     if args.phan_loai_lai:
         return phan_loai_lai(args.preview)
 
+    # --gop: nạp tin REAL-* sẵn có TRƯỚC khi crawl, để đưa khoá của chúng vào bộ
+    # lọc trùng. Không làm vậy thì crawler tiêu quota vào đúng mấy tin đã nằm
+    # trong corpus rồi mới vứt đi ở bước loai_trung() — trả tiền search cho thứ
+    # mình đã có. `gioi_han` cũng phải trừ đi phần đã có, vì nó đếm TỔNG tin REAL
+    # muốn có trong corpus chứ không phải số tin crawl thêm.
+    cu_real: list[dict] = []
+    corpus_path = D / "corpus.json"
+    if args.gop and corpus_path.exists():
+        try:
+            cu = json.loads(corpus_path.read_text(encoding="utf-8"))["postings"]
+            cu_real = [t for t in cu if str(t.get("id", "")).startswith("REAL-")]
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"  ⚠ corpus.json cũ đọc không được ({e}) — --gop bỏ qua, crawl mới.")
+
+        # LỌC LẠI TIN CŨ BẰNG LUẬT HIỆN TẠI, không cho đi thẳng vào corpus.
+        # `_lien_quan_ai` là luật KẾT NẠP của corpus, không phải một bước trong
+        # đường ống crawl — tin sai lĩnh vực thì sai bất kể nó vào từ lần chạy nào.
+        # Bản đầu của --gop cho tin cũ đi vòng qua đây, nên ba tin rác đã lọt từ
+        # đợt crawl trước ("Intern - Tax", "Thực tập sinh Quản lý thiết kế",
+        # "Supply Chain Analyst") được giữ nguyên: cùng một corpus mà tin cũ theo
+        # luật cũ, tin mới theo luật mới. Sửa filter mà tin cũ không bị soi lại thì
+        # sửa cũng bằng thừa.
+        bo = [t for t in cu_real if not _lien_quan_ai(t["title"], t["raw_text"])]
+        if bo:
+            print(f"\n[Gộp] LOẠI {len(bo)} tin cũ không qua được luật lĩnh vực hiện tại:")
+            for t in bo:
+                print(f"  ✗ [{t['id']}] {t['title'][:60]}")
+            cu_real = [t for t in cu_real if t not in bo]
+    can_them = max(0, args.gioi_han - len(cu_real))
+    if args.gop:
+        print(f"[Gộp] Đã có {len(cu_real)} tin REAL-* → cần crawl thêm {can_them} "
+              f"tin để đạt {args.gioi_han}.")
+
     if args.mock or not SERPAPI_KEY:
         if not SERPAPI_KEY and not args.mock:
             print("⚠ Chưa có SERPAPI_KEY → tự động dùng --mock mode")
             print("  Đặt SERPAPI_KEY=your_key vào codebase/.env để crawl tin thật")
             print("  Đăng ký miễn phí (100 search/tháng): https://serpapi.com/\n")
         tin_moi = crawl_mock()
+    elif args.gop and can_them == 0:
+        print("[Gộp] Đã đủ tin, không cần gọi API.")
+        tin_moi = []
     else:
         print(f"Giới hạn: {args.gioi_han} tin thật | API: SerpAPI Google Jobs")
-        tin_moi = crawl_google_jobs(args.gioi_han)
+        tin_moi = crawl_google_jobs(
+            can_them if args.gop else args.gioi_han, args.trang,
+            ngan_sach=args.ngan_sach,
+            da_co={_khoa_tin(t) for t in cu_real},
+        )
 
-    tin_moi = loai_trung(tin_moi)[: args.gioi_han]
+    tin_moi = loai_trung(tin_moi)[: max(0, args.gioi_han - len(cu_real))]
 
-    # Chuẩn hóa format
+    # Gộp tin cũ lên TRƯỚC tin mới rồi đánh số lại toàn bộ. Tin cũ giữ nguyên nội
+    # dung (không crawl lại), chỉ đổi ID và được kiểm URL lại cùng lượt bên dưới —
+    # link mục nào chết trong thời gian qua thì lần này bị xoá đúng như tin mới.
+    if args.gop and cu_real:
+        tin_moi = loai_trung(cu_real + tin_moi)
+
+    # Chuẩn hóa format.
+    #
+    # `nguon`/`_nguon` và `_crawled_at`: tin VỪA crawl khai field `nguon`, tin lấy
+    # lại từ corpus (--gop) đã đổi tên thành `_nguon` từ lần chạy trước. Ghi đè
+    # thẳng như bản cũ thì mọi tin cũ thành `_nguon="unknown"` và `_crawled_at`
+    # thành giờ hiện tại — tức là khai man rằng tin crawl từ tháng trước vừa được
+    # lấy về lúc nãy. Đúng loại khẳng định không kiểm được mà hệ thống này tồn tại
+    # để chặn, nên chỉ đặt khi tin THẬT SỰ mới.
+    bay_gio = datetime.now().strftime("%Y-%m-%d %H:%M")
     for i, t in enumerate(tin_moi, start=1):
         t["id"] = f"REAL-{i:03d}"
         t["kind"], t["cap_do"] = _phan_loai(t["title"], t["raw_text"])
-        t["_nguon"] = t.pop("nguon", "unknown")
-        t["_crawled_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+        if "nguon" in t or not t.get("_nguon"):
+            t["_nguon"] = t.pop("nguon", "unknown")
+            t["_crawled_at"] = bay_gio
+        t.pop("nguon", None)
+        t.setdefault("_crawled_at", bay_gio)
         t["url"] = t.get("url") or ""   # link gốc để user click
         t.setdefault("url_loai", "")
         t.pop("company", None)
@@ -820,8 +1137,6 @@ def main():
     if args.preview:
         print("\n--preview: không ghi file.")
         return
-
-    corpus_path = D / "corpus.json"
 
     # GIỮ LẠI TIN OPP-*, CHỈ THAY TIN REAL-*.
     # Bản cũ ghi đè sạch corpus.json, mà gen_corpus.py cũng ghi đè sạch chính file đó —
