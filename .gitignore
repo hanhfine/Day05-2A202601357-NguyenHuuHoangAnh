@@ -4,6 +4,7 @@ node_modules/
 .env
 __pycache__/
 *.pyc
+.venv/
 
 # Data pack được cấp — KHÔNG commit vào repo nộp bài (README mục Bảo mật dữ liệu).
 # LƯU Ý: 10 file trong data/vlearn-pack/ HIỆN ĐANG được git theo dõi (do commit của
